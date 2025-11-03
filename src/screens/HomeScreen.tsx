@@ -25,6 +25,8 @@ import DesignScreen from './DesignScreen';
 import HistoryScreen from './HistoryScreen';
 import SettingsScreen from './SettingsScreen';
 import SubscriptionScreen from './SubscriptionScreen';
+import InteriorsListScreen from './InteriorsListScreen';
+import ExteriorsListScreen from './ExteriorsListScreen';
 
 // Custom Fence Icon Component (Three Vertical Bars)
 const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
@@ -38,7 +40,7 @@ const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'History'>('Home');
-  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription'>('Tabs');
+  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors'>('Tabs');
 
   // Reanimated shared values
   const scrollY = useSharedValue(0);
@@ -173,6 +175,10 @@ const HomeScreen = () => {
         <SubscriptionScreen onBack={() => setCurrentRoute('Settings')} />
       ) : currentRoute === 'Settings' ? (
         <SettingsScreen onBack={() => setCurrentRoute('Tabs')} onUpgrade={() => setCurrentRoute('Subscription')} />
+      ) : currentRoute === 'Interiors' ? (
+        <InteriorsListScreen onBack={() => setCurrentRoute('Tabs')} />
+      ) : currentRoute === 'Exteriors' ? (
+        <ExteriorsListScreen onBack={() => setCurrentRoute('Tabs')} />
       ) : activeTab === 'Home' ? (
         <Animated.ScrollView
           style={styles.scrollView}
@@ -225,7 +231,7 @@ const HomeScreen = () => {
           </View>
         </Animated.ScrollView>
       ) : activeTab === 'Design' ? (
-        <DesignScreen />
+        <DesignScreen onOpenInteriors={() => setCurrentRoute('Interiors')} onOpenExteriors={() => setCurrentRoute('Exteriors')} />
       ) : (
         <HistoryScreen />
       )}

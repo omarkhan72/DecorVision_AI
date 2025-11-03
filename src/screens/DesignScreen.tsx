@@ -20,19 +20,25 @@ const Card = ({ image, count, label }: { image: any; count: number; label: strin
   </View>
 );
 
-const DesignScreen = () => {
+type Props = { onOpenInteriors?: () => void; onOpenExteriors?: () => void };
+
+const DesignScreen = ({ onOpenInteriors, onOpenExteriors }: Props) => {
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.headerTitle}>Design</Text>
+      <Text style={styles.headerTitle}>Designs Templates :</Text>
 
       <View style={styles.section}>
         <SectionHeader title={"Interior Inspiration's"} />
-        <Card image={require('../assets/images/interior-design.jpg')} count={82} label="Living Room" />
+        <TouchableOpacity activeOpacity={0.9} onPress={onOpenInteriors}>
+          <Card image={require('../assets/images/interior-design.jpg')} count={82} label="Living Room" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
         <SectionHeader title={"Exterior Inspiration's"} />
-        <Card image={require('../assets/images/exterior-design.jpg')} count={75} label="House" />
+        <TouchableOpacity activeOpacity={0.9} onPress={onOpenExteriors}>
+          <Card image={require('../assets/images/exterior-design.jpg')} count={75} label="House" />
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
