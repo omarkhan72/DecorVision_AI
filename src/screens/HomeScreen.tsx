@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import DesignScreen from './DesignScreen';
+import HistoryScreen from './HistoryScreen';
+import SettingsScreen from './SettingsScreen';
+import SubscriptionScreen from './SubscriptionScreen';
 
 // Custom Fence Icon Component (Three Vertical Bars)
 const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
@@ -24,6 +28,8 @@ const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
 
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
+  const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'History'>('Home');
+  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription'>('Tabs');
 
   const categories = [
     { name: 'Interior Design', icon: 'couch', isCustom: false }, // Sofa icon
@@ -86,7 +92,8 @@ const HomeScreen = () => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      {/* Header */}
+      {/* Header (hidden on Settings & Subscription routes) */}
+      {currentRoute === 'Tabs' && (
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           <View style={styles.logoIconWrapper}>
@@ -102,76 +109,93 @@ const HomeScreen = () => {
             <FontAwesome name="star" size={16} color="#FFD700" style={{ marginRight: 6 }} />
             <Text style={styles.proButtonText}>Pro</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.settingsButton}>
+          <TouchableOpacity style={styles.settingsButton} onPress={() => setCurrentRoute('Settings')}>
             <FontAwesome5 name="cog" size={24} color="#1A1A1A" solid={false} />
           </TouchableOpacity>
         </View>
       </View>
+      )}
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        {/* Category Navigation - Horizontal ScrollView */}
-        <View style={styles.categorySection}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryContainer}
-            style={styles.categoryScrollView}>
-            {categories.map((category, index) => (
-              <TouchableOpacity key={index} style={styles.categoryButton}>
-                <View style={styles.categoryIconContainer}>
-                  {category.isCustom ? (
-                    <FenceIcon size={18} color="#FFFFFF" />
-                  ) : (
-                    <FontAwesome
-                      name={category.icon}
-                      size={18}
-                      color="#FFFFFF"
-                    />
-                  )}
+      {currentRoute === 'Subscription' ? (
+        <SubscriptionScreen onBack={() => setCurrentRoute('Settings')} />
+      ) : currentRoute === 'Settings' ? (
+        <SettingsScreen onBack={() => setCurrentRoute('Tabs')} onUpgrade={() => setCurrentRoute('Subscription')} />
+      ) : activeTab === 'Home' ? (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}>
+          {/* Category Navigation - Horizontal ScrollView */}
+          <View style={styles.categorySection}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryContainer}
+              style={styles.categoryScrollView}>
+              {categories.map((category, index) => (
+                <TouchableOpacity key={index} style={styles.categoryButton}>
+                  <View style={styles.categoryIconContainer}>
+                    {category.isCustom ? (
+                      <FenceIcon size={18} color="#FFFFFF" />
+                    ) : (
+                      <FontAwesome
+                        name={category.icon}
+                        size={18}
+                        color="#FFFFFF"
+                      />
+                    )}
+                  </View>
+                  <Text style={styles.categoryText}>{category.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Feature Cards */}
+          <View style={styles.cardsContainer}>
+            {featureCards.map((card) => (
+              <TouchableOpacity key={card.id} style={styles.card}>
+                <Image source={card.image} style={styles.cardImage} />
+                <View style={styles.cardContent}>
+                  <View style={styles.cardTextContainer}>
+                    <Text style={styles.cardTitle}>{card.title}</Text>
+                    <Text style={styles.cardDescription}>{card.description}</Text>
+                  </View>
+                  <FontAwesome name="chevron-right" size={20} color="#1A1A1A" />
                 </View>
-                <Text style={styles.categoryText}>{category.name}</Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
-        </View>
-
-        {/* Feature Cards */}
-        <View style={styles.cardsContainer}>
-          {featureCards.map((card) => (
-            <TouchableOpacity key={card.id} style={styles.card}>
-              <Image source={card.image} style={styles.cardImage} />
-              <View style={styles.cardContent}>
-                <View style={styles.cardTextContainer}>
-                  <Text style={styles.cardTitle}>{card.title}</Text>
-                  <Text style={styles.cardDescription}>{card.description}</Text>
-                </View>
-                <FontAwesome name="chevron-right" size={20} color="#1A1A1A" />
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+          </View>
+        </ScrollView>
+      ) : activeTab === 'Design' ? (
+        <DesignScreen />
+      ) : (
+        <HistoryScreen />
+      )}
 
       {/* Bottom Navigation */}
-      <View style={[styles.bottomNav, { paddingBottom: insets.bottom }]}>
-        <TouchableOpacity style={styles.navItem}>
-          <View style={styles.navIconContainerActive}>
-            <FontAwesome name="home" size={24} color="#8B5CF6" />
+      {currentRoute === 'Tabs' && (
+      <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('Home')}>
+          <View style={activeTab === 'Home' ? styles.navIconContainerActive : styles.navIconContainerInactive}>
+            <FontAwesome name="home" size={20} color={activeTab === 'Home' ? '#8B5CF6' : '#1A1A1A'} />
           </View>
-          <Text style={[styles.navText, styles.navTextActive]}>Home</Text>
+          <Text style={[styles.navText, activeTab === 'Home' && styles.navTextActive]}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <FontAwesome name="th" size={24} color="#1A1A1A" />
-          <Text style={styles.navText}>Design</Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('Design')}>
+          <View style={activeTab === 'Design' ? styles.navIconContainerActive : styles.navIconContainerInactive}>
+            <MaterialCommunityIcons name="brush" size={18} color={activeTab === 'Design' ? '#8B5CF6' : '#1A1A1A'} />
+          </View>
+          <Text style={[styles.navText, activeTab === 'Design' && styles.navTextActive]}>Design</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <FontAwesome name="clock-o" size={24} color="#1A1A1A" />
-          <Text style={styles.navText}>History</Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('History')}>
+          <View style={activeTab === 'History' ? styles.navIconContainerActive : styles.navIconContainerInactive}>
+            <FontAwesome name="history" size={18} color={activeTab === 'History' ? '#8B5CF6' : '#1A1A1A'} />
+          </View>
+          <Text style={[styles.navText, activeTab === 'History' && styles.navTextActive]}>History</Text>
         </TouchableOpacity>
       </View>
+      )}
     </View>
   );
 };
@@ -243,7 +267,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 120,
     backgroundColor: '#FFFFFF',
   },
   categorySection: {
@@ -331,14 +355,24 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   bottomNav: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 12,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingTop: 8,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    backgroundColor: '#F7F8FB',
+    paddingVertical: 2,
+    paddingHorizontal: 10,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#EDF0F4',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 6,
   },
   navItem: {
     alignItems: 'center',
@@ -346,10 +380,19 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   navIconContainerActive: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#EDE9FE',
+    width: 28,
+    height: 28,
+    borderRadius: 16,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  navIconContainerInactive: {
+    width: 28,
+    height: 28,
+    borderRadius: 16,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,
