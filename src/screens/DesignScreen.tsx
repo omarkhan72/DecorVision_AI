@@ -27,18 +27,12 @@ const DesignScreen = () => {
 
       <View style={styles.section}>
         <SectionHeader title={"Interior Inspiration's"} />
-        <View style={styles.row}>
-          <Card image={require('../assets/images/interior-design.jpg')} count={82} label="Living Rooms" />
-          <Card image={require('../assets/images/garden-design.jpg')} count={71} label="Bedroom" />
-        </View>
+        <Card image={require('../assets/images/interior-design.jpg')} count={82} label="Living Room" />
       </View>
 
       <View style={styles.section}>
         <SectionHeader title={"Exterior Inspiration's"} />
-        <View style={styles.row}>
-          <Card image={require('../assets/images/exterior-design.jpg')} count={75} label="House" />
-          <Card image={require('../assets/images/new-walls.jpg')} count={18} label="Garage" />
-        </View>
+        <Card image={require('../assets/images/exterior-design.jpg')} count={75} label="House" />
       </View>
     </ScrollView>
   );
@@ -83,13 +77,9 @@ const styles = StyleSheet.create({
     color: '#6D4DF6',
     fontWeight: '600',
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   card: {
-    width: '48%',
-    aspectRatio: 1,
+    width: '100%',
+    aspectRatio: 16 / 9,
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#F3F4F6',
@@ -100,11 +90,13 @@ const styles = StyleSheet.create({
   },
   cardOverlay: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    padding: 10,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    left: 8,
+    right: 8,
+    bottom: 8,
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
   cardCount: {
     color: '#FFFFFF',

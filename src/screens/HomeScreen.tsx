@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,15 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
+import Animated, {
+  Extrapolate,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
@@ -30,6 +39,50 @@ const HomeScreen = () => {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'History'>('Home');
   const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription'>('Tabs');
+
+  // Reanimated shared values
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler(event => {
+    scrollY.value = event.contentOffset.y;
+  });
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    const translateY = interpolate(scrollY.value, [0, 60], [0, -60], Extrapolate.CLAMP);
+    const opacity = interpolate(scrollY.value, [0, 40], [1, 0], Extrapolate.CLAMP);
+    return { transform: [{ translateY }], opacity };
+  });
+
+  const homeScale = useSharedValue(1);
+  const designScale = useSharedValue(1);
+  const historyScale = useSharedValue(1);
+
+  useEffect(() => {
+    homeScale.value = withTiming(activeTab === 'Home' ? 1.12 : 1, { duration: 180 });
+    designScale.value = withTiming(activeTab === 'Design' ? 1.12 : 1, { duration: 180 });
+    historyScale.value = withTiming(activeTab === 'History' ? 1.12 : 1, { duration: 180 });
+  }, [activeTab]);
+
+  const homeIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: homeScale.value }] }));
+  const designIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: designScale.value }] }));
+  const historyIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: historyScale.value }] }));
+
+  // Card bounce component
+  const BouncyCard = useMemo(() => {
+    return ({ children }: { children: React.ReactNode }) => {
+      const scale = useSharedValue(1);
+      const onPressIn = () => {
+        scale.value = withSpring(0.97, { damping: 18, stiffness: 220 });
+      };
+      const onPressOut = () => {
+        scale.value = withSpring(1, { damping: 18, stiffness: 220 });
+      };
+      const rStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+      return (
+        <TouchableOpacity activeOpacity={0.9} onPressIn={onPressIn} onPressOut={onPressOut}>
+          <Animated.View style={rStyle}>{children}</Animated.View>
+        </TouchableOpacity>
+      );
+    };
+  }, []);
 
   const categories = [
     { name: 'Interior Design', icon: 'couch', isCustom: false }, // Sofa icon
@@ -121,10 +174,12 @@ const HomeScreen = () => {
       ) : currentRoute === 'Settings' ? (
         <SettingsScreen onBack={() => setCurrentRoute('Tabs')} onUpgrade={() => setCurrentRoute('Subscription')} />
       ) : activeTab === 'Home' ? (
-        <ScrollView
+        <Animated.ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}>
+          showsVerticalScrollIndicator={false}
+          onScroll={onScroll}
+          scrollEventThrottle={16}>
           {/* Category Navigation - Horizontal ScrollView */}
           <View style={styles.categorySection}>
             <ScrollView
@@ -154,19 +209,21 @@ const HomeScreen = () => {
           {/* Feature Cards */}
           <View style={styles.cardsContainer}>
             {featureCards.map((card) => (
-              <TouchableOpacity key={card.id} style={styles.card}>
-                <Image source={card.image} style={styles.cardImage} />
-                <View style={styles.cardContent}>
-                  <View style={styles.cardTextContainer}>
-                    <Text style={styles.cardTitle}>{card.title}</Text>
-                    <Text style={styles.cardDescription}>{card.description}</Text>
+              <BouncyCard key={card.id}>
+                <View style={styles.card}>
+                  <Image source={card.image} style={styles.cardImage} />
+                  <View style={styles.cardContent}>
+                    <View style={styles.cardTextContainer}>
+                      <Text style={styles.cardTitle}>{card.title}</Text>
+                      <Text style={styles.cardDescription}>{card.description}</Text>
+                    </View>
+                    <FontAwesome name="chevron-right" size={20} color="#1A1A1A" />
                   </View>
-                  <FontAwesome name="chevron-right" size={20} color="#1A1A1A" />
                 </View>
-              </TouchableOpacity>
+              </BouncyCard>
             ))}
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
       ) : activeTab === 'Design' ? (
         <DesignScreen />
       ) : (
@@ -177,21 +234,21 @@ const HomeScreen = () => {
       {currentRoute === 'Tabs' && (
       <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('Home')}>
-          <View style={activeTab === 'Home' ? styles.navIconContainerActive : styles.navIconContainerInactive}>
+          <Animated.View style={[activeTab === 'Home' ? styles.navIconContainerActive : styles.navIconContainerInactive, homeIconStyle]}>
             <FontAwesome name="home" size={20} color={activeTab === 'Home' ? '#8B5CF6' : '#1A1A1A'} />
-          </View>
+          </Animated.View>
           <Text style={[styles.navText, activeTab === 'Home' && styles.navTextActive]}>Home</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('Design')}>
-          <View style={activeTab === 'Design' ? styles.navIconContainerActive : styles.navIconContainerInactive}>
+          <Animated.View style={[activeTab === 'Design' ? styles.navIconContainerActive : styles.navIconContainerInactive, designIconStyle]}>
             <MaterialCommunityIcons name="brush" size={18} color={activeTab === 'Design' ? '#8B5CF6' : '#1A1A1A'} />
-          </View>
+          </Animated.View>
           <Text style={[styles.navText, activeTab === 'Design' && styles.navTextActive]}>Design</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('History')}>
-          <View style={activeTab === 'History' ? styles.navIconContainerActive : styles.navIconContainerInactive}>
+          <Animated.View style={[activeTab === 'History' ? styles.navIconContainerActive : styles.navIconContainerInactive, historyIconStyle]}>
             <FontAwesome name="history" size={18} color={activeTab === 'History' ? '#8B5CF6' : '#1A1A1A'} />
-          </View>
+          </Animated.View>
           <Text style={[styles.navText, activeTab === 'History' && styles.navTextActive]}>History</Text>
         </TouchableOpacity>
       </View>
