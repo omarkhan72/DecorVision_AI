@@ -129,7 +129,7 @@ const InteriorUploadScreen = ({ onBack, onContinue }: Props) => {
         <Text style={styles.instructionText}>Upload a photo of your current room</Text>
 
         {/* Selected Image Preview */}
-        {selectedImage && (
+        {selectedImage ? (
           <View style={styles.previewContainer}>
             <Image source={{ uri: selectedImage }} style={styles.previewImage} />
             <TouchableOpacity
@@ -137,35 +137,40 @@ const InteriorUploadScreen = ({ onBack, onContinue }: Props) => {
               onPress={() => setSelectedImage(null)}>
               <FontAwesome name="times" size={16} color="#FFFFFF" />
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.changePhotoButton}
+              onPress={() => setSelectedImage(null)}>
+              <Text style={styles.changePhotoText}>Change Photo</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          /* Upload and Take Photo Buttons */
+          <View style={styles.buttonsRow}>
+            <TouchableOpacity
+              style={styles.uploadButton}
+              activeOpacity={0.9}
+              onPress={handleUploadPhoto}>
+              <View style={styles.buttonContent}>
+                <View style={styles.buttonIconContainer}>
+                  <MaterialCommunityIcons name="cloud-upload-outline" size={40} color="#000000" />
+                </View>
+                <Text style={styles.buttonText}>upload photo</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.takePhotoButton}
+              activeOpacity={0.9}
+              onPress={handleTakePhoto}>
+              <View style={styles.buttonContent}>
+                <View style={styles.buttonIconContainer}>
+                  <MaterialCommunityIcons name="camera-outline" size={40} color="#000000" />
+                </View>
+                <Text style={styles.buttonText}>Take photo</Text>
+              </View>
+            </TouchableOpacity>
           </View>
         )}
-
-        {/* Upload and Take Photo Buttons */}
-        <View style={styles.buttonsRow}>
-          <TouchableOpacity
-            style={styles.uploadButton}
-            activeOpacity={0.9}
-            onPress={handleUploadPhoto}>
-            <View style={styles.buttonContent}>
-              <View style={styles.buttonIconContainer}>
-                <MaterialCommunityIcons name="cloud-upload-outline" size={40} color="#000000" />
-              </View>
-              <Text style={styles.buttonText}>upload photo</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.takePhotoButton}
-            activeOpacity={0.9}
-            onPress={handleTakePhoto}>
-            <View style={styles.buttonContent}>
-              <View style={styles.buttonIconContainer}>
-                <MaterialCommunityIcons name="camera-outline" size={40} color="#000000" />
-              </View>
-              <Text style={styles.buttonText}>Take photo</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
 
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
@@ -309,6 +314,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  changePhotoButton: {
+    position: 'absolute',
+    bottom: 16,
+    left: '50%',
+    marginLeft: -70,
+    backgroundColor: 'rgba(139, 92, 246, 0.9)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    width: 140,
+    alignItems: 'center',
+  },
+  changePhotoText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
   buttonsRow: {
     flexDirection: 'row',

@@ -71,8 +71,22 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue }: Props) => {
               style={styles.styleCard}
               onPress={() => setSelectedStyle(styleItem.id)}
               activeOpacity={0.8}>
-              <Image source={styleItem.image} style={styles.styleImage} />
-              <Text style={styles.styleName}>{styleItem.name}</Text>
+              <View style={styles.imageContainer}>
+                <Image
+                  source={styleItem.image}
+                  style={styles.styleImage}
+                />
+                {selectedStyle === styleItem.id && (
+                  <View style={styles.selectedRing} />
+                )}
+              </View>
+              <Text
+                style={[
+                  styles.styleName,
+                  selectedStyle === styleItem.id && styles.styleNameSelected,
+                ]}>
+                {styleItem.name}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -183,18 +197,35 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     alignItems: 'center',
   },
+  imageContainer: {
+    position: 'relative',
+    marginBottom: 8,
+  },
   styleImage: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    marginBottom: 8,
     backgroundColor: '#F3F4F6',
+  },
+  selectedRing: {
+    position: 'absolute',
+    top: -6,
+    left: -6,
+    right: -6,
+    bottom: -6,
+    borderRadius: 51,
+    borderWidth: 3,
+    borderColor: '#8B5CF6',
   },
   styleName: {
     fontSize: 14,
     fontWeight: '600',
     color: '#1A1A1A',
     textAlign: 'center',
+  },
+  styleNameSelected: {
+    color: '#8B5CF6',
+    fontWeight: '700',
   },
   footer: {
     position: 'absolute',
