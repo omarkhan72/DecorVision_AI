@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,20 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Alert,
+  Platform,
+  PermissionsAndroid,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 
 type Props = { onBack: () => void; onContinue?: () => void };
 
 const InteriorUploadScreen = ({ onBack, onContinue }: Props) => {
   const insets = useSafeAreaInsets();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const sampleImages = [
     require('../assets/images/interior-design.jpg'),
@@ -22,6 +27,73 @@ const InteriorUploadScreen = ({ onBack, onContinue }: Props) => {
     require('../assets/images/interior-design.jpg'),
     require('../assets/images/interior-design.jpg'),
   ];
+
+  // Request camera permissions for Android
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: 'Camera Permission',
+            message: 'This app needs access to your camera to take photos',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Handle image picker response
+  const handleImageResponse = (response: ImagePickerResponse) => {
+    if (response.didCancel) {
+      return;
+    }
+    if (response.errorMessage) {
+      Alert.alert('Error', response.errorMessage);
+      return;
+    }
+    if (response.assets && response.assets[0]) {
+      setSelectedImage(response.assets[0].uri || null);
+    }
+  };
+
+  // Upload photo from gallery
+  const handleUploadPhoto = () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo' as MediaType,
+        quality: 0.8,
+        selectionLimit: 1,
+      },
+      handleImageResponse
+    );
+  };
+
+  // Take photo with camera
+  const handleTakePhoto = async () => {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Camera permission is required to take photos');
+      return;
+    }
+
+    launchCamera(
+      {
+        mediaType: 'photo' as MediaType,
+        quality: 0.8,
+        saveToPhotos: true,
+      },
+      handleImageResponse
+    );
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -56,9 +128,24 @@ const InteriorUploadScreen = ({ onBack, onContinue }: Props) => {
         {/* Instruction Text */}
         <Text style={styles.instructionText}>Upload a photo of your current room</Text>
 
+        {/* Selected Image Preview */}
+        {selectedImage && (
+          <View style={styles.previewContainer}>
+            <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+            <TouchableOpacity
+              style={styles.removeButton}
+              onPress={() => setSelectedImage(null)}>
+              <FontAwesome name="times" size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Upload and Take Photo Buttons */}
         <View style={styles.buttonsRow}>
-          <TouchableOpacity style={styles.uploadButton} activeOpacity={0.9}>
+          <TouchableOpacity
+            style={styles.uploadButton}
+            activeOpacity={0.9}
+            onPress={handleUploadPhoto}>
             <View style={styles.buttonContent}>
               <View style={styles.buttonIconContainer}>
                 <MaterialCommunityIcons name="cloud-upload-outline" size={40} color="#000000" />
@@ -67,7 +154,10 @@ const InteriorUploadScreen = ({ onBack, onContinue }: Props) => {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.takePhotoButton} activeOpacity={0.9}>
+          <TouchableOpacity
+            style={styles.takePhotoButton}
+            activeOpacity={0.9}
+            onPress={handleTakePhoto}>
             <View style={styles.buttonContent}>
               <View style={styles.buttonIconContainer}>
                 <MaterialCommunityIcons name="camera-outline" size={40} color="#000000" />
@@ -94,8 +184,12 @@ const InteriorUploadScreen = ({ onBack, onContinue }: Props) => {
 
       {/* Continue Button */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-        <TouchableOpacity style={styles.continueButton} onPress={onContinue} activeOpacity={0.9}>
-          <View style={styles.gradient}>
+        <TouchableOpacity
+          style={styles.continueButton}
+          onPress={onContinue}
+          activeOpacity={0.9}
+          disabled={!selectedImage}>
+          <View style={[styles.gradient, !selectedImage && styles.gradientDisabled]}>
             <Text style={styles.continueButtonText}>continue</Text>
           </View>
         </TouchableOpacity>
@@ -190,6 +284,31 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     textAlign: 'center',
     marginBottom: 24,
+  },
+  previewContainer: {
+    width: '100%',
+    aspectRatio: 1,
+    marginBottom: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#F3F4F6',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  removeButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonsRow: {
     flexDirection: 'row',
@@ -297,6 +416,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#8B5CF6',
+  },
+  gradientDisabled: {
+    backgroundColor: '#D1D5DB',
   },
   continueButtonText: {
     color: '#FFFFFF',

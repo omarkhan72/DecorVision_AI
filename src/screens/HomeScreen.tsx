@@ -70,20 +70,34 @@ const HomeScreen = () => {
   const designIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: designScale.value }] }));
   const historyIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: historyScale.value }] }));
 
-  // Card bounce component
+  // Beautiful card press animation component
   const BouncyCard = useMemo(() => {
-    return ({ children }: { children: React.ReactNode }) => {
+    return ({ children, onPress }: { children: React.ReactNode; onPress?: () => void }) => {
       const scale = useSharedValue(1);
+      const opacity = useSharedValue(1);
+      
       const onPressIn = () => {
-        scale.value = withSpring(0.97, { damping: 18, stiffness: 220 });
+        scale.value = withTiming(0.98, { duration: 150 });
+        opacity.value = withTiming(0.95, { duration: 150 });
       };
+      
       const onPressOut = () => {
-        scale.value = withSpring(1, { damping: 18, stiffness: 220 });
+        scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+        opacity.value = withTiming(1, { duration: 150 });
       };
-      const rStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+      
+      const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+        opacity: opacity.value,
+      }));
+      
       return (
-        <TouchableOpacity activeOpacity={0.9} onPressIn={onPressIn} onPressOut={onPressOut}>
-          <Animated.View style={rStyle}>{children}</Animated.View>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={onPress}
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}>
+          <Animated.View style={animatedStyle}>{children}</Animated.View>
         </TouchableOpacity>
       );
     };
@@ -224,24 +238,21 @@ const HomeScreen = () => {
           {/* Feature Cards */}
           <View style={styles.cardsContainer}>
             {featureCards.map((card) => (
-              <BouncyCard key={card.id}>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (card.title === 'Interior Design') {
-                      setCurrentRoute('InteriorUpload');
-                    }
-                  }}>
-                  <View style={styles.card}>
-                    <Image source={card.image} style={styles.cardImage} />
-                    <View style={styles.cardContent}>
-                      <View style={styles.cardTextContainer}>
-                        <Text style={styles.cardTitle}>{card.title}</Text>
-                        <Text style={styles.cardDescription}>{card.description}</Text>
-                      </View>
-                      <FontAwesome name="chevron-right" size={20} color="#1A1A1A" />
+              <BouncyCard
+                key={card.id}
+                onPress={() => {
+                  setCurrentRoute('InteriorUpload');
+                }}>
+                <View style={styles.card}>
+                  <Image source={card.image} style={styles.cardImage} />
+                  <View style={styles.cardContent}>
+                    <View style={styles.cardTextContainer}>
+                      <Text style={styles.cardTitle}>{card.title}</Text>
+                      <Text style={styles.cardDescription}>{card.description}</Text>
                     </View>
+                    <FontAwesome name="chevron-right" size={20} color="#1A1A1A" />
                   </View>
-                </TouchableOpacity>
+                </View>
               </BouncyCard>
             ))}
           </View>
