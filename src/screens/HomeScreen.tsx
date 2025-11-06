@@ -27,6 +27,9 @@ import SettingsScreen from './SettingsScreen';
 import SubscriptionScreen from './SubscriptionScreen';
 import InteriorsListScreen from './InteriorsListScreen';
 import ExteriorsListScreen from './ExteriorsListScreen';
+import InteriorUploadScreen from './InteriorUploadScreen';
+import RoomTypeSelectionScreen from './RoomTypeSelectionScreen';
+import InteriorStyleSelectionScreen from './InteriorStyleSelectionScreen';
 
 // Custom Fence Icon Component (Three Vertical Bars)
 const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
@@ -40,7 +43,7 @@ const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'History'>('Home');
-  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors'>('Tabs');
+  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'RoomTypeSelection' | 'InteriorStyleSelection'>('Tabs');
 
   // Reanimated shared values
   const scrollY = useSharedValue(0);
@@ -175,6 +178,12 @@ const HomeScreen = () => {
         <SubscriptionScreen onBack={() => setCurrentRoute('Settings')} />
       ) : currentRoute === 'Settings' ? (
         <SettingsScreen onBack={() => setCurrentRoute('Tabs')} onUpgrade={() => setCurrentRoute('Subscription')} />
+      ) : currentRoute === 'InteriorUpload' ? (
+        <InteriorUploadScreen onBack={() => setCurrentRoute('Tabs')} onContinue={() => setCurrentRoute('RoomTypeSelection')} />
+      ) : currentRoute === 'RoomTypeSelection' ? (
+        <RoomTypeSelectionScreen onBack={() => setCurrentRoute('InteriorUpload')} onContinue={() => setCurrentRoute('InteriorStyleSelection')} />
+      ) : currentRoute === 'InteriorStyleSelection' ? (
+        <InteriorStyleSelectionScreen onBack={() => setCurrentRoute('RoomTypeSelection')} onContinue={() => setCurrentRoute('Tabs')} />
       ) : currentRoute === 'Interiors' ? (
         <InteriorsListScreen onBack={() => setCurrentRoute('Tabs')} />
       ) : currentRoute === 'Exteriors' ? (
@@ -216,16 +225,23 @@ const HomeScreen = () => {
           <View style={styles.cardsContainer}>
             {featureCards.map((card) => (
               <BouncyCard key={card.id}>
-                <View style={styles.card}>
-                  <Image source={card.image} style={styles.cardImage} />
-                  <View style={styles.cardContent}>
-                    <View style={styles.cardTextContainer}>
-                      <Text style={styles.cardTitle}>{card.title}</Text>
-                      <Text style={styles.cardDescription}>{card.description}</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (card.title === 'Interior Design') {
+                      setCurrentRoute('InteriorUpload');
+                    }
+                  }}>
+                  <View style={styles.card}>
+                    <Image source={card.image} style={styles.cardImage} />
+                    <View style={styles.cardContent}>
+                      <View style={styles.cardTextContainer}>
+                        <Text style={styles.cardTitle}>{card.title}</Text>
+                        <Text style={styles.cardDescription}>{card.description}</Text>
+                      </View>
+                      <FontAwesome name="chevron-right" size={20} color="#1A1A1A" />
                     </View>
-                    <FontAwesome name="chevron-right" size={20} color="#1A1A1A" />
                   </View>
-                </View>
+                </TouchableOpacity>
               </BouncyCard>
             ))}
           </View>
