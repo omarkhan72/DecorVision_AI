@@ -2,26 +2,30 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-type Props = { onBack: () => void };
+type Props = { onBack: () => void; onImagePress?: (image: any, roomName: string) => void };
 
-const ThumbRow = ({ images }: { images: any[] }) => (
+const ThumbRow = ({ images, onImagePress, roomName }: { images: any[]; onImagePress?: (image: any, roomName: string) => void; roomName: string }) => (
   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbRow}>
     {images.map((img, idx) => (
-      <View style={styles.thumbBox} key={idx}>
+      <TouchableOpacity
+        key={idx}
+        style={styles.thumbBox}
+        activeOpacity={0.9}
+        onPress={() => onImagePress?.(img, roomName)}>
         <Image source={img} style={styles.thumb} />
-      </View>
+      </TouchableOpacity>
     ))}
   </ScrollView>
 );
 
-const Section = ({ title, images }: { title: string; images: any[] }) => (
+const Section = ({ title, images, onImagePress }: { title: string; images: any[]; onImagePress?: (image: any, roomName: string) => void }) => (
   <View style={styles.sectionCard}>
     <Text style={styles.sectionTitle}>{title}</Text>
-    <ThumbRow images={images} />
+    <ThumbRow images={images} onImagePress={onImagePress} roomName={title} />
   </View>
 );
 
-const InteriorsListScreen = ({ onBack }: Props) => {
+const InteriorsListScreen = ({ onBack, onImagePress }: Props) => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
       {/* Top bar */}
@@ -40,6 +44,7 @@ const InteriorsListScreen = ({ onBack }: Props) => {
           require('../assets/images/new-flooring.jpg'),
           require('../assets/images/new-walls.jpg'),
         ]}
+        onImagePress={onImagePress}
       />
       <Section
         title="Bedroom"
@@ -48,6 +53,7 @@ const InteriorsListScreen = ({ onBack }: Props) => {
           require('../assets/images/style-transfer.jpg'),
           require('../assets/images/replace.jpg'),
         ]}
+        onImagePress={onImagePress}
       />
       <Section
         title="Kitchen"
@@ -56,6 +62,7 @@ const InteriorsListScreen = ({ onBack }: Props) => {
           require('../assets/images/new-walls.jpg'),
           require('../assets/images/new-flooring.jpg'),
         ]}
+        onImagePress={onImagePress}
       />
       <Section
         title="Bathroom"
@@ -64,6 +71,7 @@ const InteriorsListScreen = ({ onBack }: Props) => {
           require('../assets/images/interior-design.jpg'),
           require('../assets/images/style-transfer.jpg'),
         ]}
+        onImagePress={onImagePress}
       />
       <Section
         title="Dining Room"
@@ -72,6 +80,7 @@ const InteriorsListScreen = ({ onBack }: Props) => {
           require('../assets/images/garden-design.jpg'),
           require('../assets/images/exterior-design.jpg'),
         ]}
+        onImagePress={onImagePress}
       />
     </ScrollView>
   );

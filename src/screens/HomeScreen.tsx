@@ -30,6 +30,8 @@ import ExteriorsListScreen from './ExteriorsListScreen';
 import InteriorUploadScreen from './InteriorUploadScreen';
 import RoomTypeSelectionScreen from './RoomTypeSelectionScreen';
 import InteriorStyleSelectionScreen from './InteriorStyleSelectionScreen';
+import DesignResultScreen from './DesignResultScreen';
+import StyleDetailScreen from './StyleDetailScreen';
 
 // Custom Fence Icon Component (Three Vertical Bars)
 const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
@@ -43,7 +45,9 @@ const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'History'>('Home');
-  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'RoomTypeSelection' | 'InteriorStyleSelection'>('Tabs');
+  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'RoomTypeSelection' | 'InteriorStyleSelection' | 'DesignResult' | 'StyleDetail'>('Tabs');
+  const [selectedStyleImage, setSelectedStyleImage] = useState<any>(null);
+  const [selectedRoomName, setSelectedRoomName] = useState<string>('Living Room');
 
   // Reanimated shared values
   const scrollY = useSharedValue(0);
@@ -197,11 +201,34 @@ const HomeScreen = () => {
       ) : currentRoute === 'RoomTypeSelection' ? (
         <RoomTypeSelectionScreen onBack={() => setCurrentRoute('InteriorUpload')} onContinue={() => setCurrentRoute('InteriorStyleSelection')} />
       ) : currentRoute === 'InteriorStyleSelection' ? (
-        <InteriorStyleSelectionScreen onBack={() => setCurrentRoute('RoomTypeSelection')} onContinue={() => setCurrentRoute('Tabs')} />
+        <InteriorStyleSelectionScreen onBack={() => setCurrentRoute('RoomTypeSelection')} onContinue={() => setCurrentRoute('DesignResult')} />
+      ) : currentRoute === 'DesignResult' ? (
+        <DesignResultScreen onBack={() => setCurrentRoute('Tabs')} />
       ) : currentRoute === 'Interiors' ? (
-        <InteriorsListScreen onBack={() => setCurrentRoute('Tabs')} />
+        <InteriorsListScreen
+          onBack={() => setCurrentRoute('Tabs')}
+          onImagePress={(image, roomName) => {
+            setSelectedStyleImage(image);
+            setSelectedRoomName(roomName);
+            setCurrentRoute('StyleDetail');
+          }}
+        />
       ) : currentRoute === 'Exteriors' ? (
-        <ExteriorsListScreen onBack={() => setCurrentRoute('Tabs')} />
+        <ExteriorsListScreen
+          onBack={() => setCurrentRoute('Tabs')}
+          onImagePress={(image, roomName) => {
+            setSelectedStyleImage(image);
+            setSelectedRoomName(roomName);
+            setCurrentRoute('StyleDetail');
+          }}
+        />
+      ) : currentRoute === 'StyleDetail' ? (
+        <StyleDetailScreen
+          onBack={() => setCurrentRoute('Tabs')}
+          onTryStyle={() => setCurrentRoute('InteriorUpload')}
+          roomName={selectedRoomName}
+          image={selectedStyleImage}
+        />
       ) : activeTab === 'Home' ? (
         <Animated.ScrollView
           style={styles.scrollView}
