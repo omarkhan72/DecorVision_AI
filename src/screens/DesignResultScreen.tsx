@@ -6,16 +6,45 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import Share from 'react-native-share';
 
 type Props = { onBack: () => void };
 
 const DesignResultScreen = ({ onBack }: Props) => {
   const insets = useSafeAreaInsets();
+  const imageSource = require('../assets/images/interior-design.jpg');
+
+  const handleShare = async () => {
+    try {
+      const imageUri = Image.resolveAssetSource(imageSource);
+      
+      if (!imageUri || !imageUri.uri) {
+        Alert.alert('Error', 'Unable to load image for sharing');
+        return;
+      }
+
+      const shareOptions = {
+        title: 'Share Design',
+        message: 'Check out this amazing interior design!',
+        url: imageUri.uri,
+        type: 'image/jpeg',
+      };
+
+      await Share.open(shareOptions);
+    } catch (error: any) {
+      // User cancelled or error occurred
+      console.log('Share error:', error);
+      // Don't show error for user cancellation
+      if (!error.message?.includes('User did not share') && !error.message?.includes('cancel')) {
+        Alert.alert('Error', 'Unable to share image. Please try again.');
+      }
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -32,23 +61,13 @@ const DesignResultScreen = ({ onBack }: Props) => {
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom, 20) + 20 }]}
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}>
-        {/* Image Editing Controls */}
-        <View style={styles.controlsBar}>
-          <TouchableOpacity style={styles.controlButton}>
-            <MaterialCommunityIcons name="camera-outline" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.controlButton}>
-            <MaterialCommunityIcons name="delete-outline" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-
         {/* Main Image Display */}
         <View style={styles.imageContainer}>
           <Image
-            source={require('../assets/images/interior-design.jpg')}
+            source={imageSource}
             style={styles.mainImage}
             resizeMode="cover"
           />
@@ -76,31 +95,19 @@ const DesignResultScreen = ({ onBack }: Props) => {
             <Text style={styles.regenerateText}>Regenerate</Text>
           </View>
         </TouchableOpacity>
-      </ScrollView>
 
-      {/* Footer with Social Media Icons */}
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-        <TouchableOpacity style={styles.socialButton}>
-          <View style={[styles.socialIconContainer, styles.downloadIcon]}>
-            <FontAwesome name="download" size={20} color="#FFFFFF" />
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton}>
-          <View style={[styles.socialIconContainer, styles.tiktokIcon]}>
-            <FontAwesome5 name="music" size={18} color="#FFFFFF" />
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton}>
-          <View style={[styles.socialIconContainer, styles.instagramIcon]}>
-            <MaterialCommunityIcons name="camera-outline" size={20} color="#FFFFFF" />
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton}>
-          <View style={[styles.socialIconContainer, styles.facebookIcon]}>
-            <FontAwesome5 name="facebook" size={18} color="#FFFFFF" />
-          </View>
-        </TouchableOpacity>
-      </View>
+        {/* Download and Share Buttons */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity style={styles.downloadButton} activeOpacity={0.9}>
+            <FontAwesome name="download" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Text style={styles.buttonText}>Download</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.shareButton} activeOpacity={0.9} onPress={handleShare}>
+            <MaterialCommunityIcons name="share-variant" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Text style={styles.buttonText}>Share</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -150,39 +157,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100,
-  },
-  controlsBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#F3F4F6',
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 12,
-    borderRadius: 12,
-  },
-  controlButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#8B5CF6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    paddingBottom: 40,
   },
   imageContainer: {
     width: '100%',
     aspectRatio: 0.75,
     backgroundColor: '#F3F4F6',
+    marginTop: 12,
     marginBottom: 12,
   },
   mainImage: {
@@ -222,7 +203,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 12,
     overflow: 'hidden',
+    marginBottom: 12,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
     marginBottom: 20,
+    gap: 12,
   },
   regenerateGradient: {
     flexDirection: 'row',
@@ -236,42 +225,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  footer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+  downloadButton: {
+    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  socialButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 10,
-  },
-  socialIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  downloadIcon: {
     backgroundColor: '#8B5CF6',
+    paddingVertical: 14,
+    borderRadius: 12,
   },
-  tiktokIcon: {
-    backgroundColor: '#000000',
+  shareButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1A1A1A',
+    paddingVertical: 14,
+    borderRadius: 12,
   },
-  instagramIcon: {
-    backgroundColor: '#E1306C',
-  },
-  facebookIcon: {
-    backgroundColor: '#1877F2',
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
 

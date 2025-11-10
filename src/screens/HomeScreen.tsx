@@ -197,7 +197,11 @@ const HomeScreen = () => {
       ) : currentRoute === 'Settings' ? (
         <SettingsScreen onBack={() => setCurrentRoute('Tabs')} onUpgrade={() => setCurrentRoute('Subscription')} />
       ) : currentRoute === 'InteriorUpload' ? (
-        <InteriorUploadScreen onBack={() => setCurrentRoute('Tabs')} onContinue={() => setCurrentRoute('RoomTypeSelection')} />
+        <InteriorUploadScreen
+          onBack={() => setCurrentRoute('Tabs')}
+          onContinue={() => setCurrentRoute('RoomTypeSelection')}
+          styleImage={selectedStyleImage}
+        />
       ) : currentRoute === 'RoomTypeSelection' ? (
         <RoomTypeSelectionScreen onBack={() => setCurrentRoute('InteriorUpload')} onContinue={() => setCurrentRoute('InteriorStyleSelection')} />
       ) : currentRoute === 'InteriorStyleSelection' ? (
@@ -225,7 +229,10 @@ const HomeScreen = () => {
       ) : currentRoute === 'StyleDetail' ? (
         <StyleDetailScreen
           onBack={() => setCurrentRoute('Tabs')}
-          onTryStyle={() => setCurrentRoute('InteriorUpload')}
+          onTryStyle={() => {
+            // Keep the selected image and navigate to InteriorUpload
+            setCurrentRoute('InteriorUpload');
+          }}
           roomName={selectedRoomName}
           image={selectedStyleImage}
         />

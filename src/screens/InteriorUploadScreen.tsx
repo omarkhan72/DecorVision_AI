@@ -15,18 +15,26 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 
-type Props = { onBack: () => void; onContinue?: () => void };
+type Props = { onBack: () => void; onContinue?: () => void; styleImage?: any };
 
-const InteriorUploadScreen = ({ onBack, onContinue }: Props) => {
+const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const sampleImages = [
-    require('../assets/images/interior-design.jpg'),
-    require('../assets/images/interior-design.jpg'),
-    require('../assets/images/interior-design.jpg'),
-    require('../assets/images/interior-design.jpg'),
-  ];
+  // If styleImage is provided, add it as the first sample image
+  const sampleImages = styleImage
+    ? [
+        styleImage,
+        require('../assets/images/interior-design.jpg'),
+        require('../assets/images/interior-design.jpg'),
+        require('../assets/images/interior-design.jpg'),
+      ]
+    : [
+        require('../assets/images/interior-design.jpg'),
+        require('../assets/images/interior-design.jpg'),
+        require('../assets/images/interior-design.jpg'),
+        require('../assets/images/interior-design.jpg'),
+      ];
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -179,7 +187,9 @@ const InteriorUploadScreen = ({ onBack, onContinue }: Props) => {
               <View key={index} style={styles.sampleImageContainer}>
                 <Image source={image} style={styles.sampleImage} />
                 <View style={styles.sampleOverlay}>
-                  <Text style={styles.sampleText}>Sample</Text>
+                  <Text style={styles.sampleText}>
+                    {styleImage && index === 0 ? 'Your Style' : 'Sample'}
+                  </Text>
                 </View>
               </View>
             ))}
