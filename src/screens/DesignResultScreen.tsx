@@ -7,17 +7,142 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  Platform,
+  PermissionsAndroid,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Share from 'react-native-share';
+import RNFS from 'react-native-fs';
+import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
 type Props = { onBack: () => void };
 
 const DesignResultScreen = ({ onBack }: Props) => {
   const insets = useSafeAreaInsets();
   const imageSource = require('../assets/images/interior-design.jpg');
+
+  const requestStoragePermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        // For Android 13+ (API 33+), use READ_MEDIA_IMAGES
+        if (Platform.Version >= 33) {
+          const result = await request(PERMISSIONS.ANDROID.READ_MEDIA_IMAGES);
+          return result === RESULTS.GRANTED;
+        } else {
+          // For older Android versions
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            {
+              title: 'Storage Permission',
+              message: 'App needs access to storage to download images',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            }
+          );
+          return granted === PermissionsAndroid.RESULTS.GRANTED;
+        }
+      } catch (err) {
+        console.warn('Permission error:', err);
+        return false;
+      }
+    }
+    // iOS permissions are handled automatically by the system
+    return true;
+  };
+
+  const handleDownload = async () => {
+    try {
+      // Request storage permission
+      const hasPermission = await requestStoragePermission();
+      if (!hasPermission) {
+        Alert.alert('Permission Denied', 'Storage permission is required to download images.');
+        return;
+      }
+
+      const imageUri = Image.resolveAssetSource(imageSource);
+      
+      if (!imageUri || !imageUri.uri) {
+        Alert.alert('Error', 'Unable to load image for download');
+        return;
+      }
+
+      // Create filename with timestamp
+      const timestamp = new Date().getTime();
+      const filename = `design_${timestamp}.jpg`;
+      
+      // Determine download path based on platform
+      let downloadPath = '';
+      if (Platform.OS === 'android') {
+        // For Android, save to Pictures directory
+        downloadPath = `${RNFS.PicturesDirectoryPath}/${filename}`;
+      } else {
+        // For iOS, save to Pictures directory
+        downloadPath = `${RNFS.PicturesDirectoryPath}/${filename}`;
+      }
+
+      let sourceUri = imageUri.uri;
+      
+      // Handle different URI types
+      if (sourceUri.startsWith('file://')) {
+        // Direct file path - copy it
+        await RNFS.copyFile(sourceUri, downloadPath);
+      } else if (sourceUri.startsWith('http://') || sourceUri.startsWith('https://')) {
+        // Remote URL - download it
+        const downloadResult = await RNFS.downloadFile({
+          fromUrl: sourceUri,
+          toFile: downloadPath,
+        }).promise;
+        
+        if (downloadResult.statusCode !== 200) {
+          throw new Error('Download failed');
+        }
+      } else {
+        // For bundled assets, try to read as base64 using react-native-fs
+        try {
+          // Try to read the file if it's accessible
+          if (await RNFS.exists(sourceUri)) {
+            const base64 = await RNFS.readFile(sourceUri, 'base64');
+            await RNFS.writeFile(downloadPath, base64, 'base64');
+          } else {
+            // If file doesn't exist at that path, try fetching
+            const response = await fetch(sourceUri);
+            if (!response.ok) {
+              throw new Error('Failed to fetch image');
+            }
+            // Use react-native-fs to download from the URI
+            const downloadResult = await RNFS.downloadFile({
+              fromUrl: sourceUri,
+              toFile: downloadPath,
+            }).promise;
+            
+            if (downloadResult.statusCode !== 200) {
+              throw new Error('Download failed');
+            }
+          }
+        } catch (fetchError) {
+          // If we can't download, suggest using share instead
+          Alert.alert(
+            'Info',
+            'Please use the Share button to save the image to your gallery.',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+      }
+
+      Alert.alert(
+        'Success',
+        `Image downloaded successfully to ${Platform.OS === 'android' ? 'Pictures' : 'Photos'} folder!`,
+        [{ text: 'OK' }]
+      );
+    } catch (error: any) {
+      console.log('Download error:', error);
+      Alert.alert('Error', 'Unable to download image. Please try using the Share button instead.');
+    }
+  };
 
   const handleShare = async () => {
     try {
@@ -98,7 +223,7 @@ const DesignResultScreen = ({ onBack }: Props) => {
 
         {/* Download and Share Buttons */}
         <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity style={styles.downloadButton} activeOpacity={0.9}>
+          <TouchableOpacity style={styles.downloadButton} activeOpacity={0.9} onPress={handleDownload}>
             <FontAwesome name="download" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
             <Text style={styles.buttonText}>Download</Text>
           </TouchableOpacity>
