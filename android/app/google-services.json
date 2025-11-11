@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "586339131877",
+    "project_id": "ai-visuals-app",
+    "storage_bucket": "ai-visuals-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:586339131877:android:e41df5846966b2fd024f0c",
+        "android_client_info": {
+          "package_name": "com.design_ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVPz6KIDFI-IoOZ_DXRQ2WYAnjmDQmif4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+

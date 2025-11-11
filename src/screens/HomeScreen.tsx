@@ -181,7 +181,7 @@ const HomeScreen = () => {
           </Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.proButton}>
+          <TouchableOpacity style={styles.proButton} onPress={() => setCurrentRoute('Subscription')}>
             <FontAwesome name="star" size={16} color="#FFD700" style={{ marginRight: 6 }} />
             <Text style={styles.proButtonText}>Pro</Text>
           </TouchableOpacity>
@@ -193,7 +193,7 @@ const HomeScreen = () => {
       )}
 
       {currentRoute === 'Subscription' ? (
-        <SubscriptionScreen onBack={() => setCurrentRoute('Settings')} />
+        <SubscriptionScreen onBack={() => setCurrentRoute('Tabs')} />
       ) : currentRoute === 'Settings' ? (
         <SettingsScreen onBack={() => setCurrentRoute('Tabs')} onUpgrade={() => setCurrentRoute('Subscription')} />
       ) : currentRoute === 'InteriorUpload' ? (
