@@ -31,6 +31,7 @@ import InteriorUploadScreen from './InteriorUploadScreen';
 import RoomTypeSelectionScreen from './RoomTypeSelectionScreen';
 import InteriorStyleSelectionScreen from './InteriorStyleSelectionScreen';
 import DesignResultScreen from './DesignResultScreen';
+import DesignLoadingScreen from './DesignLoadingScreen';
 import StyleDetailScreen from './StyleDetailScreen';
 
 // Custom Fence Icon Component (Three Vertical Bars)
@@ -45,7 +46,7 @@ const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'History'>('Home');
-  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'RoomTypeSelection' | 'InteriorStyleSelection' | 'DesignResult' | 'StyleDetail'>('Tabs');
+  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'RoomTypeSelection' | 'InteriorStyleSelection' | 'DesignLoading' | 'DesignResult' | 'StyleDetail'>('Tabs');
   const [selectedStyleImage, setSelectedStyleImage] = useState<any>(null);
   const [selectedRoomName, setSelectedRoomName] = useState<string>('Living Room');
 
@@ -205,7 +206,9 @@ const HomeScreen = () => {
       ) : currentRoute === 'RoomTypeSelection' ? (
         <RoomTypeSelectionScreen onBack={() => setCurrentRoute('InteriorUpload')} onContinue={() => setCurrentRoute('InteriorStyleSelection')} />
       ) : currentRoute === 'InteriorStyleSelection' ? (
-        <InteriorStyleSelectionScreen onBack={() => setCurrentRoute('RoomTypeSelection')} onContinue={() => setCurrentRoute('DesignResult')} />
+        <InteriorStyleSelectionScreen onBack={() => setCurrentRoute('RoomTypeSelection')} onContinue={() => setCurrentRoute('DesignLoading')} />
+      ) : currentRoute === 'DesignLoading' ? (
+        <DesignLoadingScreen onComplete={() => setCurrentRoute('DesignResult')} />
       ) : currentRoute === 'DesignResult' ? (
         <DesignResultScreen onBack={() => setCurrentRoute('Tabs')} />
       ) : currentRoute === 'Interiors' ? (
