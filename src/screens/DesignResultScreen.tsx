@@ -17,9 +17,9 @@ import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
-type Props = { onBack: () => void; userImage?: string | null };
+type Props = { onBack: () => void; onRegenerate?: () => void; userImage?: string | null };
 
-const DesignResultScreen = ({ onBack, userImage }: Props) => {
+const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
   const insets = useSafeAreaInsets();
   // Use the user's uploaded image or fallback to default
   const imageSource = userImage 
@@ -155,26 +155,79 @@ const DesignResultScreen = ({ onBack, userImage }: Props) => {
 
   const handleShare = async () => {
     try {
-      // Handle user image (URI) vs bundled asset
       let imageUriString: string;
+      
       if (userImage) {
-        // User uploaded image - use the URI directly
-        imageUriString = userImage;
+        // User uploaded image - handle different URI types
+        if (userImage.startsWith('content://')) {
+          // Android content:// URI - copy to temp file for sharing
+          const timestamp = new Date().getTime();
+          const tempFileName = `share_${timestamp}.jpg`;
+          const tempFilePath = `${RNFS.CachesDirectoryPath}/${tempFileName}`;
+          
+          try {
+            // Read the content URI and write to temp file
+            const base64 = await RNFS.readFile(userImage, 'base64');
+            await RNFS.writeFile(tempFilePath, base64, 'base64');
+            imageUriString = `file://${tempFilePath}`;
+          } catch (copyError) {
+            // If reading fails, try using the URI directly
+            imageUriString = userImage;
+          }
+        } else if (userImage.startsWith('file://')) {
+          // File URI - verify it exists
+          const filePath = userImage.replace('file://', '');
+          const fileExists = await RNFS.exists(filePath);
+          if (!fileExists) {
+            Alert.alert('Error', 'Image file not found. Please try again.');
+            return;
+          }
+          imageUriString = userImage;
+        } else {
+          // Direct path or other format
+          imageUriString = userImage;
+        }
       } else {
-        // Bundled asset - resolve it
+        // Bundled asset - we need to copy it to a temporary location for sharing
         const imageUri = Image.resolveAssetSource(imageSource);
         if (!imageUri || !imageUri.uri) {
           Alert.alert('Error', 'Unable to load image for sharing');
           return;
         }
-        imageUriString = imageUri.uri;
+        
+        // For bundled assets, copy to a temporary file that can be shared
+        const timestamp = new Date().getTime();
+        const tempFileName = `temp_share_${timestamp}.jpg`;
+        const tempFilePath = `${RNFS.CachesDirectoryPath}/${tempFileName}`;
+        
+        // Copy the bundled asset to temp location
+        const sourceUri = imageUri.uri;
+        if (sourceUri.startsWith('file://')) {
+          await RNFS.copyFile(sourceUri, tempFilePath);
+        } else {
+          // If it's a bundled asset, we might need to read it differently
+          // For now, try to use the original URI
+          imageUriString = sourceUri;
+          const shareOptions = {
+            title: 'Share Design',
+            message: 'Check out this amazing interior design!',
+            url: imageUriString,
+            type: 'image/jpeg',
+          };
+          await Share.open(shareOptions);
+          return;
+        }
+        
+        imageUriString = `file://${tempFilePath}`;
       }
 
+      // Share the image file directly
       const shareOptions = {
         title: 'Share Design',
         message: 'Check out this amazing interior design!',
         url: imageUriString,
         type: 'image/jpeg',
+        failOnCancel: false,
       };
 
       await Share.open(shareOptions);
@@ -182,7 +235,9 @@ const DesignResultScreen = ({ onBack, userImage }: Props) => {
       // User cancelled or error occurred
       console.log('Share error:', error);
       // Don't show error for user cancellation
-      if (!error.message?.includes('User did not share') && !error.message?.includes('cancel')) {
+      if (!error.message?.includes('User did not share') && 
+          !error.message?.includes('cancel') &&
+          !error.message?.includes('User did not')) {
         Alert.alert('Error', 'Unable to share image. Please try again.');
       }
     }
@@ -231,7 +286,10 @@ const DesignResultScreen = ({ onBack, userImage }: Props) => {
         </View>
 
         {/* Regenerate Button */}
-        <TouchableOpacity style={styles.regenerateButton} activeOpacity={0.9}>
+        <TouchableOpacity 
+          style={styles.regenerateButton} 
+          activeOpacity={0.9}
+          onPress={onRegenerate}>
           <View style={styles.regenerateGradient}>
             <MaterialCommunityIcons name="refresh" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
             <Text style={styles.regenerateText}>Regenerate</Text>

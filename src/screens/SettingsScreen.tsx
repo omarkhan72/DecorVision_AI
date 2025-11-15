@@ -39,25 +39,14 @@ const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
       </View>
 
       {/* Options */}
-      <Row icon={<MaterialCommunityIcons name="earth" size={16} color="#262626" />} label="Language" />
+      <Row icon={<MaterialCommunityIcons name="information-outline" size={16} color="#262626" />} label="About" />
+      <Row icon={<MaterialCommunityIcons name="alert-circle-outline" size={16} color="#262626" />} label="Report a problem" />
       <Row icon={<MaterialCommunityIcons name="message-reply-outline" size={16} color="#262626" />} label="Feedback" />
-      <Row icon={<MaterialCommunityIcons name="help-circle-outline" size={16} color="#262626" />} label="FAQ" />
-      <Row icon={<FontAwesome name="star" size={16} color="#262626" />} label="Rate us" />
-      <Row icon={<MaterialCommunityIcons name="file-document-outline" size={16} color="#262626" />} label="Terms of use" />
-      <Row icon={<MaterialCommunityIcons name="shield-outline" size={16} color="#262626" />} label="Privacy Policy" />
-      <Row icon={<MaterialCommunityIcons name="restore" size={16} color="#262626" />} label="Restore Purchase" />
-
-      {/* User ID field */}
-      <View style={styles.userIdRow}>
-        <View style={styles.rowLeft}>
-          <View style={styles.rowIcon}><MaterialCommunityIcons name="account-outline" size={16} color="#262626" /></View>
-          <Text style={styles.rowLabel}>User ID</Text>
-        </View>
-        <View style={styles.userIdRight}>
-          <Text numberOfLines={1} style={styles.userIdText}>fdB4DMxRs07...</Text>
-          <MaterialCommunityIcons name="content-copy" size={14} color="#262626" />
-        </View>
-      </View>
+      <Row icon={<MaterialCommunityIcons name="account-plus-outline" size={16} color="#262626" />} label="Tell a friend" />
+      <Row icon={<MaterialCommunityIcons name="shield-outline" size={16} color="#262626" />} label="Privacy and Policy" />
+      <Row icon={<MaterialCommunityIcons name="file-document-outline" size={16} color="#262626" />} label="Terms and Conditions" />
+      <Row icon={<MaterialCommunityIcons name="logout" size={16} color="#262626" />} label="Logout" />
+      <Row icon={<MaterialCommunityIcons name="delete-outline" size={16} color="#EF4444" />} label="Delete account" />
     </ScrollView>
   );
 };
@@ -153,25 +142,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#1A1A1A',
     fontWeight: '600',
-  },
-  userIdRow: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  userIdRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  userIdText: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    marginRight: 8,
-    maxWidth: 120,
   },
 });
 

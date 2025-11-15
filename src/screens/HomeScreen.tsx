@@ -233,6 +233,10 @@ const HomeScreen = () => {
       ) : currentRoute === 'DesignResult' ? (
         <DesignResultScreen 
           onBack={() => setCurrentRoute('Tabs')} 
+          onRegenerate={() => {
+            // Navigate back to InteriorUploadScreen to regenerate
+            setCurrentRoute('InteriorUpload');
+          }}
           userImage={userUploadedImage}
         />
       ) : currentRoute === 'Interiors' ? (
