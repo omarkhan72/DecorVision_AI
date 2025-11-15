@@ -10,9 +10,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-type Props = { onBack: () => void; onContinue?: () => void };
+type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; userImage?: string | null };
 
-const InteriorStyleSelectionScreen = ({ onBack, onContinue }: Props) => {
+const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
 
@@ -96,7 +96,7 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue }: Props) => {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={styles.generateButton}
-          onPress={onContinue}
+          onPress={() => onContinue?.(userImage || null)}
           activeOpacity={0.9}
           disabled={!selectedStyle}>
           <View style={[styles.gradient, !selectedStyle && styles.gradientDisabled]}>

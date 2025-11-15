@@ -17,11 +17,14 @@ import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
-type Props = { onBack: () => void };
+type Props = { onBack: () => void; userImage?: string | null };
 
-const DesignResultScreen = ({ onBack }: Props) => {
+const DesignResultScreen = ({ onBack, userImage }: Props) => {
   const insets = useSafeAreaInsets();
-  const imageSource = require('../assets/images/interior-design.jpg');
+  // Use the user's uploaded image or fallback to default
+  const imageSource = userImage 
+    ? { uri: userImage }
+    : require('../assets/images/interior-design.jpg');
 
   const requestStoragePermission = async () => {
     if (Platform.OS === 'android') {
@@ -62,11 +65,19 @@ const DesignResultScreen = ({ onBack }: Props) => {
         return;
       }
 
-      const imageUri = Image.resolveAssetSource(imageSource);
-      
-      if (!imageUri || !imageUri.uri) {
-        Alert.alert('Error', 'Unable to load image for download');
-        return;
+      // Handle user image (URI) vs bundled asset
+      let sourceUri: string;
+      if (userImage) {
+        // User uploaded image - use the URI directly
+        sourceUri = userImage;
+      } else {
+        // Bundled asset - resolve it
+        const imageUri = Image.resolveAssetSource(imageSource);
+        if (!imageUri || !imageUri.uri) {
+          Alert.alert('Error', 'Unable to load image for download');
+          return;
+        }
+        sourceUri = imageUri.uri;
       }
 
       // Create filename with timestamp
@@ -82,8 +93,6 @@ const DesignResultScreen = ({ onBack }: Props) => {
         // For iOS, save to Pictures directory
         downloadPath = `${RNFS.PicturesDirectoryPath}/${filename}`;
       }
-
-      let sourceUri = imageUri.uri;
       
       // Handle different URI types
       if (sourceUri.startsWith('file://')) {
@@ -146,17 +155,25 @@ const DesignResultScreen = ({ onBack }: Props) => {
 
   const handleShare = async () => {
     try {
-      const imageUri = Image.resolveAssetSource(imageSource);
-      
-      if (!imageUri || !imageUri.uri) {
-        Alert.alert('Error', 'Unable to load image for sharing');
-        return;
+      // Handle user image (URI) vs bundled asset
+      let imageUriString: string;
+      if (userImage) {
+        // User uploaded image - use the URI directly
+        imageUriString = userImage;
+      } else {
+        // Bundled asset - resolve it
+        const imageUri = Image.resolveAssetSource(imageSource);
+        if (!imageUri || !imageUri.uri) {
+          Alert.alert('Error', 'Unable to load image for sharing');
+          return;
+        }
+        imageUriString = imageUri.uri;
       }
 
       const shareOptions = {
         title: 'Share Design',
         message: 'Check out this amazing interior design!',
-        url: imageUri.uri,
+        url: imageUriString,
         type: 'image/jpeg',
       };
 

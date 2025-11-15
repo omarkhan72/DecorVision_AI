@@ -15,7 +15,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 
-type Props = { onBack: () => void; onContinue?: () => void; styleImage?: any };
+type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
 const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
@@ -201,7 +201,7 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={onContinue}
+          onPress={() => onContinue?.(selectedImage)}
           activeOpacity={0.9}
           disabled={!selectedImage}>
           <View style={[styles.gradient, !selectedImage && styles.gradientDisabled]}>

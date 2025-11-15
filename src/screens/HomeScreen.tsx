@@ -49,6 +49,7 @@ const HomeScreen = () => {
   const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'RoomTypeSelection' | 'InteriorStyleSelection' | 'DesignLoading' | 'DesignResult' | 'StyleDetail'>('Tabs');
   const [selectedStyleImage, setSelectedStyleImage] = useState<any>(null);
   const [selectedRoomName, setSelectedRoomName] = useState<string>('Living Room');
+  const [userUploadedImage, setUserUploadedImage] = useState<string | null>(null);
 
   // Reanimated shared values
   const scrollY = useSharedValue(0);
@@ -200,17 +201,40 @@ const HomeScreen = () => {
       ) : currentRoute === 'InteriorUpload' ? (
         <InteriorUploadScreen
           onBack={() => setCurrentRoute('Tabs')}
-          onContinue={() => setCurrentRoute('RoomTypeSelection')}
+          onContinue={(imageUri) => {
+            setUserUploadedImage(imageUri);
+            setCurrentRoute('RoomTypeSelection');
+          }}
           styleImage={selectedStyleImage}
         />
       ) : currentRoute === 'RoomTypeSelection' ? (
-        <RoomTypeSelectionScreen onBack={() => setCurrentRoute('InteriorUpload')} onContinue={() => setCurrentRoute('InteriorStyleSelection')} />
+        <RoomTypeSelectionScreen 
+          onBack={() => setCurrentRoute('InteriorUpload')} 
+          onContinue={(imageUri) => {
+            setUserUploadedImage(imageUri);
+            setCurrentRoute('InteriorStyleSelection');
+          }}
+          userImage={userUploadedImage}
+        />
       ) : currentRoute === 'InteriorStyleSelection' ? (
-        <InteriorStyleSelectionScreen onBack={() => setCurrentRoute('RoomTypeSelection')} onContinue={() => setCurrentRoute('DesignLoading')} />
+        <InteriorStyleSelectionScreen 
+          onBack={() => setCurrentRoute('RoomTypeSelection')} 
+          onContinue={(imageUri) => {
+            setUserUploadedImage(imageUri);
+            setCurrentRoute('DesignLoading');
+          }}
+          userImage={userUploadedImage}
+        />
       ) : currentRoute === 'DesignLoading' ? (
-        <DesignLoadingScreen onComplete={() => setCurrentRoute('DesignResult')} />
+        <DesignLoadingScreen 
+          onComplete={() => setCurrentRoute('DesignResult')} 
+          userImage={userUploadedImage}
+        />
       ) : currentRoute === 'DesignResult' ? (
-        <DesignResultScreen onBack={() => setCurrentRoute('Tabs')} />
+        <DesignResultScreen 
+          onBack={() => setCurrentRoute('Tabs')} 
+          userImage={userUploadedImage}
+        />
       ) : currentRoute === 'Interiors' ? (
         <InteriorsListScreen
           onBack={() => setCurrentRoute('Tabs')}
@@ -278,6 +302,7 @@ const HomeScreen = () => {
               <BouncyCard
                 key={card.id}
                 onPress={() => {
+                  setUserUploadedImage(null); // Reset when starting new flow
                   setCurrentRoute('InteriorUpload');
                 }}>
                 <View style={styles.card}>

@@ -17,14 +17,17 @@ import Animated, {
 
 type Props = {
   onComplete?: () => void;
+  userImage?: string | null;
 };
 
-const DesignLoadingScreen = ({ onComplete }: Props) => {
+const DesignLoadingScreen = ({ onComplete, userImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [topSectionHeight, setTopSectionHeight] = useState(0);
 
-  // Use the interior design image as the blurred background
-  const backgroundImage = require('../assets/images/interior-design.jpg');
+  // Use the user's uploaded image or fallback to default
+  const backgroundImage = userImage 
+    ? { uri: userImage }
+    : require('../assets/images/interior-design.jpg');
 
   // Animation value for scanning line (0 to topSectionHeight)
   const scanLinePosition = useSharedValue(0);
