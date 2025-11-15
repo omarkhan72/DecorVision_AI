@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import { saveToHistory } from '../utils/historyStorage';
 
 type Props = { onBack: () => void; onRegenerate?: () => void; userImage?: string | null };
 
@@ -25,6 +26,13 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
   const imageSource = userImage 
     ? { uri: userImage }
     : require('../assets/images/interior-design.jpg');
+
+  // Save to history when screen loads (image is generated)
+  useEffect(() => {
+    if (userImage) {
+      saveToHistory(userImage);
+    }
+  }, [userImage]);
 
   const requestStoragePermission = async () => {
     if (Platform.OS === 'android') {

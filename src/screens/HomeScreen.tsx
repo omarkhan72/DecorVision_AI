@@ -326,7 +326,7 @@ const HomeScreen = () => {
       ) : activeTab === 'Design' ? (
         <DesignScreen onOpenInteriors={() => setCurrentRoute('Interiors')} onOpenExteriors={() => setCurrentRoute('Exteriors')} />
       ) : (
-        <HistoryScreen />
+        <HistoryScreen key={activeTab} />
       )}
 
       {/* Bottom Navigation */}
