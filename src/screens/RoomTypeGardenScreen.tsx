@@ -9,7 +9,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; userImage?: string | null };
+type Props = { onBack: () => void; onContinue?: (imageUri: string | null, roomType?: string | null) => void; userImage?: string | null };
 
 const RoomTypeGardenScreen = ({ onBack, onContinue, userImage }: Props) => {
   const insets = useSafeAreaInsets();
@@ -91,7 +91,7 @@ const RoomTypeGardenScreen = ({ onBack, onContinue, userImage }: Props) => {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={() => onContinue?.(userImage)}
+          onPress={() => onContinue?.(userImage, selectedGarden)}
           activeOpacity={0.9}
           disabled={!selectedGarden}>
           <View style={[styles.gradient, !selectedGarden && styles.gradientDisabled]}>

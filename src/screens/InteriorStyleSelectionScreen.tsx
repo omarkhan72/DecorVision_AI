@@ -6,15 +6,41 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import functions from '@react-native-firebase/functions';
+import RNFS from 'react-native-fs';
 
-type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; userImage?: string | null };
+type Props = { 
+  onBack: () => void; 
+  onContinue?: (imageUri: string | null) => void; 
+  userImage?: string | null;
+  roomType?: string | null;
+  designType?: 'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring' | 'cleanup';
+};
 
-const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage }: Props) => {
+interface DesignResponse {
+  success: boolean;
+  message?: string;
+  hasImage?: boolean;
+  designType?: string;
+  roomType?: string;
+  style?: string;
+  prompt?: string;
+  generatedDescription?: string;
+  imageDataUri?: string;
+  imageBase64?: string;
+  imageMimeType?: string;
+}
+
+const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType, designType = 'interior' }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const stylesData = [
     { id: 'modern', name: 'Modern', image: require('../assets/images/interior-design.jpg') },
@@ -30,6 +56,163 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage }: Props) 
     { id: 'coastal', name: 'Coastal', image: require('../assets/images/interior-design.jpg') },
     { id: 'vintage', name: 'Vintage', image: require('../assets/images/interior-design.jpg') },
   ];
+
+  // Convert image URI to base64
+  const convertImageToBase64 = async (uri: string): Promise<string | null> => {
+    try {
+      console.log('Converting image to base64, URI:', uri.substring(0, 50) + '...');
+      
+      // If already base64, return as is
+      if (uri.startsWith('data:')) {
+        console.log('Image is already base64 encoded');
+        return uri;
+      }
+      
+      // Remove file:// or content:// prefix for file operations
+      let filePath = uri;
+      if (uri.startsWith('file://')) {
+        filePath = uri.replace('file://', '');
+      } else if (uri.startsWith('content://')) {
+        // For content:// URIs on Android, we need to read differently
+        // Try to read as base64
+        try {
+          const base64 = await RNFS.readFile(uri, 'base64');
+          return `data:image/jpeg;base64,${base64}`;
+        } catch (err) {
+          console.warn('Error reading content URI, trying alternative method:', err);
+          // Fallback: return the URI as-is and let backend handle it
+          return uri;
+        }
+      }
+      
+      // Check if file exists
+      const fileExists = await RNFS.exists(filePath);
+      if (!fileExists) {
+        console.warn('File does not exist at path:', filePath);
+        return null;
+      }
+      
+      // Read file as base64
+      const base64 = await RNFS.readFile(filePath, 'base64');
+      const mimeType = 'image/jpeg'; // Default, could be determined from file extension
+      const base64DataUri = `data:${mimeType};base64,${base64}`;
+      
+      console.log('Image converted to base64, length:', base64DataUri.length);
+      return base64DataUri;
+    } catch (error: any) {
+      console.error('Error converting image to base64:', error);
+      return null;
+    }
+  };
+
+  const handleGenerate = async () => {
+    console.log('=== Generate Button Pressed ===');
+    console.log('Selected style:', selectedStyle);
+    console.log('Room type:', roomType);
+    console.log('Design type:', designType);
+    console.log('Has user image:', !!userImage);
+
+    if (!selectedStyle || !roomType) {
+      console.warn('Validation failed: Missing style or room type');
+      Alert.alert('Error', 'Please select a style and room type');
+      return;
+    }
+
+    // Only call API for interior, exterior, and garden
+    if (designType !== 'interior' && designType !== 'exterior' && designType !== 'garden') {
+      console.log('Design type does not require API call, continuing without API');
+      // For other design types, just continue without API call
+      onContinue?.(userImage || null);
+      return;
+    }
+
+    console.log('Starting design generation...');
+    setIsGenerating(true);
+
+    try {
+      // Convert user image to base64 if provided
+      let imageBase64 = null;
+      if (userImage) {
+        console.log('Converting user image to base64...');
+        imageBase64 = await convertImageToBase64(userImage);
+        if (!imageBase64) {
+          console.warn('Failed to convert image, continuing without image input');
+        }
+      }
+
+      console.log('Calling Firebase Function: design');
+      const designFunction = functions().httpsCallable('design');
+      
+      const requestData = {
+        designType: designType,
+        roomType: roomType,
+        style: selectedStyle,
+        imageBase64: imageBase64 || null,
+      };
+      
+      console.log('Request payload:', {
+        designType: requestData.designType,
+        roomType: requestData.roomType,
+        style: requestData.style,
+        hasImageBase64: !!requestData.imageBase64,
+        imageBase64Length: requestData.imageBase64 ? requestData.imageBase64.length : 0
+      });
+
+      const result = await designFunction(requestData);
+      const responseData = result.data as DesignResponse;
+
+      console.log('=== Design Generation Response ===');
+      console.log('Success:', responseData.success);
+      console.log('Message:', responseData.message);
+      console.log('Has image:', responseData.hasImage);
+      console.log('Design type:', responseData.designType);
+      console.log('Room type:', responseData.roomType);
+      console.log('Style:', responseData.style);
+      console.log('Prompt:', responseData.prompt);
+      console.log('Generated description length:', responseData.generatedDescription?.length || 0);
+
+      if (responseData.success) {
+        // Check if we got a generated image
+        let generatedImageUri = null;
+        
+        if (responseData.imageDataUri) {
+          // Use the data URI directly if provided
+          generatedImageUri = responseData.imageDataUri;
+        } else if (responseData.imageBase64) {
+          // Construct data URI from base64 and mime type
+          generatedImageUri = `data:${responseData.imageMimeType || 'image/png'};base64,${responseData.imageBase64}`;
+        }
+        
+        if (generatedImageUri) {
+          console.log('Generated image received, length:', generatedImageUri.length);
+          console.log('Navigating to result screen with generated image');
+          // Navigate to result screen with generated image
+          onContinue?.(generatedImageUri);
+        } else {
+          console.log('No image in response, using user image or placeholder');
+          // Fallback to user image or placeholder
+          onContinue?.(userImage || null);
+        }
+      } else {
+        console.error('Design generation failed:', responseData.message);
+        Alert.alert('Error', responseData.message || 'Failed to generate design');
+        setIsGenerating(false);
+      }
+    } catch (error: any) {
+      console.error('=== Error in handleGenerate ===');
+      console.error('Error type:', error?.constructor?.name || 'Unknown');
+      console.error('Error message:', error?.message || 'Unknown error');
+      console.error('Error code:', error?.code || 'N/A');
+      console.error('Error details:', error?.details || 'N/A');
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+      
+      Alert.alert(
+        'Error',
+        error.message || 'Failed to generate design. Please try again.'
+      );
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -96,11 +279,18 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage }: Props) 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={styles.generateButton}
-          onPress={() => onContinue?.(userImage || null)}
+          onPress={handleGenerate}
           activeOpacity={0.9}
-          disabled={!selectedStyle}>
-          <View style={[styles.gradient, !selectedStyle && styles.gradientDisabled]}>
-            <Text style={styles.generateButtonText}>Generate Now</Text>
+          disabled={!selectedStyle || isGenerating}>
+          <View style={[styles.gradient, (!selectedStyle || isGenerating) && styles.gradientDisabled]}>
+            {isGenerating ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 8 }} />
+                <Text style={styles.generateButtonText}>Generating...</Text>
+              </View>
+            ) : (
+              <Text style={styles.generateButtonText}>Generate Now</Text>
+            )}
           </View>
         </TouchableOpacity>
       </View>
@@ -254,6 +444,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 
