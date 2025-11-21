@@ -61,20 +61,42 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Handle image picker response
   const handleImageResponse = (response: ImagePickerResponse) => {
+    console.log('=== Image Picker Response ===');
+    console.log('Did cancel:', response.didCancel);
+    console.log('Error message:', response.errorMessage || 'None');
+    console.log('Has assets:', !!response.assets);
+    console.log('Assets count:', response.assets?.length || 0);
+    
     if (response.didCancel) {
+      console.log('User cancelled image selection');
       return;
     }
     if (response.errorMessage) {
+      console.error('Image picker error:', response.errorMessage);
       Alert.alert('Error', response.errorMessage);
       return;
     }
     if (response.assets && response.assets[0]) {
-      setSelectedImage(response.assets[0].uri || null);
+      const asset = response.assets[0];
+      console.log('=== Image Selected ===');
+      console.log('Image URI:', asset.uri);
+      console.log('Image type:', asset.type);
+      console.log('Image file name:', asset.fileName);
+      console.log('Image width:', asset.width);
+      console.log('Image height:', asset.height);
+      console.log('Image file size:', asset.fileSize ? `${(asset.fileSize / 1024 / 1024).toFixed(2)} MB` : 'Unknown');
+      
+      setSelectedImage(asset.uri || null);
+      console.log('Image set in state successfully');
+    } else {
+      console.warn('No image assets found in response');
     }
   };
 
   // Upload photo from gallery
   const handleUploadPhoto = () => {
+    console.log('=== Upload Photo Button Pressed ===');
+    console.log('Opening image library...');
     launchImageLibrary(
       {
         mediaType: 'photo' as MediaType,
@@ -87,12 +109,19 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Take photo with camera
   const handleTakePhoto = async () => {
+    console.log('=== Take Photo Button Pressed ===');
+    console.log('Requesting camera permission...');
+    
     const hasPermission = await requestCameraPermission();
+    console.log('Camera permission granted:', hasPermission);
+    
     if (!hasPermission) {
+      console.warn('Camera permission denied');
       Alert.alert('Permission Denied', 'Camera permission is required to take photos');
       return;
     }
 
+    console.log('Opening camera...');
     launchCamera(
       {
         mediaType: 'photo' as MediaType,
@@ -142,12 +171,22 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <Image source={{ uri: selectedImage }} style={styles.previewImage} />
             <TouchableOpacity
               style={styles.removeButton}
-              onPress={() => setSelectedImage(null)}>
+              onPress={() => {
+                console.log('=== Remove Image Button Pressed ===');
+                console.log('Removing image:', selectedImage);
+                setSelectedImage(null);
+                console.log('Image removed from state');
+              }}>
               <FontAwesome name="times" size={16} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.changePhotoButton}
-              onPress={() => setSelectedImage(null)}>
+              onPress={() => {
+                console.log('=== Change Photo Button Pressed ===');
+                console.log('Current image:', selectedImage);
+                setSelectedImage(null);
+                console.log('Image cleared, ready for new selection');
+              }}>
               <Text style={styles.changePhotoText}>Change Photo</Text>
             </TouchableOpacity>
           </View>
@@ -201,7 +240,17 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={() => onContinue?.(selectedImage)}
+          onPress={() => {
+            console.log('=== Continue Button Pressed ===');
+            console.log('Selected image URI:', selectedImage);
+            console.log('Has image:', !!selectedImage);
+            if (selectedImage) {
+              console.log('Proceeding to next step with image');
+              onContinue?.(selectedImage);
+            } else {
+              console.warn('Continue button pressed but no image selected');
+            }
+          }}
           activeOpacity={0.9}
           disabled={!selectedImage}>
           <View style={[styles.gradient, !selectedImage && styles.gradientDisabled]}>

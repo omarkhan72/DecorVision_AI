@@ -368,3 +368,8 @@ exports.design = onCall(async (request) => {
     throw new Error(`Design generation failed: ${error.message}`);
   }
 });
+
+/**
+ * Import and export the replace function
+ */
+exports.replace = require('./replace').replace;

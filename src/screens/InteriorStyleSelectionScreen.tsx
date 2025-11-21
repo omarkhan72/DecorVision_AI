@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import functions from '@react-native-firebase/functions';
+import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
 import RNFS from 'react-native-fs';
 
 type Props = { 
@@ -141,7 +141,9 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
       }
 
       console.log('Calling Firebase Function: design');
-      const designFunction = functions().httpsCallable('design');
+      // v2 functions default to us-central1 region
+      const functions = getFunctions(undefined, 'us-central1');
+      const designFunction = httpsCallable(functions, 'design');
       
       const requestData = {
         designType: designType,
@@ -206,10 +208,15 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
       console.error('Error details:', error?.details || 'N/A');
       console.error('Full error object:', JSON.stringify(error, null, 2));
       
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to generate design. Please try again.'
-      );
+      let errorMessage = 'Failed to generate design. Please try again.';
+      
+      if (error?.code === 'unavailable' || error?.code === 'functions/unavailable') {
+        errorMessage = 'The design service is currently unavailable. Please make sure:\n\n1. The Firebase function is deployed\n2. You have an active internet connection\n3. Try again in a few moments';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      Alert.alert('Error', errorMessage);
       setIsGenerating(false);
     }
   };

@@ -45,6 +45,11 @@ import InteriorStyleSelectionScreen from './InteriorStyleSelectionScreen';
 import DesignResultScreen from './DesignResultScreen';
 import DesignLoadingScreen from './DesignLoadingScreen';
 import StyleDetailScreen from './StyleDetailScreen';
+import ReplaceMaskScreen from './ReplaceMaskScreen';
+import ReplacePromptScreen from './ReplacePromptScreen';
+import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
+import RNFS from 'react-native-fs';
+import { Alert } from 'react-native';
 
 // Custom Fence Icon Component (Three Vertical Bars)
 const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
@@ -58,13 +63,159 @@ const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'History'>('Home');
-  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'ExteriorUpload' | 'GardenUpload' | 'ReplaceUpload' | 'NewWallsUpload' | 'NewFlooringUpload' | 'CleanupUpload' | 'RoomTypeSelection' | 'RoomTypeExterior' | 'RoomTypeGarden' | 'RoomTypeReplace' | 'RoomTypeNewWalls' | 'RoomTypeNewFlooring' | 'RoomTypeCleanup' | 'InteriorStyleSelection' | 'DesignLoading' | 'DesignResult' | 'StyleDetail'>('Tabs');
+  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'ExteriorUpload' | 'GardenUpload' | 'ReplaceUpload' | 'ReplaceMask' | 'ReplacePrompt' | 'NewWallsUpload' | 'NewFlooringUpload' | 'CleanupUpload' | 'RoomTypeSelection' | 'RoomTypeExterior' | 'RoomTypeGarden' | 'RoomTypeReplace' | 'RoomTypeNewWalls' | 'RoomTypeNewFlooring' | 'RoomTypeCleanup' | 'InteriorStyleSelection' | 'DesignLoading' | 'DesignResult' | 'StyleDetail'>('Tabs');
   const [selectedStyleImage, setSelectedStyleImage] = useState<any>(null);
   const [selectedRoomName, setSelectedRoomName] = useState<string>('Living Room');
   const [selectedRoomType, setSelectedRoomType] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [userUploadedImage, setUserUploadedImage] = useState<string | null>(null);
+  const [maskImageUri, setMaskImageUri] = useState<string | null>(null);
+  const [replacePrompt, setReplacePrompt] = useState<string | null>(null);
   const [designType, setDesignType] = useState<'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring' | 'cleanup'>('interior');
+  const [isReplacing, setIsReplacing] = useState(false);
+
+  // Convert image URI to base64 helper function
+  const convertImageToBase64 = async (uri: string): Promise<string | null> => {
+    try {
+      console.log('Converting image to base64, URI:', uri.substring(0, 50) + '...');
+      
+      // If already base64, return as is
+      if (uri.startsWith('data:')) {
+        console.log('Image is already base64 encoded');
+        return uri;
+      }
+      
+      // Remove file:// prefix for file operations
+      let filePath = uri;
+      if (uri.startsWith('file://')) {
+        filePath = uri.replace('file://', '');
+      } else if (uri.startsWith('content://')) {
+        // For content:// URIs on Android
+        try {
+          const base64 = await RNFS.readFile(uri, 'base64');
+          return `data:image/jpeg;base64,${base64}`;
+        } catch (err) {
+          console.warn('Error reading content URI:', err);
+          return uri;
+        }
+      }
+      
+      // Check if file exists
+      const fileExists = await RNFS.exists(filePath);
+      if (!fileExists) {
+        console.warn('File does not exist at path:', filePath);
+        return null;
+      }
+      
+      // Read file as base64
+      const base64 = await RNFS.readFile(filePath, 'base64');
+      const mimeType = 'image/jpeg';
+      const base64DataUri = `data:${mimeType};base64,${base64}`;
+      
+      console.log('Image converted to base64, length:', base64DataUri.length);
+      return base64DataUri;
+    } catch (error: any) {
+      console.error('Error converting image to base64:', error);
+      return null;
+    }
+  };
+
+  // Handle replace function call
+  const handleReplace = async (prompt: string) => {
+    if (!userUploadedImage || !prompt.trim()) {
+      Alert.alert('Error', 'Missing required information for replacement');
+      return;
+    }
+
+    setIsReplacing(true);
+    setReplacePrompt(prompt);
+    setCurrentRoute('DesignLoading');
+
+    try {
+      console.log('=== Replace Request Started ===');
+      console.log('Original image:', userUploadedImage);
+      console.log('Mask image:', maskImageUri);
+      console.log('Prompt:', prompt);
+
+      // Convert images to base64
+      const originalImageBase64 = await convertImageToBase64(userUploadedImage);
+      if (!originalImageBase64) {
+        throw new Error('Failed to convert original image to base64');
+      }
+
+      let maskImageBase64 = null;
+      if (maskImageUri) {
+        maskImageBase64 = await convertImageToBase64(maskImageUri);
+        if (!maskImageBase64) {
+          console.warn('Failed to convert mask image, continuing without mask');
+        }
+      }
+
+      console.log('Calling Firebase Function: replace');
+      const functions = getFunctions(undefined, 'us-central1');
+      const replaceFunction = httpsCallable(functions, 'replace');
+
+      const requestData = {
+        imageBase64: originalImageBase64,
+        prompt: prompt.trim(),
+        maskImageBase64: maskImageBase64 || null,
+      };
+
+      console.log('Request payload:', {
+        hasImageBase64: !!requestData.imageBase64,
+        hasPrompt: !!requestData.prompt,
+        hasMaskImageBase64: !!requestData.maskImageBase64,
+        imageBase64Length: requestData.imageBase64 ? requestData.imageBase64.length : 0,
+        promptLength: requestData.prompt.length,
+      });
+
+      const result = await replaceFunction(requestData);
+      const responseData = result.data as any;
+
+      console.log('=== Replace Response ===');
+      console.log('Success:', responseData.success);
+      console.log('Message:', responseData.message);
+      console.log('Has image:', responseData.hasImage);
+
+      if (responseData.success && responseData.hasImage) {
+        let generatedImageUri = null;
+        
+        if (responseData.imageDataUri) {
+          generatedImageUri = responseData.imageDataUri;
+        } else if (responseData.generatedImageBase64) {
+          generatedImageUri = `data:${responseData.imageMimeType || 'image/png'};base64,${responseData.generatedImageBase64}`;
+        }
+
+        if (generatedImageUri) {
+          console.log('Generated image received, navigating to result');
+          setUserUploadedImage(generatedImageUri);
+          setCurrentRoute('DesignResult');
+        } else {
+          throw new Error('No image in response');
+        }
+      } else {
+        throw new Error(responseData.message || 'Replace failed');
+      }
+    } catch (error: any) {
+      console.error('=== Error in handleReplace ===');
+      console.error('Error type:', error?.constructor?.name || 'Unknown');
+      console.error('Error message:', error?.message || 'Unknown error');
+      console.error('Error code:', error?.code || 'N/A');
+
+      let errorMessage = 'Failed to replace object. Please try again.';
+      
+      if (error?.code === 'unavailable' || error?.code === 'functions/unavailable') {
+        errorMessage = 'The replace service is currently unavailable. Please make sure:\n\n1. The Firebase function is deployed\n2. You have an active internet connection\n3. Try again in a few moments';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert('Error', errorMessage);
+      setCurrentRoute('ReplacePrompt');
+    } finally {
+      setIsReplacing(false);
+    }
+  };
 
   // Reanimated shared values
   const scrollY = useSharedValue(0);
@@ -242,9 +393,28 @@ const HomeScreen = () => {
           onBack={() => setCurrentRoute('Tabs')}
           onContinue={(imageUri) => {
             setUserUploadedImage(imageUri);
-            setCurrentRoute('RoomTypeReplace');
+            setCurrentRoute('ReplaceMask');
           }}
           styleImage={selectedStyleImage}
+        />
+      ) : currentRoute === 'ReplaceMask' ? (
+        <ReplaceMaskScreen
+          onBack={() => setCurrentRoute('ReplaceUpload')}
+          onContinue={(originalImageUri, maskImageUri) => {
+            setUserUploadedImage(originalImageUri);
+            setMaskImageUri(maskImageUri);
+            setCurrentRoute('ReplacePrompt');
+          }}
+          imageUri={userUploadedImage}
+        />
+      ) : currentRoute === 'ReplacePrompt' ? (
+        <ReplacePromptScreen
+          onBack={() => setCurrentRoute('ReplaceMask')}
+          onContinue={(prompt) => {
+            handleReplace(prompt);
+          }}
+          originalImageUri={userUploadedImage || ''}
+          maskImageUri={maskImageUri || ''}
         />
       ) : currentRoute === 'NewWallsUpload' ? (
         <NewWallsUploadScreen
