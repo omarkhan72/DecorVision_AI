@@ -33,15 +33,15 @@ import GardenUploadScreen from './GardenUploadScreen';
 import ReplaceUploadScreen from './ReplaceUploadScreen';
 import NewWallsUploadScreen from './NewWallsUploadScreen';
 import NewFlooringUploadScreen from './NewFlooringUploadScreen';
-import CleanupUploadScreen from './CleanupUploadScreen';
 import RoomTypeSelectionScreen from './RoomTypeSelectionScreen';
 import RoomTypeExteriorScreen from './RoomTypeExteriorScreen';
 import RoomTypeGardenScreen from './RoomTypeGardenScreen';
 import RoomTypeReplaceScreen from './RoomTypeReplaceScreen';
 import RoomTypeNewWallsScreen from './RoomTypeNewWallsScreen';
 import RoomTypeNewFlooringScreen from './RoomTypeNewFlooringScreen';
-import RoomTypeCleanupScreen from './RoomTypeCleanupScreen';
 import InteriorStyleSelectionScreen from './InteriorStyleSelectionScreen';
+import NewFlooringStyleSelectionScreen from './NewFlooringStyleSelectionScreen';
+import NewWallsStyleSelectionScreen from './NewWallsStyleSelectionScreen';
 import DesignResultScreen from './DesignResultScreen';
 import DesignLoadingScreen from './DesignLoadingScreen';
 import StyleDetailScreen from './StyleDetailScreen';
@@ -63,7 +63,7 @@ const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'History'>('Home');
-  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'ExteriorUpload' | 'GardenUpload' | 'ReplaceUpload' | 'ReplaceMask' | 'ReplacePrompt' | 'NewWallsUpload' | 'NewFlooringUpload' | 'CleanupUpload' | 'RoomTypeSelection' | 'RoomTypeExterior' | 'RoomTypeGarden' | 'RoomTypeReplace' | 'RoomTypeNewWalls' | 'RoomTypeNewFlooring' | 'RoomTypeCleanup' | 'InteriorStyleSelection' | 'DesignLoading' | 'DesignResult' | 'StyleDetail'>('Tabs');
+  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'ExteriorUpload' | 'GardenUpload' | 'ReplaceUpload' | 'ReplaceMask' | 'ReplacePrompt' | 'NewWallsUpload' | 'NewFlooringUpload' | 'RoomTypeSelection' | 'RoomTypeExterior' | 'RoomTypeGarden' | 'RoomTypeReplace' | 'RoomTypeNewWalls' | 'RoomTypeNewFlooring' | 'InteriorStyleSelection' | 'NewFlooringStyleSelection' | 'NewWallsStyleSelection' | 'DesignLoading' | 'DesignResult' | 'StyleDetail'>('Tabs');
   const [selectedStyleImage, setSelectedStyleImage] = useState<any>(null);
   const [selectedRoomName, setSelectedRoomName] = useState<string>('Living Room');
   const [selectedRoomType, setSelectedRoomType] = useState<string | null>(null);
@@ -71,7 +71,7 @@ const HomeScreen = () => {
   const [userUploadedImage, setUserUploadedImage] = useState<string | null>(null);
   const [maskImageUri, setMaskImageUri] = useState<string | null>(null);
   const [replacePrompt, setReplacePrompt] = useState<string | null>(null);
-  const [designType, setDesignType] = useState<'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring' | 'cleanup'>('interior');
+  const [designType, setDesignType] = useState<'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring'>('interior');
   const [isReplacing, setIsReplacing] = useState(false);
 
   // Convert image URI to base64 helper function
@@ -318,12 +318,6 @@ const HomeScreen = () => {
       description: 'Chose wood, carpet, tile, and more',
       image: require('../assets/images/new-flooring.jpg'),
     },
-    {
-      id: 8,
-      title: 'Cleanup',
-      description: 'Delete selected object',
-      image: require('../assets/images/cleanup.jpg'),
-    },
   ];
 
   return (
@@ -434,30 +428,12 @@ const HomeScreen = () => {
           }}
           styleImage={selectedStyleImage}
         />
-      ) : currentRoute === 'CleanupUpload' ? (
-        <CleanupUploadScreen
-          onBack={() => setCurrentRoute('Tabs')}
-          onContinue={(imageUri) => {
-            setUserUploadedImage(imageUri);
-            setCurrentRoute('RoomTypeCleanup');
-          }}
-          styleImage={selectedStyleImage}
-        />
-      ) : currentRoute === 'RoomTypeCleanup' ? (
-        <RoomTypeCleanupScreen 
-          onBack={() => setCurrentRoute('CleanupUpload')} 
-          onContinue={(imageUri) => {
-            setUserUploadedImage(imageUri);
-            setCurrentRoute('InteriorStyleSelection');
-          }}
-          userImage={userUploadedImage}
-        />
       ) : currentRoute === 'RoomTypeNewFlooring' ? (
         <RoomTypeNewFlooringScreen 
           onBack={() => setCurrentRoute('NewFlooringUpload')} 
           onContinue={(imageUri) => {
             setUserUploadedImage(imageUri);
-            setCurrentRoute('InteriorStyleSelection');
+            setCurrentRoute('NewFlooringStyleSelection');
           }}
           userImage={userUploadedImage}
         />
@@ -466,7 +442,7 @@ const HomeScreen = () => {
           onBack={() => setCurrentRoute('NewWallsUpload')} 
           onContinue={(imageUri) => {
             setUserUploadedImage(imageUri);
-            setCurrentRoute('InteriorStyleSelection');
+            setCurrentRoute('NewWallsStyleSelection');
           }}
           userImage={userUploadedImage}
         />
@@ -541,6 +517,30 @@ const HomeScreen = () => {
           roomType={selectedRoomType}
           designType={designType}
         />
+      ) : currentRoute === 'NewFlooringStyleSelection' ? (
+        <NewFlooringStyleSelectionScreen 
+          onBack={() => {
+            setCurrentRoute('RoomTypeNewFlooring');
+          }}
+          onContinue={(imageUri) => {
+            setUserUploadedImage(imageUri);
+            setCurrentRoute('DesignResult');
+          }}
+          userImage={userUploadedImage}
+          roomType={selectedRoomType}
+        />
+      ) : currentRoute === 'NewWallsStyleSelection' ? (
+        <NewWallsStyleSelectionScreen 
+          onBack={() => {
+            setCurrentRoute('RoomTypeNewWalls');
+          }}
+          onContinue={(imageUri) => {
+            setUserUploadedImage(imageUri);
+            setCurrentRoute('DesignResult');
+          }}
+          userImage={userUploadedImage}
+          roomType={selectedRoomType}
+        />
       ) : currentRoute === 'DesignLoading' ? (
         <DesignLoadingScreen 
           onComplete={() => setCurrentRoute('DesignResult')} 
@@ -561,8 +561,6 @@ const HomeScreen = () => {
               setCurrentRoute('NewWallsUpload');
             } else if (designType === 'newflooring') {
               setCurrentRoute('NewFlooringUpload');
-            } else if (designType === 'cleanup') {
-              setCurrentRoute('CleanupUpload');
             } else {
               setCurrentRoute('InteriorUpload');
             }
@@ -670,16 +668,12 @@ const HomeScreen = () => {
                   console.log('Navigating to New Flooring Upload');
                   setDesignType('newflooring');
                   setCurrentRoute('NewFlooringUpload');
-                } else if (card.id === 8) {
-                  console.log('Navigating to Cleanup Upload');
-                  setDesignType('cleanup');
-                  setCurrentRoute('CleanupUpload');
                 } else {
                   console.log('Navigating to Interior Upload');
                   setDesignType('interior');
                   setCurrentRoute('InteriorUpload');
                 }
-                console.log('Current route set, design type:', card.id === 2 ? 'exterior' : card.id === 3 ? 'garden' : card.id === 4 ? 'replace' : card.id === 6 ? 'newwalls' : card.id === 7 ? 'newflooring' : card.id === 8 ? 'cleanup' : 'interior');
+                console.log('Current route set, design type:', card.id === 2 ? 'exterior' : card.id === 3 ? 'garden' : card.id === 4 ? 'replace' : card.id === 6 ? 'newwalls' : card.id === 7 ? 'newflooring' : 'interior');
               }}>
                 <View style={styles.card}>
                   <Image source={card.image} style={styles.cardImage} />
