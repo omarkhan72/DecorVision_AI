@@ -373,3 +373,8 @@ exports.design = onCall(async (request) => {
  * Import and export the replace function
  */
 exports.replace = require('./replace').replace;
+
+/**
+ * Import and export the newFlooringWalls function
+ */
+exports.newFlooringWalls = require('./newFlooringWalls').newFlooringWalls;

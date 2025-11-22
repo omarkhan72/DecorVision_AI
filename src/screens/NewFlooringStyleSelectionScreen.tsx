@@ -104,6 +104,25 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
     }
   };
 
+  // Map style to flooring material prompt
+  const getFlooringPrompt = (style: string): string => {
+    const stylePrompts: { [key: string]: string } = {
+      'modern': 'modern sleek flooring, such as polished concrete or minimalist tiles',
+      'cozy': 'warm cozy flooring, such as hardwood or soft carpet',
+      'luxury': 'luxurious premium flooring, such as marble or high-end hardwood',
+      'minimalist': 'minimalist clean flooring, such as light wood or simple tiles',
+      'scandinavian': 'scandinavian style light wood flooring',
+      'airbnb': 'stylish and welcoming flooring suitable for a rental property',
+      'midcentury': 'mid-century modern style flooring with retro patterns',
+      'rustic': 'rustic natural flooring, such as reclaimed wood or stone',
+      'zen': 'zen-inspired natural flooring, such as bamboo or light wood',
+      'tropical': 'tropical style flooring with natural textures',
+      'coastal': 'coastal style light flooring, such as whitewashed wood or light tiles',
+      'vintage': 'vintage style classic flooring with traditional patterns',
+    };
+    return stylePrompts[style] || `${style} style flooring`;
+  };
+
   const handleGenerate = async () => {
     console.log('=== Generate Button Pressed (New Flooring) ===');
     console.log('Selected style:', selectedStyle);
@@ -131,49 +150,47 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
         }
       }
 
-      console.log('Calling Firebase Function: design');
+      // Generate prompt from style
+      const prompt = getFlooringPrompt(selectedStyle);
+      console.log('Generated prompt:', prompt);
+
+      console.log('Calling Firebase Function: newFlooringWalls');
       // v2 functions default to us-central1 region
       const functions = getFunctions(undefined, 'us-central1');
-      const designFunction = httpsCallable(functions, 'design');
+      const newFlooringWallsFunction = httpsCallable(functions, 'newFlooringWalls');
       
       const requestData = {
-        designType: 'newflooring',
-        roomType: roomType || 'Living Room',
-        style: selectedStyle,
         imageBase64: imageBase64 || null,
+        prompt: prompt,
+        targetArea: 'flooring',
       };
       
       console.log('Request payload:', {
-        designType: requestData.designType,
-        roomType: requestData.roomType,
-        style: requestData.style,
         hasImageBase64: !!requestData.imageBase64,
+        prompt: requestData.prompt,
+        targetArea: requestData.targetArea,
         imageBase64Length: requestData.imageBase64 ? requestData.imageBase64.length : 0
       });
 
-      const result = await designFunction(requestData);
-      const responseData = result.data as DesignResponse;
+      const result = await newFlooringWallsFunction(requestData);
+      const responseData = result.data as any;
 
-      console.log('=== Design Generation Response ===');
+      console.log('=== Flooring Generation Response ===');
       console.log('Success:', responseData.success);
       console.log('Message:', responseData.message);
       console.log('Has image:', responseData.hasImage);
-      console.log('Design type:', responseData.designType);
-      console.log('Room type:', responseData.roomType);
-      console.log('Style:', responseData.style);
-      console.log('Prompt:', responseData.prompt);
-      console.log('Generated description length:', responseData.generatedDescription?.length || 0);
+      console.log('Target area:', responseData.targetArea);
 
-      if (responseData.success) {
+      if (responseData.success && responseData.hasImage) {
         // Check if we got a generated image
         let generatedImageUri = null;
         
         if (responseData.imageDataUri) {
           // Use the data URI directly if provided
           generatedImageUri = responseData.imageDataUri;
-        } else if (responseData.imageBase64) {
+        } else if (responseData.generatedImageBase64) {
           // Construct data URI from base64 and mime type
-          generatedImageUri = `data:${responseData.imageMimeType || 'image/png'};base64,${responseData.imageBase64}`;
+          generatedImageUri = `data:${responseData.imageMimeType || 'image/png'};base64,${responseData.generatedImageBase64}`;
         }
         
         if (generatedImageUri) {
@@ -187,8 +204,8 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
           onContinue?.(userImage || null);
         }
       } else {
-        console.error('Design generation failed:', responseData.message);
-        Alert.alert('Error', responseData.message || 'Failed to generate design');
+        console.error('Flooring generation failed:', responseData.message);
+        Alert.alert('Error', responseData.message || 'Failed to generate flooring design');
         setIsGenerating(false);
       }
     } catch (error: any) {
@@ -202,7 +219,9 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
       let errorMessage = 'Failed to generate design. Please try again.';
       
       if (error?.code === 'unavailable' || error?.code === 'functions/unavailable') {
-        errorMessage = 'The design service is currently unavailable. Please make sure:\n\n1. The Firebase function is deployed\n2. You have an active internet connection\n3. Try again in a few moments';
+        errorMessage = 'The flooring service is currently unavailable. Please make sure:\n\n1. The Firebase function is deployed\n2. You have an active internet connection\n3. Try again in a few moments';
+      } else if (error?.code === 'internal') {
+        errorMessage = 'An internal error occurred. Please make sure:\n\n1. The newFlooringWalls function is deployed\n2. The GEMINI_API_KEY is configured\n3. Try again in a few moments';
       } else if (error?.message) {
         errorMessage = error.message;
       }
