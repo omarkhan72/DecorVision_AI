@@ -85,8 +85,20 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       console.log('Image width:', asset.width);
       console.log('Image height:', asset.height);
       console.log('Image file size:', asset.fileSize ? `${(asset.fileSize / 1024 / 1024).toFixed(2)} MB` : 'Unknown');
+      console.log('Has base64:', !!asset.base64);
       
-      setSelectedImage(asset.uri || null);
+      // Prefer base64 if available, otherwise use URI
+      let imageData: string | null = null;
+      if (asset.base64) {
+        const mimeType = asset.type || 'image/jpeg';
+        imageData = `data:${mimeType};base64,${asset.base64}`;
+        console.log('Using base64 data, length:', imageData.length);
+      } else if (asset.uri) {
+        imageData = asset.uri;
+        console.log('Using URI (will need conversion later)');
+      }
+      
+      setSelectedImage(imageData);
       console.log('Image set in state successfully');
     } else {
       console.warn('No image assets found in response');
@@ -102,6 +114,7 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
         selectionLimit: 1,
+        includeBase64: true,
       },
       handleImageResponse
     );
@@ -127,6 +140,7 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
         saveToPhotos: true,
+        includeBase64: true,
       },
       handleImageResponse
     );

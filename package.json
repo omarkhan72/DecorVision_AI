@@ -24,7 +24,6 @@
     "react": "19.1.1",
     "react-native": "0.82.1",
     "react-native-dotenv": "^3.4.11",
-    "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.29.0",
     "react-native-image-picker": "^8.2.1",
     "react-native-permissions": "^5.4.4",

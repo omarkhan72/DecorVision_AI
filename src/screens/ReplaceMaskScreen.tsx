@@ -13,7 +13,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Svg, { Path } from 'react-native-svg';
-import RNFS from 'react-native-fs';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -153,15 +152,6 @@ const ReplaceMaskScreen = ({ onBack, onContinue, imageUri }: Props) => {
         }
       });
 
-      // Save mask as a temporary file
-      // Note: This is a simplified approach. For production, use a proper canvas library
-      const timestamp = Date.now();
-      const maskPath = `${RNFS.CachesDirectoryPath}/mask_${timestamp}.png`;
-      
-      // For now, we'll return a placeholder
-      // In production, you'd render the mask to an image file
-      // This requires react-native-view-shot or similar
-      
       // TODO: Implement proper mask generation using react-native-view-shot
       // For now, we'll create a placeholder mask URI
       // Install: npm install react-native-view-shot

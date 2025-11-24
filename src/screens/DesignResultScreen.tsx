@@ -14,7 +14,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Share from 'react-native-share';
-import RNFS from 'react-native-fs';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { saveToHistory } from '../utils/historyStorage';
 
@@ -73,88 +72,9 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
         return;
       }
 
-      // Handle user image (URI) vs bundled asset
-      let sourceUri: string;
-      if (userImage) {
-        // User uploaded image - use the URI directly
-        sourceUri = userImage;
-      } else {
-        // Bundled asset - resolve it
-        const imageUri = Image.resolveAssetSource(imageSource);
-        if (!imageUri || !imageUri.uri) {
-          Alert.alert('Error', 'Unable to load image for download');
-          return;
-        }
-        sourceUri = imageUri.uri;
-      }
-
-      // Create filename with timestamp
-      const timestamp = new Date().getTime();
-      const filename = `design_${timestamp}.jpg`;
-      
-      // Determine download path based on platform
-      let downloadPath = '';
-      if (Platform.OS === 'android') {
-        // For Android, save to Pictures directory
-        downloadPath = `${RNFS.PicturesDirectoryPath}/${filename}`;
-      } else {
-        // For iOS, save to Pictures directory
-        downloadPath = `${RNFS.PicturesDirectoryPath}/${filename}`;
-      }
-      
-      // Handle different URI types
-      if (sourceUri.startsWith('file://')) {
-        // Direct file path - copy it
-        await RNFS.copyFile(sourceUri, downloadPath);
-      } else if (sourceUri.startsWith('http://') || sourceUri.startsWith('https://')) {
-        // Remote URL - download it
-        const downloadResult = await RNFS.downloadFile({
-          fromUrl: sourceUri,
-          toFile: downloadPath,
-        }).promise;
-        
-        if (downloadResult.statusCode !== 200) {
-          throw new Error('Download failed');
-        }
-      } else {
-        // For bundled assets, try to read as base64 using react-native-fs
-        try {
-          // Try to read the file if it's accessible
-          if (await RNFS.exists(sourceUri)) {
-            const base64 = await RNFS.readFile(sourceUri, 'base64');
-            await RNFS.writeFile(downloadPath, base64, 'base64');
-          } else {
-            // If file doesn't exist at that path, try fetching
-            const response = await fetch(sourceUri);
-            if (!response.ok) {
-              throw new Error('Failed to fetch image');
-            }
-            // Use react-native-fs to download from the URI
-            const downloadResult = await RNFS.downloadFile({
-              fromUrl: sourceUri,
-              toFile: downloadPath,
-            }).promise;
-            
-            if (downloadResult.statusCode !== 200) {
-              throw new Error('Download failed');
-            }
-          }
-        } catch (fetchError) {
-          // If we can't download, suggest using share instead
-          Alert.alert(
-            'Info',
-            'Please use the Share button to save the image to your gallery.',
-            [{ text: 'OK' }]
-          );
-          return;
-        }
-      }
-
-      Alert.alert(
-        'Success',
-        `Image downloaded successfully to ${Platform.OS === 'android' ? 'Pictures' : 'Photos'} folder!`,
-        [{ text: 'OK' }]
-      );
+      // Use Share API to save image (works on both iOS and Android)
+      // This will open the share dialog where user can save to gallery
+      await handleShare();
     } catch (error: any) {
       console.log('Download error:', error);
       Alert.alert('Error', 'Unable to download image. Please try using the Share button instead.');
@@ -166,67 +86,16 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
       let imageUriString: string;
       
       if (userImage) {
-        // User uploaded image - handle different URI types
-        if (userImage.startsWith('content://')) {
-          // Android content:// URI - copy to temp file for sharing
-          const timestamp = new Date().getTime();
-          const tempFileName = `share_${timestamp}.jpg`;
-          const tempFilePath = `${RNFS.CachesDirectoryPath}/${tempFileName}`;
-          
-          try {
-            // Read the content URI and write to temp file
-            const base64 = await RNFS.readFile(userImage, 'base64');
-            await RNFS.writeFile(tempFilePath, base64, 'base64');
-            imageUriString = `file://${tempFilePath}`;
-          } catch (copyError) {
-            // If reading fails, try using the URI directly
-            imageUriString = userImage;
-          }
-        } else if (userImage.startsWith('file://')) {
-          // File URI - verify it exists
-          const filePath = userImage.replace('file://', '');
-          const fileExists = await RNFS.exists(filePath);
-          if (!fileExists) {
-            Alert.alert('Error', 'Image file not found. Please try again.');
-            return;
-          }
+        // User uploaded image - use URI directly
           imageUriString = userImage;
-        } else {
-          // Direct path or other format
-          imageUriString = userImage;
-        }
       } else {
-        // Bundled asset - we need to copy it to a temporary location for sharing
+        // Bundled asset - resolve it
         const imageUri = Image.resolveAssetSource(imageSource);
         if (!imageUri || !imageUri.uri) {
           Alert.alert('Error', 'Unable to load image for sharing');
           return;
         }
-        
-        // For bundled assets, copy to a temporary file that can be shared
-        const timestamp = new Date().getTime();
-        const tempFileName = `temp_share_${timestamp}.jpg`;
-        const tempFilePath = `${RNFS.CachesDirectoryPath}/${tempFileName}`;
-        
-        // Copy the bundled asset to temp location
-        const sourceUri = imageUri.uri;
-        if (sourceUri.startsWith('file://')) {
-          await RNFS.copyFile(sourceUri, tempFilePath);
-        } else {
-          // If it's a bundled asset, we might need to read it differently
-          // For now, try to use the original URI
-          imageUriString = sourceUri;
-          const shareOptions = {
-            title: 'Share Design',
-            message: 'Check out this amazing interior design!',
-            url: imageUriString,
-            type: 'image/jpeg',
-          };
-          await Share.open(shareOptions);
-          return;
-        }
-        
-        imageUriString = `file://${tempFilePath}`;
+        imageUriString = imageUri.uri;
       }
 
       // Share the image file directly

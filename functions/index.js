@@ -308,7 +308,7 @@ exports.design = onCall(async (request) => {
     let generatedText = '';
     try {
       generatedText = response.text() || '';
-      console.log('Generated text length:', generatedText.length);
+    console.log('Generated text length:', generatedText.length);
     } catch (textError) {
       console.log('No text response in result');
     }

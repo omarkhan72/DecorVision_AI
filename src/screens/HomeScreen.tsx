@@ -48,7 +48,6 @@ import StyleDetailScreen from './StyleDetailScreen';
 import ReplaceMaskScreen from './ReplaceMaskScreen';
 import ReplacePromptScreen from './ReplacePromptScreen';
 import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
-import RNFS from 'react-native-fs';
 import { Alert } from 'react-native';
 
 // Custom Fence Icon Component (Three Vertical Bars)
@@ -85,35 +84,61 @@ const HomeScreen = () => {
         return uri;
       }
       
-      // Remove file:// prefix for file operations
-      let filePath = uri;
-      if (uri.startsWith('file://')) {
-        filePath = uri.replace('file://', '');
-      } else if (uri.startsWith('content://')) {
-        // For content:// URIs on Android
-        try {
-          const base64 = await RNFS.readFile(uri, 'base64');
-          return `data:image/jpeg;base64,${base64}`;
-        } catch (err) {
-          console.warn('Error reading content URI:', err);
-          return uri;
+      // Use XMLHttpRequest for file:// URIs (works in React Native)
+      if (uri.startsWith('file://') || uri.startsWith('content://')) {
+        return new Promise((resolve) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', uri, true);
+          xhr.responseType = 'blob';
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              const reader = new FileReader();
+              reader.onloadend = function() {
+                const base64String = reader.result as string;
+                console.log('Image converted to base64 via XMLHttpRequest, length:', base64String.length);
+                resolve(base64String);
+              };
+              reader.onerror = function() {
+                console.warn('FileReader error, returning URI as-is');
+                resolve(uri);
+              };
+              reader.readAsDataURL(xhr.response);
+            } else {
+              console.warn('XMLHttpRequest failed, returning URI as-is');
+              resolve(uri);
+            }
+          };
+          xhr.onerror = function() {
+            console.warn('XMLHttpRequest error, returning URI as-is');
+            resolve(uri);
+          };
+          xhr.send();
+        });
+      }
+      
+      // Use fetch API for http/https URIs
+      try {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        // Convert blob to base64 using arrayBuffer (chunked for large images)
+        const arrayBuffer = await blob.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        const chunkSize = 8192;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          const chunk = bytes.subarray(i, i + chunkSize);
+          binary += String.fromCharCode(...chunk);
         }
+        const base64 = btoa(binary);
+        const mimeType = blob.type || 'image/jpeg';
+        const base64DataUri = `data:${mimeType};base64,${base64}`;
+        console.log('Image converted to base64, length:', base64DataUri.length);
+        return base64DataUri;
+      } catch (fetchError) {
+        console.warn('Error converting image with fetch, returning URI as-is:', fetchError);
+        // Fallback: return the URI as-is and let backend handle it
+        return uri;
       }
-      
-      // Check if file exists
-      const fileExists = await RNFS.exists(filePath);
-      if (!fileExists) {
-        console.warn('File does not exist at path:', filePath);
-        return null;
-      }
-      
-      // Read file as base64
-      const base64 = await RNFS.readFile(filePath, 'base64');
-      const mimeType = 'image/jpeg';
-      const base64DataUri = `data:${mimeType};base64,${base64}`;
-      
-      console.log('Image converted to base64, length:', base64DataUri.length);
-      return base64DataUri;
     } catch (error: any) {
       console.error('Error converting image to base64:', error);
       return null;

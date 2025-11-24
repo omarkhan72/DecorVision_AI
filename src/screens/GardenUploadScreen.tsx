@@ -69,7 +69,16 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       return;
     }
     if (response.assets && response.assets[0]) {
-      setSelectedImage(response.assets[0].uri || null);
+      const asset = response.assets[0];
+      // Prefer base64 if available, otherwise use URI
+      let imageData: string | null = null;
+      if (asset.base64) {
+        const mimeType = asset.type || 'image/jpeg';
+        imageData = `data:${mimeType};base64,${asset.base64}`;
+      } else if (asset.uri) {
+        imageData = asset.uri;
+      }
+      setSelectedImage(imageData);
     }
   };
 
@@ -80,6 +89,7 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
         selectionLimit: 1,
+        includeBase64: true,
       },
       handleImageResponse
     );
@@ -98,6 +108,7 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
         saveToPhotos: true,
+        includeBase64: true,
       },
       handleImageResponse
     );
