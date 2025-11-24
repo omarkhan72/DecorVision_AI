@@ -14,6 +14,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
 
+// Mock Mode: Set to true to use mock responses instead of real API calls
+const USE_MOCK_API = true;
+
 type Props = { 
   onBack: () => void; 
   onContinue?: (imageUri: string | null) => void; 
@@ -99,29 +102,41 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
         });
       }
       
-      // Use fetch API for http/https URIs
-      try {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        // Convert blob to base64 using arrayBuffer (chunked for large images)
-        const arrayBuffer = await blob.arrayBuffer();
-        const bytes = new Uint8Array(arrayBuffer);
-        let binary = '';
-        const chunkSize = 8192;
-        for (let i = 0; i < bytes.length; i += chunkSize) {
-          const chunk = bytes.subarray(i, i + chunkSize);
-          binary += String.fromCharCode(...chunk);
-        }
-        const base64 = btoa(binary);
-        const mimeType = blob.type || 'image/jpeg';
-        const base64DataUri = `data:${mimeType};base64,${base64}`;
-        console.log('Image converted to base64, length:', base64DataUri.length);
-        return base64DataUri;
-      } catch (fetchError) {
-        console.warn('Error converting image with fetch, returning URI as-is:', fetchError);
-        // Fallback: return the URI as-is and let backend handle it
-        return uri;
+      // Use XMLHttpRequest for http/https URIs (works in React Native)
+      if (uri.startsWith('http://') || uri.startsWith('https://')) {
+        return new Promise((resolve) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', uri, true);
+          xhr.responseType = 'blob';
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              const reader = new FileReader();
+              reader.onloadend = function() {
+                const base64String = reader.result as string;
+                console.log('Image converted to base64 via XMLHttpRequest, length:', base64String.length);
+                resolve(base64String);
+              };
+              reader.onerror = function() {
+                console.warn('FileReader error, returning URI as-is');
+                resolve(uri);
+              };
+              reader.readAsDataURL(xhr.response);
+            } else {
+              console.warn('XMLHttpRequest failed, returning URI as-is');
+              resolve(uri);
+            }
+          };
+          xhr.onerror = function() {
+            console.warn('XMLHttpRequest error, returning URI as-is');
+            resolve(uri);
+          };
+          xhr.send();
+        });
       }
+      
+      // Fallback: return the URI as-is and let backend handle it
+      console.warn('Unsupported URI format, returning URI as-is');
+      return uri;
     } catch (error: any) {
       console.error('Error converting image to base64:', error);
       return null;
@@ -183,8 +198,67 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
         imageBase64Length: requestData.imageBase64 ? requestData.imageBase64.length : 0
       });
 
-      const result = await designFunction(requestData);
-      const responseData = result.data as DesignResponse;
+      let responseData: DesignResponse;
+
+      if (USE_MOCK_API) {
+        console.log('⚠️ MOCK MODE: Generating static response...');
+        // Simulate network delay
+        await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
+        
+        // Use the original input image as the "generated" image
+        let mockImageDataUri = null;
+        if (requestData.imageBase64) {
+          // If it's already a data URI, use it directly
+          if (requestData.imageBase64.startsWith('data:')) {
+            mockImageDataUri = requestData.imageBase64;
+          } else {
+            // If it's just base64, construct data URI
+            mockImageDataUri = `data:image/jpeg;base64,${requestData.imageBase64}`;
+          }
+        }
+
+        // Create mock response matching DesignResponse interface
+        responseData = {
+          success: true,
+          message: 'Mock design generated successfully',
+          hasImage: !!mockImageDataUri,
+          designType: requestData.designType,
+          roomType: requestData.roomType,
+          style: requestData.style,
+          prompt: `Generate a ${requestData.style} style ${requestData.roomType} design`,
+          generatedDescription: `This is a mock ${requestData.style} style ${requestData.roomType} design.`,
+          imageDataUri: mockImageDataUri || undefined,
+          imageMimeType: 'image/jpeg',
+        };
+      } else {
+        // Real API call - uncomment the lines below when USE_MOCK_API is false
+        // const result = await designFunction(requestData);
+        // responseData = result.data as DesignResponse;
+        
+        // For now, using mock even when USE_MOCK_API is false (real API is commented out)
+        console.log('⚠️ Real API call commented out. Using mock response...');
+        await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
+        let mockImageDataUri = null;
+        if (requestData.imageBase64) {
+          if (requestData.imageBase64.startsWith('data:')) {
+            mockImageDataUri = requestData.imageBase64;
+          } else {
+            mockImageDataUri = `data:image/jpeg;base64,${requestData.imageBase64}`;
+          }
+        }
+        responseData = {
+          success: true,
+          message: 'Mock design generated successfully',
+          hasImage: !!mockImageDataUri,
+          designType: requestData.designType,
+          roomType: requestData.roomType,
+          style: requestData.style,
+          prompt: `Generate a ${requestData.style} style ${requestData.roomType} design`,
+          generatedDescription: `This is a mock ${requestData.style} style ${requestData.roomType} design.`,
+          imageDataUri: mockImageDataUri || undefined,
+          imageMimeType: 'image/jpeg',
+        };
+      }
 
       console.log('=== Design Generation Response ===');
       console.log('Success:', responseData.success);
