@@ -9,6 +9,8 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 class MainActivity : ReactActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) { // ✅ correct signature
+        // Set splash theme before super.onCreate
+        setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
     }
 
