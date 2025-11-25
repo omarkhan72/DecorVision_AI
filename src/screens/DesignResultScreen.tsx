@@ -15,6 +15,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Share from 'react-native-share';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import RNFS from 'react-native-fs';
 import { saveToHistory } from '../utils/historyStorage';
 
 type Props = { onBack: () => void; onRegenerate?: () => void; userImage?: string | null };
@@ -72,8 +73,8 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
         return;
       }
 
-      // Use Share API to save image (works on both iOS and Android)
-      // This will open the share dialog where user can save to gallery
+      // For download, we'll use the share dialog which allows saving to gallery
+      // This works better across platforms than trying to save directly
       await handleShare();
     } catch (error: any) {
       console.log('Download error:', error);
@@ -84,10 +85,48 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
   const handleShare = async () => {
     try {
       let imageUriString: string;
+      let tempFilePath: string | null = null;
       
       if (userImage) {
-        // User uploaded image - use URI directly
+        // Check if it's a base64 data URI
+        if (userImage.startsWith('data:image/')) {
+          try {
+            // Extract base64 data and mime type
+            const matches = userImage.match(/^data:([^;]+);base64,(.+)$/);
+            if (matches) {
+              const mimeType = matches[1];
+              const base64Data = matches[2];
+              
+              // Determine file extension from mime type
+              let extension = 'jpg';
+              if (mimeType.includes('png')) extension = 'png';
+              else if (mimeType.includes('jpeg') || mimeType.includes('jpg')) extension = 'jpg';
+              else if (mimeType.includes('webp')) extension = 'webp';
+              
+              // Create temporary file path
+              const fileName = `design_${Date.now()}.${extension}`;
+              tempFilePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+              
+              // Write base64 data to file
+              await RNFS.writeFile(tempFilePath, base64Data, 'base64');
+              console.log('Temporary file created:', tempFilePath);
+              
+              // Use the file URI for sharing
+              // react-native-share works with file:// prefix on both platforms
+              imageUriString = `file://${tempFilePath}`;
+            } else {
+              // Fallback: try to use data URI directly
+              imageUriString = userImage;
+            }
+          } catch (fileError: any) {
+            console.error('Error creating temporary file:', fileError);
+            // Fallback: try to use data URI directly
+            imageUriString = userImage;
+          }
+        } else {
+          // Regular file URI - use directly
           imageUriString = userImage;
+        }
       } else {
         // Bundled asset - resolve it
         const imageUri = Image.resolveAssetSource(imageSource);
@@ -98,23 +137,35 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
         imageUriString = imageUri.uri;
       }
 
-      // Share the image file directly
+      // Share the image file
       const shareOptions = {
         title: 'Share Design',
-        message: 'Check out this amazing interior design!',
+        message: 'Check out this amazing design!',
         url: imageUriString,
         type: 'image/jpeg',
         failOnCancel: false,
       };
 
       await Share.open(shareOptions);
+      
+      // Clean up temporary file after sharing (optional - can be kept for user to access)
+      // Uncomment the following lines if you want to delete the temp file immediately
+      // if (tempFilePath) {
+      //   try {
+      //     await RNFS.unlink(tempFilePath);
+      //     console.log('Temporary file deleted');
+      //   } catch (unlinkError) {
+      //     console.warn('Error deleting temporary file:', unlinkError);
+      //   }
+      // }
     } catch (error: any) {
       // User cancelled or error occurred
       console.log('Share error:', error);
       // Don't show error for user cancellation
       if (!error.message?.includes('User did not share') && 
           !error.message?.includes('cancel') &&
-          !error.message?.includes('User did not')) {
+          !error.message?.includes('User did not') &&
+          !error.message?.includes('User cancelled')) {
         Alert.alert('Error', 'Unable to share image. Please try again.');
       }
     }

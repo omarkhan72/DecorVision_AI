@@ -290,7 +290,7 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
         } else {
           console.log('No image in response, using user image or placeholder');
           // Fallback to user image or placeholder
-          onContinue?.(userImage || null);
+        onContinue?.(userImage || null);
         }
       } else {
         console.error('Design generation failed:', responseData.message);
