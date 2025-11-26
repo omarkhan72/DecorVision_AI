@@ -1,20 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Background gradient: light lavender to white -->
-    <item>
-        <shape android:shape="rectangle">
-            <gradient
-                android:type="linear"
-                android:angle="270"
-                android:startColor="#E6E6FA"
-                android:endColor="#FFFFFF" />
-        </shape>
-    </item>
-    
-    <!-- Splash screen image (centered) -->
+    <!-- Splash screen image (fill screen, center crop to avoid white edges) -->
     <item>
         <bitmap
-            android:gravity="center"
+            android:gravity="center|fill_horizontal|fill_vertical"
             android:src="@drawable/splash_image" />
     </item>
 </layer-list>

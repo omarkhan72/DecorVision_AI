@@ -16,42 +16,29 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <!-- Background gradient view -->
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="gradient-view">
+                            <!-- Splash Image - Full Screen Background -->
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SplashImage" translatesAutoresizingMaskIntoConstraints="NO" id="splash-image">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                            </view>
-                            <!-- Splash Image -->
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SplashImage" translatesAutoresizingMaskIntoConstraints="NO" id="splash-image">
-                                <rect key="frame" x="87.5" y="234" width="200" height="200"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="200" id="width-constraint"/>
-                                    <constraint firstAttribute="height" constant="200" id="height-constraint"/>
-                                </constraints>
                             </imageView>
                             <!-- App Name Label -->
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Visuals AI" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="app-name-label">
                                 <rect key="frame" x="0.0" y="454" width="375" height="43"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="36"/>
-                                <color key="textColor" white="0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" white="0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <!-- Gradient view constraints -->
-                            <constraint firstItem="gradient-view" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="gradient-top"/>
-                            <constraint firstItem="gradient-view" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="gradient-leading"/>
-                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="gradient-view" secondAttribute="trailing" id="gradient-trailing"/>
-                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="bottom" secondItem="gradient-view" secondAttribute="bottom" id="gradient-bottom"/>
-                            
-                            <!-- Splash image constraints -->
-                            <constraint firstItem="splash-image" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="splash-centerX"/>
-                            <constraint firstItem="splash-image" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" constant="-50" id="splash-centerY"/>
+                            <!-- Splash image constraints - fill screen -->
+                            <constraint firstItem="splash-image" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="splash-top"/>
+                            <constraint firstItem="splash-image" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="splash-leading"/>
+                            <constraint firstItem="Ze5-6b-2t3" firstAttribute="trailing" secondItem="splash-image" secondAttribute="trailing" id="splash-trailing"/>
+                            <constraint firstItem="Ze5-6b-2t3" firstAttribute="bottom" secondItem="splash-image" secondAttribute="bottom" id="splash-bottom"/>
                             
                             <!-- App name label constraints -->
-                            <constraint firstItem="app-name-label" firstAttribute="top" secondItem="splash-image" secondAttribute="bottom" constant="20" id="label-top"/>
                             <constraint firstItem="app-name-label" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="label-centerX"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="bottom" secondItem="app-name-label" secondAttribute="bottom" constant="50" id="label-bottom"/>
                             <constraint firstItem="app-name-label" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="label-leading"/>
                             <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="app-name-label" secondAttribute="trailing" id="label-trailing"/>
                         </constraints>
@@ -64,6 +51,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="SplashImage" width="200" height="200"/>
+        <image name="SplashImage" width="300" height="300"/>
     </resources>
 </document>
