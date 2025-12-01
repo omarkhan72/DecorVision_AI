@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,12 +14,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import * as analytics from '../utils/analytics';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
 const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Log screen view
+  useEffect(() => {
+    logScreenView('NewWallsUploadScreen');
+  }, []);
 
   // If styleImage is provided, add it as the first sample image
   const sampleImages = styleImage
@@ -84,6 +91,8 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Upload photo from gallery
   const handleUploadPhoto = () => {
+    logButtonClick('Upload Photo Button', 'NewWallsUploadScreen');
+    analytics.logImageUpload('gallery', 'newwalls');
     launchImageLibrary(
       {
         mediaType: 'photo' as MediaType,
@@ -97,6 +106,8 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Take photo with camera
   const handleTakePhoto = async () => {
+    logButtonClick('Take Photo Button', 'NewWallsUploadScreen');
+    analytics.logImageUpload('camera', 'newwalls');
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       Alert.alert('Permission Denied', 'Camera permission is required to take photos');
@@ -123,7 +134,10 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
           <Text style={styles.proButtonText}>Pro</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>New Walls Inspiration's</Text>
-        <TouchableOpacity onPress={onBack} style={styles.closeButton}>
+        <TouchableOpacity onPress={() => {
+          logButtonClick('Close Button', 'NewWallsUploadScreen');
+          onBack();
+        }} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />
         </TouchableOpacity>
       </View>
@@ -153,12 +167,18 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <Image source={{ uri: selectedImage }} style={styles.previewImage} />
             <TouchableOpacity
               style={styles.removeButton}
-              onPress={() => setSelectedImage(null)}>
+              onPress={() => {
+                logButtonClick('Remove Image Button', 'NewWallsUploadScreen');
+                setSelectedImage(null);
+              }}>
               <FontAwesome name="times" size={16} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.changePhotoButton}
-              onPress={() => setSelectedImage(null)}>
+              onPress={() => {
+                logButtonClick('Change Photo Button', 'NewWallsUploadScreen');
+                setSelectedImage(null);
+              }}>
               <Text style={styles.changePhotoText}>Change Photo</Text>
             </TouchableOpacity>
           </View>
@@ -212,7 +232,10 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={() => onContinue?.(selectedImage)}
+          onPress={() => {
+            logButtonClick('Continue Button', 'NewWallsUploadScreen');
+            onContinue?.(selectedImage);
+          }}
           activeOpacity={0.9}
           disabled={!selectedImage}>
           <View style={[styles.gradient, !selectedImage && styles.gradientDisabled]}>

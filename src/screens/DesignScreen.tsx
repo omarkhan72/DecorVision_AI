@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import * as analytics from '../utils/analytics';
 
 const SectionHeader = ({ title }: { title: string }) => (
   <View style={styles.sectionHeader}>
@@ -23,20 +25,33 @@ const Card = ({ image, count, label }: { image: any; count: number; label: strin
 type Props = { onOpenInteriors?: () => void; onOpenExteriors?: () => void };
 
 const DesignScreen = ({ onOpenInteriors, onOpenExteriors }: Props) => {
+  // Log screen view
+  useEffect(() => {
+    logScreenView('DesignScreen');
+  }, []);
+
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.headerTitle}>Designs Templates :</Text>
 
       <View style={styles.section}>
         <SectionHeader title={"Interior Inspiration's"} />
-        <TouchableOpacity activeOpacity={0.9} onPress={onOpenInteriors}>
+        <TouchableOpacity activeOpacity={0.9} onPress={() => {
+          logButtonClick('Interior Inspiration Card', 'DesignScreen');
+          analytics.logSelectContent('design_template', 'interior', 'Interior Inspiration');
+          onOpenInteriors?.();
+        }}>
           <Card image={require('../assets/images/interior-design.jpg')} count={82} label="Living Room" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
         <SectionHeader title={"Exterior Inspiration's"} />
-        <TouchableOpacity activeOpacity={0.9} onPress={onOpenExteriors}>
+        <TouchableOpacity activeOpacity={0.9} onPress={() => {
+          logButtonClick('Exterior Inspiration Card', 'DesignScreen');
+          analytics.logSelectContent('design_template', 'exterior', 'Exterior Inspiration');
+          onOpenExteriors?.();
+        }}>
           <Card image={require('../assets/images/exterior-design.jpg')} count={75} label="House" />
         </TouchableOpacity>
       </View>

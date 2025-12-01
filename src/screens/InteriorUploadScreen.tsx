@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,12 +14,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import * as analytics from '../utils/analytics';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
 const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Log screen view
+  useEffect(() => {
+    logScreenView('InteriorUploadScreen');
+  }, []);
 
   // If styleImage is provided, add it as the first sample image
   const sampleImages = styleImage
@@ -107,6 +114,8 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Upload photo from gallery
   const handleUploadPhoto = () => {
+    logButtonClick('Upload Photo Button', 'InteriorUploadScreen');
+    analytics.logImageUpload('gallery', 'interior');
     console.log('=== Upload Photo Button Pressed ===');
     console.log('Opening image library...');
     launchImageLibrary(
@@ -122,6 +131,8 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Take photo with camera
   const handleTakePhoto = async () => {
+    logButtonClick('Take Photo Button', 'InteriorUploadScreen');
+    analytics.logImageUpload('camera', 'interior');
     console.log('=== Take Photo Button Pressed ===');
     console.log('Requesting camera permission...');
     
@@ -155,7 +166,10 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
           <Text style={styles.proButtonText}>Pro</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Interior Inspiration's</Text>
-        <TouchableOpacity onPress={onBack} style={styles.closeButton}>
+        <TouchableOpacity onPress={() => {
+          logButtonClick('Close Button', 'InteriorUploadScreen');
+          onBack();
+        }} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />
         </TouchableOpacity>
       </View>
@@ -186,6 +200,7 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <TouchableOpacity
               style={styles.removeButton}
               onPress={() => {
+                logButtonClick('Remove Image Button', 'InteriorUploadScreen');
                 console.log('=== Remove Image Button Pressed ===');
                 console.log('Removing image:', selectedImage);
                 setSelectedImage(null);
@@ -196,6 +211,7 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <TouchableOpacity
               style={styles.changePhotoButton}
               onPress={() => {
+                logButtonClick('Change Photo Button', 'InteriorUploadScreen');
                 console.log('=== Change Photo Button Pressed ===');
                 console.log('Current image:', selectedImage);
                 setSelectedImage(null);
@@ -255,6 +271,7 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         <TouchableOpacity
           style={styles.continueButton}
           onPress={() => {
+            logButtonClick('Continue Button', 'InteriorUploadScreen');
             console.log('=== Continue Button Pressed ===');
             console.log('Selected image URI:', selectedImage);
             console.log('Has image:', !!selectedImage);

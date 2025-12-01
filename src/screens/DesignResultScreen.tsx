@@ -17,6 +17,8 @@ import Share from 'react-native-share';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import RNFS from 'react-native-fs';
 import { saveToHistory } from '../utils/historyStorage';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import * as analytics from '../utils/analytics';
 
 type Props = { onBack: () => void; onRegenerate?: () => void; userImage?: string | null };
 
@@ -27,8 +29,9 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
     ? { uri: userImage }
     : require('../assets/images/interior-design.jpg');
 
-  // Save to history when screen loads (image is generated)
+  // Log screen view and save to history when screen loads
   useEffect(() => {
+    logScreenView('DesignResultScreen');
     if (userImage) {
       saveToHistory(userImage);
     }
@@ -65,6 +68,8 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
   };
 
   const handleDownload = async () => {
+    logButtonClick('Download Button', 'DesignResultScreen');
+    await analytics.logDownload('design_result');
     try {
       // Request storage permission
       const hasPermission = await requestStoragePermission();
@@ -83,6 +88,8 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
   };
 
   const handleShare = async () => {
+    logButtonClick('Share Button', 'DesignResultScreen');
+    await analytics.logShare('design_result');
     try {
       let imageUriString: string;
       let tempFilePath: string | null = null;
@@ -106,14 +113,14 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
               // Create temporary file path
               const fileName = `design_${Date.now()}.${extension}`;
               tempFilePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
-              
+          
               // Write base64 data to file
               await RNFS.writeFile(tempFilePath, base64Data, 'base64');
               console.log('Temporary file created:', tempFilePath);
               
               // Use the file URI for sharing
               // react-native-share works with file:// prefix on both platforms
-              imageUriString = `file://${tempFilePath}`;
+            imageUriString = `file://${tempFilePath}`;
             } else {
               // Fallback: try to use data URI directly
               imageUriString = userImage;
@@ -180,7 +187,10 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
           <Text style={styles.proButtonText}>Pro</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Your design</Text>
-        <TouchableOpacity onPress={onBack} style={styles.closeButton}>
+        <TouchableOpacity onPress={() => {
+          logButtonClick('Close Button', 'DesignResultScreen');
+          onBack();
+        }} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#1A1A1A" />
         </TouchableOpacity>
       </View>
@@ -201,14 +211,14 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
         {/* Feedback and Watermark Removal */}
         <View style={styles.feedbackBar}>
           <View style={styles.feedbackIcons}>
-            <TouchableOpacity style={styles.feedbackButton}>
+            <TouchableOpacity style={styles.feedbackButton} onPress={() => logButtonClick('Thumbs Up Button', 'DesignResultScreen')}>
               <FontAwesome name="thumbs-up" size={20} color="#6B7280" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.feedbackButton}>
+            <TouchableOpacity style={styles.feedbackButton} onPress={() => logButtonClick('Thumbs Down Button', 'DesignResultScreen')}>
               <FontAwesome name="thumbs-down" size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.removeWatermarkButton}>
+          <TouchableOpacity style={styles.removeWatermarkButton} onPress={() => logButtonClick('Remove Watermark Button', 'DesignResultScreen')}>
             <Text style={styles.removeWatermarkText}>Remove watermark</Text>
           </TouchableOpacity>
         </View>
@@ -217,7 +227,10 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
         <TouchableOpacity 
           style={styles.regenerateButton} 
           activeOpacity={0.9}
-          onPress={onRegenerate}>
+          onPress={() => {
+            logButtonClick('Regenerate Button', 'DesignResultScreen');
+            onRegenerate?.();
+          }}>
           <View style={styles.regenerateGradient}>
             <MaterialCommunityIcons name="refresh" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
             <Text style={styles.regenerateText}>Regenerate</Text>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import * as analytics from '../utils/analytics';
 
 // Mock Mode: Set to true to use mock responses instead of real API calls
 const USE_MOCK_API = true;
@@ -42,6 +44,11 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
   const insets = useSafeAreaInsets();
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Log screen view
+  useEffect(() => {
+    logScreenView('NewFlooringStyleSelectionScreen');
+  }, []);
 
   const stylesData = [
     { id: 'modern', name: 'Modern', image: require('../assets/images/interior-design.jpg') },
@@ -162,6 +169,11 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
   };
 
   const handleGenerate = async () => {
+    logButtonClick('Generate Button', 'NewFlooringStyleSelectionScreen');
+    // Log design generation to Analytics
+    if (selectedStyle && roomType) {
+      await analytics.logDesignGeneration('newflooring', roomType, selectedStyle);
+    }
     console.log('=== Generate Button Pressed (New Flooring) ===');
     console.log('Selected style:', selectedStyle);
     console.log('Room type:', roomType);
@@ -324,11 +336,17 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+        <TouchableOpacity onPress={() => {
+          logButtonClick('Back Button', 'NewFlooringStyleSelectionScreen');
+          onBack();
+        }} style={styles.backButton}>
           <FontAwesome name="chevron-left" size={20} color="#000000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>New Flooring Inspiration's</Text>
-        <TouchableOpacity onPress={onBack} style={styles.closeButton}>
+        <TouchableOpacity onPress={() => {
+          logButtonClick('Close Button', 'NewFlooringStyleSelectionScreen');
+          onBack();
+        }} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />
         </TouchableOpacity>
       </View>
@@ -358,7 +376,10 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
             <TouchableOpacity
               key={styleItem.id}
               style={styles.styleCard}
-              onPress={() => setSelectedStyle(styleItem.id)}
+              onPress={() => {
+                logButtonClick(`Style Selected: ${styleItem.name}`, 'NewFlooringStyleSelectionScreen');
+                setSelectedStyle(styleItem.id);
+              }}
               activeOpacity={0.8}>
               <View style={styles.imageContainer}>
                 <Image

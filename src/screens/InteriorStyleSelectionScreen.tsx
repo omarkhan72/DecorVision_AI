@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import * as analytics from '../utils/analytics';
 
 // Mock Mode: Set to true to use mock responses instead of real API calls
 const USE_MOCK_API = true;
@@ -43,6 +45,11 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
   const insets = useSafeAreaInsets();
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Log screen view
+  useEffect(() => {
+    logScreenView('InteriorStyleSelectionScreen');
+  }, []);
 
   const stylesData = [
     { id: 'modern', name: 'Modern', image: require('../assets/images/interior-design.jpg') },
@@ -144,11 +151,17 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
   };
 
   const handleGenerate = async () => {
+    logButtonClick('Generate Button', 'InteriorStyleSelectionScreen');
     console.log('=== Generate Button Pressed ===');
     console.log('Selected style:', selectedStyle);
     console.log('Room type:', roomType);
     console.log('Design type:', designType);
     console.log('Has user image:', !!userImage);
+    
+    // Log design generation to Analytics
+    if (selectedStyle && roomType) {
+      await analytics.logDesignGeneration(designType || 'interior', roomType, selectedStyle);
+    }
 
     if (!selectedStyle || !roomType) {
       console.warn('Validation failed: Missing style or room type');
@@ -322,11 +335,17 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+        <TouchableOpacity onPress={() => {
+          logButtonClick('Back Button', 'InteriorStyleSelectionScreen');
+          onBack();
+        }} style={styles.backButton}>
           <FontAwesome name="chevron-left" size={20} color="#000000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Interior Inspiration's</Text>
-        <TouchableOpacity onPress={onBack} style={styles.closeButton}>
+        <TouchableOpacity onPress={() => {
+          logButtonClick('Close Button', 'InteriorStyleSelectionScreen');
+          onBack();
+        }} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />
         </TouchableOpacity>
       </View>
@@ -356,7 +375,13 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
             <TouchableOpacity
               key={styleItem.id}
               style={styles.styleCard}
-              onPress={() => setSelectedStyle(styleItem.id)}
+              onPress={() => {
+                logButtonClick(`Style Selected: ${styleItem.name}`, 'InteriorStyleSelectionScreen');
+                analytics.logSelectContent('style', styleItem.id, styleItem.name, {
+                  design_type: designType || 'interior',
+                });
+                setSelectedStyle(styleItem.id);
+              }}
               activeOpacity={0.8}>
               <View style={styles.imageContainer}>
                 <Image

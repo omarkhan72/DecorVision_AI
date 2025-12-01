@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Ale
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { getHistory, deleteFromHistory, HistoryItem } from '../utils/historyStorage';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import * as analytics from '../utils/analytics';
 
 const HistoryScreen = () => {
   const insets = useSafeAreaInsets();
@@ -11,8 +13,9 @@ const HistoryScreen = () => {
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 
-  // Load history on mount
+  // Log screen view and load history on mount
   useEffect(() => {
+    logScreenView('HistoryScreen');
     loadHistory();
   }, []);
 
@@ -72,7 +75,10 @@ const HistoryScreen = () => {
         <View style={styles.titleRow}>
           <Text style={styles.title}>History</Text>
           <View style={{ flex: 1 }} />
-          <TouchableOpacity style={[styles.selectPill, isSelecting && styles.selectPillActive]} onPress={handleSelectToggle}>
+          <TouchableOpacity style={[styles.selectPill, isSelecting && styles.selectPillActive]} onPress={() => {
+            logButtonClick('Select Toggle', 'HistoryScreen');
+            handleSelectToggle();
+          }}>
             <Text style={[styles.selectText, isSelecting && styles.selectTextActive]}>Select</Text>
           </TouchableOpacity>
         </View>
@@ -91,7 +97,11 @@ const HistoryScreen = () => {
                   key={item.id}
                   style={styles.gridItem}
                   activeOpacity={0.9}
-                  onPress={() => handleImagePress(item, idx)}>
+                  onPress={() => {
+                    logButtonClick('History Image Press', 'HistoryScreen');
+                    analytics.logSelectContent('history_item', item.id, 'History Image');
+                    handleImagePress(item, idx);
+                  }}>
                   <View style={styles.imageWrapper}>
                     <Image source={{ uri: item.imageUri }} style={styles.gridImage} />
                     {isSelecting && selectedIndices.includes(idx) && (
@@ -114,7 +124,11 @@ const HistoryScreen = () => {
 
         {/* Delete button when selecting */}
         {isSelecting && selectedIndices.length > 0 && (
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteSelected}>
+          <TouchableOpacity style={styles.deleteButton} onPress={() => {
+            logButtonClick('Delete Selected', 'HistoryScreen');
+            analytics.logEvent('delete_history_items', { count: selectedIndices.length });
+            handleDeleteSelected();
+          }}>
             <Text style={styles.deleteButtonText}>Delete ({selectedIndices.length})</Text>
           </TouchableOpacity>
         )}

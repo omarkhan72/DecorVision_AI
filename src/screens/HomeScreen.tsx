@@ -49,6 +49,7 @@ import ReplaceMaskScreen from './ReplaceMaskScreen';
 import ReplacePromptScreen from './ReplacePromptScreen';
 import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
 import { Alert } from 'react-native';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
 
 // Mock Mode: Set to true to use mock responses instead of real API calls
 const USE_MOCK_API = true;
@@ -75,6 +76,11 @@ const HomeScreen = () => {
   const [replacePrompt, setReplacePrompt] = useState<string | null>(null);
   const [designType, setDesignType] = useState<'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring'>('interior');
   const [isReplacing, setIsReplacing] = useState(false);
+
+  // Log screen view
+  useEffect(() => {
+    logScreenView('HomeScreen');
+  }, []);
 
   // Convert image URI to base64 helper function
   const convertImageToBase64 = async (uri: string): Promise<string | null> => {
@@ -426,11 +432,17 @@ const HomeScreen = () => {
           </Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.proButton} onPress={() => setCurrentRoute('Subscription')}>
+          <TouchableOpacity style={styles.proButton} onPress={() => {
+            logButtonClick('Pro Button', 'HomeScreen');
+            setCurrentRoute('Subscription');
+          }}>
             <FontAwesome name="star" size={16} color="#FFD700" style={{ marginRight: 6 }} />
             <Text style={styles.proButtonText}>Pro</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.settingsButton} onPress={() => setCurrentRoute('Settings')}>
+          <TouchableOpacity style={styles.settingsButton} onPress={() => {
+            logButtonClick('Settings Button', 'HomeScreen');
+            setCurrentRoute('Settings');
+          }}>
             <FontAwesome5 name="cog" size={24} color="#1A1A1A" solid={false} />
           </TouchableOpacity>
         </View>
@@ -787,19 +799,28 @@ const HomeScreen = () => {
       {/* Bottom Navigation */}
       {currentRoute === 'Tabs' && (
       <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('Home')}>
+        <TouchableOpacity style={styles.navItem} onPress={() => {
+          logButtonClick('Home Tab', 'HomeScreen');
+          setActiveTab('Home');
+        }}>
           <Animated.View style={[activeTab === 'Home' ? styles.navIconContainerActive : styles.navIconContainerInactive, homeIconStyle]}>
             <FontAwesome name="home" size={20} color={activeTab === 'Home' ? '#8B5CF6' : '#1A1A1A'} />
           </Animated.View>
           <Text style={[styles.navText, activeTab === 'Home' && styles.navTextActive]}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('Design')}>
+        <TouchableOpacity style={styles.navItem} onPress={() => {
+          logButtonClick('Design Tab', 'HomeScreen');
+          setActiveTab('Design');
+        }}>
           <Animated.View style={[activeTab === 'Design' ? styles.navIconContainerActive : styles.navIconContainerInactive, designIconStyle]}>
             <MaterialCommunityIcons name="brush" size={18} color={activeTab === 'Design' ? '#8B5CF6' : '#1A1A1A'} />
           </Animated.View>
           <Text style={[styles.navText, activeTab === 'Design' && styles.navTextActive]}>Design</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('History')}>
+        <TouchableOpacity style={styles.navItem} onPress={() => {
+          logButtonClick('History Tab', 'HomeScreen');
+          setActiveTab('History');
+        }}>
           <Animated.View style={[activeTab === 'History' ? styles.navIconContainerActive : styles.navIconContainerInactive, historyIconStyle]}>
             <FontAwesome name="history" size={18} color={activeTab === 'History' ? '#8B5CF6' : '#1A1A1A'} />
           </Animated.View>

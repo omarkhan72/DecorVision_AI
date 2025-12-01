@@ -1,12 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import * as analytics from '../utils/analytics';
 
 type Props = { onBack: () => void; onUpgrade: () => void };
 
 const Row = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
-  <TouchableOpacity style={styles.row} activeOpacity={0.8}>
+  <TouchableOpacity style={styles.row} activeOpacity={0.8} onPress={() => {
+    logButtonClick(`Settings: ${label}`, 'SettingsScreen');
+    analytics.logEvent('settings_option_clicked', { option: label });
+  }}>
     <View style={styles.rowLeft}>
       <View style={styles.rowIcon}>{icon}</View>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -16,11 +21,19 @@ const Row = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
 );
 
 const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
+  // Log screen view
+  useEffect(() => {
+    logScreenView('SettingsScreen');
+  }, []);
+
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       {/* Top bar */}
       <View style={styles.topbar}>
-        <TouchableOpacity style={styles.backBtn} onPress={onBack}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => {
+          logButtonClick('Back Button', 'SettingsScreen');
+          onBack();
+        }}>
           <FontAwesome name="angle-left" color="#000" size={22} />
         </TouchableOpacity>
         <Text style={styles.title}>Setting</Text>
@@ -33,7 +46,11 @@ const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
           <Text style={styles.headerTitle}>Unlimited</Text>
           <Text style={styles.headerSub}>Transformations</Text>
         </View>
-        <TouchableOpacity style={styles.upgradeBtn} onPress={onUpgrade}>
+        <TouchableOpacity style={styles.upgradeBtn} onPress={() => {
+          logButtonClick('Upgrade Now Button', 'SettingsScreen');
+          analytics.logEvent('upgrade_prompt', { source: 'settings' });
+          onUpgrade();
+        }}>
           <Text style={styles.upgradeText}>Upgrade Now</Text>
         </TouchableOpacity>
       </View>

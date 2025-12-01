@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ScrollView } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import * as analytics from '../utils/analytics';
 
 type Props = { onBack: () => void };
 
@@ -28,11 +30,19 @@ const PlanCard = ({ title, subtitle, price, selected, tag }: { title: string; su
 const SubscriptionScreen = ({ onBack }: Props) => {
   const [selected, setSelected] = useState<'lifetime' | 'year' | 'week'>('year');
 
+  // Log screen view
+  useEffect(() => {
+    logScreenView('SubscriptionScreen');
+  }, []);
+
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       <ImageBackground source={require('../assets/images/interior-design.jpg')} style={styles.hero} imageStyle={styles.heroImg}>
         <View style={styles.heroTop}>
-          <TouchableOpacity onPress={onBack} style={styles.iconBtn}>
+          <TouchableOpacity onPress={() => {
+            logButtonClick('Close Button', 'SubscriptionScreen');
+            onBack();
+          }} style={styles.iconBtn}>
             <FontAwesome name="close" size={16} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.restoreText}>Restore</Text>
@@ -56,18 +66,33 @@ const SubscriptionScreen = ({ onBack }: Props) => {
         <Feature text="No Ads, No Watermarks" icon="close-circle-outline" />
 
         <View style={styles.planRow}>
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => setSelected('lifetime')}>
+          <TouchableOpacity style={{ flex: 1 }} onPress={() => {
+            logButtonClick('Select Plan: Lifetime', 'SubscriptionScreen');
+            analytics.logSelectContent('subscription_plan', 'lifetime', 'Lifetime Plan');
+            setSelected('lifetime');
+          }}>
             <PlanCard title="BEST VALUE" subtitle={'Lifetime\n1 Purchase'} price={'Rs 13,900.00'} selected={selected==='lifetime'} tag="BEST VALUE" />
           </TouchableOpacity>
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => setSelected('year')}>
+          <TouchableOpacity style={{ flex: 1 }} onPress={() => {
+            logButtonClick('Select Plan: Year', 'SubscriptionScreen');
+            analytics.logSelectContent('subscription_plan', 'year', 'Year Plan');
+            setSelected('year');
+          }}>
             <PlanCard title="Save 90%" subtitle={'1\nYear\n(Rs 159.62 / (Week))'} price={'Rs 8,300.00'} selected={selected==='year'} tag="Save 90%" />
           </TouchableOpacity>
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => setSelected('week')}>
+          <TouchableOpacity style={{ flex: 1 }} onPress={() => {
+            logButtonClick('Select Plan: Week', 'SubscriptionScreen');
+            analytics.logSelectContent('subscription_plan', 'week', 'Week Plan');
+            setSelected('week');
+          }}>
             <PlanCard title="MOST POPULAR" subtitle={'1\nWeek'} price={'Rs 1,650.00'} selected={selected==='week'} tag="MOST POPULAR" />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.cta}>
+        <TouchableOpacity style={styles.cta} onPress={() => {
+          logButtonClick('Subscribe Continue Button', 'SubscriptionScreen');
+          analytics.logEvent('subscription_continue', { plan: selected });
+        }}>
           <Text style={styles.ctaText}>Continue</Text>
         </TouchableOpacity>
 

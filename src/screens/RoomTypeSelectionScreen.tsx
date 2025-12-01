@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,19 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import * as analytics from '../utils/analytics';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null, roomType?: string | null) => void; userImage?: string | null };
 
 const RoomTypeSelectionScreen = ({ onBack, onContinue, userImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
+
+  // Log screen view
+  useEffect(() => {
+    logScreenView('RoomTypeSelectionScreen');
+  }, []);
 
   // Room types arranged in order: Left column, then Right column
   const roomTypes = [
@@ -36,11 +43,17 @@ const RoomTypeSelectionScreen = ({ onBack, onContinue, userImage }: Props) => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+        <TouchableOpacity onPress={() => {
+          logButtonClick('Back Button', 'RoomTypeSelectionScreen');
+          onBack();
+        }} style={styles.backButton}>
           <FontAwesome name="chevron-left" size={20} color="#000000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Interior Inspiration's</Text>
-        <TouchableOpacity onPress={onBack} style={styles.closeButton}>
+        <TouchableOpacity onPress={() => {
+          logButtonClick('Close Button', 'RoomTypeSelectionScreen');
+          onBack();
+        }} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />
         </TouchableOpacity>
       </View>
@@ -73,7 +86,11 @@ const RoomTypeSelectionScreen = ({ onBack, onContinue, userImage }: Props) => {
                 styles.roomTypeButton,
                 selectedRoom === roomType && styles.roomTypeButtonSelected,
               ]}
-              onPress={() => setSelectedRoom(roomType)}
+              onPress={() => {
+                logButtonClick(`Room Type Selected: ${roomType}`, 'RoomTypeSelectionScreen');
+                analytics.logSelectContent('room_type', roomType, roomType);
+                setSelectedRoom(roomType);
+              }}
               activeOpacity={0.7}>
               <Text
                 style={[
@@ -91,7 +108,10 @@ const RoomTypeSelectionScreen = ({ onBack, onContinue, userImage }: Props) => {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={() => onContinue?.(userImage, selectedRoom)}
+          onPress={() => {
+            logButtonClick('Continue Button', 'RoomTypeSelectionScreen');
+            onContinue?.(userImage, selectedRoom);
+          }}
           activeOpacity={0.9}
           disabled={!selectedRoom}>
           <View style={[styles.gradient, !selectedRoom && styles.gradientDisabled]}>
