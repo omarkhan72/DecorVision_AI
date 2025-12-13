@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
+import { useAuth } from '../contexts/AuthContext';
 
 type Props = { onBack: () => void; onUpgrade: () => void };
 
-const Row = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
+const Row = ({ icon, label, onPress }: { icon: React.ReactNode; label: string; onPress?: () => void }) => (
   <TouchableOpacity style={styles.row} activeOpacity={0.8} onPress={() => {
     logButtonClick(`Settings: ${label}`, 'SettingsScreen');
     analytics.logEvent('settings_option_clicked', { option: label });
+    if (onPress) onPress();
   }}>
     <View style={styles.rowLeft}>
       <View style={styles.rowIcon}>{icon}</View>
@@ -21,10 +23,34 @@ const Row = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
 );
 
 const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
+  const { user, signOut } = useAuth();
+
   // Log screen view
   useEffect(() => {
     logScreenView('SettingsScreen');
   }, []);
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await signOut();
+            } catch (error) {
+              console.error("Logout failed", error);
+              Alert.alert("Error", "Failed to logout. Please try again.");
+            }
+          }
+        }
+      ]
+    );
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -39,6 +65,20 @@ const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
         <Text style={styles.title}>Setting</Text>
         <View style={{ width: 22 }} />
       </View>
+
+      {/* Profile Section */}
+      {user && (
+        <View style={styles.profileCard}>
+          <Image
+            source={{ uri: user.photoURL || 'https://via.placeholder.com/150' }}
+            style={styles.profileImage}
+          />
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>{user.displayName || 'User'}</Text>
+            <Text style={styles.profileEmail}>{user.email}</Text>
+          </View>
+        </View>
+      )}
 
       {/* Header card */}
       <View style={styles.headerCard}>
@@ -62,7 +102,11 @@ const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
       <Row icon={<MaterialCommunityIcons name="account-plus-outline" size={16} color="#262626" />} label="Tell a friend" />
       <Row icon={<MaterialCommunityIcons name="shield-outline" size={16} color="#262626" />} label="Privacy and Policy" />
       <Row icon={<MaterialCommunityIcons name="file-document-outline" size={16} color="#262626" />} label="Terms and Conditions" />
-      <Row icon={<MaterialCommunityIcons name="logout" size={16} color="#262626" />} label="Logout" />
+      <Row
+        icon={<MaterialCommunityIcons name="logout" size={16} color="#262626" />}
+        label="Logout"
+        onPress={handleLogout}
+      />
       <Row icon={<MaterialCommunityIcons name="delete-outline" size={16} color="#EF4444" />} label="Delete account" />
     </ScrollView>
   );
@@ -90,6 +134,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#1A1A1A',
+  },
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 14,
+    backgroundColor: '#F4F5FA',
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 2,
+  },
+  profileEmail: {
+    fontSize: 13,
+    color: '#6B7280',
   },
   headerCard: {
     backgroundColor: '#FFFFFF',

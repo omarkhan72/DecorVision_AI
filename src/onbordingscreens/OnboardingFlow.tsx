@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import OnboardingScreen3 from './OnboardingScreen3';
-import { useAuth } from '../contexts/AuthContext';
+
 
 const { width } = Dimensions.get('window');
 
@@ -132,7 +132,6 @@ const ScreenTwo: React.FC<ScreenProps> = ({ onNext, onSkip }) => {
 
 const OnboardingFlow: React.FC<Props> = ({ onComplete, onSkip }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
-  const { signInWithGoogle } = useAuth();
 
   const totalScreens = 3;
 
@@ -140,17 +139,8 @@ const OnboardingFlow: React.FC<Props> = ({ onComplete, onSkip }) => {
     if (currentIndex < totalScreens - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      // On the last screen, handle Google Sign-In
-      try {
-        await signInWithGoogle();
-        // If sign-in is successful, onAuthStateChanged will update the user
-        // and the app should navigate to HomeScreen automatically
-        onComplete();
-      } catch (error) {
-        // Error is already handled in signInWithGoogle (cancellation doesn't throw)
-        // Only show error if it's not a cancellation
-        console.error('Sign-in error:', error);
-      }
+      // On the last screen, complete onboarding
+      onComplete();
     }
   };
 
