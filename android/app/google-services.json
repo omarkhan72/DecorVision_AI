@@ -12,7 +12,20 @@
           "package_name": "com.design_ai"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "586339131877-ppdsok0v84fvgrh2799kid6lr77q757r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.design_ai",
+            "certificate_hash": "d7184372aa51fc11752980760bf5c5ddfe472d3a"
+          }
+        },
+        {
+          "client_id": "586339131877-ighh7qcn7a6nklkogieon2iahqf2vl9h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAVPz6KIDFI-IoOZ_DXRQ2WYAnjmDQmif4"
@@ -20,11 +33,15 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "586339131877-ighh7qcn7a6nklkogieon2iahqf2vl9h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
   ],
   "configuration_version": "1"
 }
-

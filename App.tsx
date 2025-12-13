@@ -15,6 +15,7 @@ import crashlytics from '@react-native-firebase/crashlytics';
 import analytics from '@react-native-firebase/analytics';
 import messaging from '@react-native-firebase/messaging';
 import usePushNotification from './src/hooks/usePushNotification';
+import { AuthProvider } from './src/contexts/AuthContext';
 import HomeScreen from './src/screens/HomeScreen';
  import OnboardingFlow from './src/onbordingscreens/OnboardingFlow';
 
@@ -152,17 +153,19 @@ function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      {showOnboarding ? (
-        <OnboardingFlow
-          onComplete={handleOnboardingComplete}
-          onSkip={handleOnboardingSkip}
-        />
-      ) : (
-      <HomeScreen />
-      )}
-    </SafeAreaProvider>
+    <AuthProvider>
+      <SafeAreaProvider>
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        {showOnboarding ? (
+          <OnboardingFlow
+            onComplete={handleOnboardingComplete}
+            onSkip={handleOnboardingSkip}
+          />
+        ) : (
+        <HomeScreen />
+        )}
+      </SafeAreaProvider>
+    </AuthProvider>
   );
 }
 

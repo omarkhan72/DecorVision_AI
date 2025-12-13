@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,11 @@ import {
   ImageSourcePropType,
   Dimensions,
   StatusBar,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '../contexts/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -22,6 +25,29 @@ type Props = {
 
 const OnboardingScreen3: React.FC<Props> = ({ onNext, onSkip }) => {
   const insets = useSafeAreaInsets();
+  const { signInWithGoogle } = useAuth();
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsSigningIn(true);
+      await signInWithGoogle();
+      // If successful, call onNext which will complete onboarding
+      onNext();
+    } catch (error: any) {
+      // Error handling is done in AuthContext (cancellation doesn't throw)
+      // Only show alert for non-cancellation errors
+      if (error?.code !== 'SIGN_IN_CANCELLED') {
+        Alert.alert(
+          'Sign In Error',
+          'Failed to sign in with Google. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -50,18 +76,30 @@ const OnboardingScreen3: React.FC<Props> = ({ onNext, onSkip }) => {
       <TouchableOpacity
         style={[styles.skipButton, { bottom: insets.bottom + 80 }]}
         onPress={onSkip}
-        activeOpacity={0.7}>
+        activeOpacity={0.7}
+        disabled={isSigningIn}>
         <Text style={styles.skipText}>Skip</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.googleButton, { bottom: insets.bottom + 24 }]}
-        onPress={onNext}
-        activeOpacity={0.9}>
-        <View style={styles.googleIconCircle}>
-          <Text style={styles.googleIconText}>G</Text>
-        </View>
-        <Text style={styles.googleButtonText}>Continue with Google</Text>
+        style={[
+          styles.googleButton,
+          { bottom: insets.bottom + 24 },
+          isSigningIn && styles.googleButtonDisabled,
+        ]}
+        onPress={handleGoogleSignIn}
+        activeOpacity={0.9}
+        disabled={isSigningIn}>
+        {isSigningIn ? (
+          <ActivityIndicator color="#FFFFFF" size="small" />
+        ) : (
+          <>
+            <View style={styles.googleIconCircle}>
+              <Text style={styles.googleIconText}>G</Text>
+            </View>
+            <Text style={styles.googleButtonText}>Continue with Google</Text>
+          </>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -144,6 +182,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  googleButtonDisabled: {
+    opacity: 0.6,
   },
 });
 

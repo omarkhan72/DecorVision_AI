@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import OnboardingScreen3 from './OnboardingScreen3';
+import { useAuth } from '../contexts/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -126,63 +128,29 @@ const ScreenTwo: React.FC<ScreenProps> = ({ onNext, onSkip }) => {
   );
 };
 
-const ScreenThree: React.FC<ScreenProps> = ({ onNext, onSkip }) => {
-  const insets = useSafeAreaInsets();
-
-  return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" />
-
-      <View style={styles.screenThreeImageWrapper}>
-        <Image
-          source={onboardingImage3 as ImageSourcePropType}
-          style={styles.screenThreeImage}
-          resizeMode="contain"
-        />
-        <View style={styles.screenThreeGradient} />
-      </View>
-
-      <View style={styles.screenThreeTextBlock}>
-        <Text style={styles.paragraphText}>
-          <Text style={styles.boldText}>Save and share </Text>
-          <Text>your designs to </Text>
-          <Text style={styles.boldText}>get feedback </Text>
-          <Text>and make </Text>
-          <Text style={styles.boldText}>better renovation decisions</Text>
-          <Text>.</Text>
-        </Text>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.skipButton, { bottom: insets.bottom + 80 }]}
-        onPress={onSkip}
-        activeOpacity={0.7}>
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.googleButton, { bottom: insets.bottom + 24 }]}
-        onPress={onNext}
-        activeOpacity={0.9}>
-        <View style={styles.googleIconCircle}>
-          <Text style={styles.googleIconText}>G</Text>
-        </View>
-        <Text style={styles.googleButtonText}>Continue with Google</Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
+// ScreenThree is now handled by OnboardingScreen3 component
 
 const OnboardingFlow: React.FC<Props> = ({ onComplete, onSkip }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
+  const { signInWithGoogle } = useAuth();
 
   const totalScreens = 3;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIndex < totalScreens - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      onComplete();
+      // On the last screen, handle Google Sign-In
+      try {
+        await signInWithGoogle();
+        // If sign-in is successful, onAuthStateChanged will update the user
+        // and the app should navigate to HomeScreen automatically
+        onComplete();
+      } catch (error) {
+        // Error is already handled in signInWithGoogle (cancellation doesn't throw)
+        // Only show error if it's not a cancellation
+        console.error('Sign-in error:', error);
+      }
     }
   };
 
@@ -195,11 +163,22 @@ const OnboardingFlow: React.FC<Props> = ({ onComplete, onSkip }) => {
     [currentIndex, totalScreens],
   );
 
+  // Render the last screen separately to pass signInWithGoogle
+  if (currentIndex === 2) {
+    return (
+      <View style={styles.flowContainer}>
+        <OnboardingScreen3 onNext={handleNext} onSkip={handleSkip} />
+        <View style={styles.progressBarContainer}>
+          <View style={styles.progressTrack} />
+          <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+        </View>
+      </View>
+    );
+  }
+
   let ScreenComponent: React.FC<ScreenProps> = ScreenOne;
   if (currentIndex === 1) {
     ScreenComponent = ScreenTwo;
-  } else if (currentIndex === 2) {
-    ScreenComponent = ScreenThree;
   }
 
   return (
