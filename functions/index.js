@@ -7,10 +7,10 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onCall} = require("firebase-functions/v2/https");
+const { setGlobalOptions } = require("firebase-functions");
+const { onCall } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
-const {GoogleGenerativeAI} = require("@google/generative-ai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected
@@ -33,8 +33,8 @@ function generatePrompt(designType, roomType, style) {
   if (designType === 'interior') {
     prompt = `Transform this ${roomType} into a ${style} style interior design. `;
     prompt += `The design should be ${style} with: `;
-    
-    switch(style) {
+
+    switch (style) {
       case 'modern':
         prompt += 'clean lines, minimalist furniture, neutral colors with bold accents, contemporary lighting, and sleek finishes.';
         break;
@@ -74,14 +74,14 @@ function generatePrompt(designType, roomType, style) {
       default:
         prompt += 'beautiful and functional design that matches the selected style.';
     }
-    
+
     prompt += ` The ${roomType} should feel complete, well-designed, and professionally styled.`;
-    
+
   } else if (designType === 'exterior') {
     prompt = `Transform this ${roomType} exterior into a ${style} style design. `;
     prompt += `The exterior should feature ${style} elements with: `;
-    
-    switch(style) {
+
+    switch (style) {
       case 'modern':
         prompt += 'clean architectural lines, contemporary materials, minimalist landscaping, sleek finishes, and bold geometric shapes.';
         break;
@@ -115,14 +115,14 @@ function generatePrompt(designType, roomType, style) {
       default:
         prompt += 'beautiful and well-designed exterior that matches the selected style.';
     }
-    
+
     prompt += ` The ${roomType} exterior should be visually appealing, well-maintained, and professionally designed.`;
-    
+
   } else if (designType === 'garden') {
     prompt = `Transform this ${roomType} garden into a ${style} style garden design. `;
     prompt += `The garden should feature ${style} elements with: `;
-    
-    switch(style) {
+
+    switch (style) {
       case 'modern':
         prompt += 'geometric layouts, contemporary planters, clean lines, minimalist design, and structured landscaping.';
         break;
@@ -156,7 +156,7 @@ function generatePrompt(designType, roomType, style) {
       default:
         prompt += 'beautiful and well-designed garden that matches the selected style.';
     }
-    
+
     prompt += ` The ${roomType} garden should be beautiful, functional, and professionally landscaped.`;
   }
 
@@ -236,7 +236,7 @@ exports.design = onCall(async (request) => {
         // or just the base64 string
         let imageData = imageBase64;
         let mimeType = 'image/jpeg';
-        
+
         if (imageBase64.startsWith('data:')) {
           // Extract mime type and base64 data from data URI
           const matches = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
@@ -259,7 +259,7 @@ exports.design = onCall(async (request) => {
           mimeType = 'image/jpeg';
           console.log('Using base64 string directly (assuming JPEG)');
         }
-        
+
         imageParts.push({
           inlineData: {
             data: imageData,
@@ -274,7 +274,7 @@ exports.design = onCall(async (request) => {
 
     // Create the full prompt for image generation
     const fullPrompt = `${prompt}\n\nGenerate a high-quality, photorealistic image of this design. The image should be detailed, well-lit, and showcase the ${style} style ${roomType} design with professional interior/exterior photography quality.`;
-    
+
     console.log('Sending image generation request to Gemini API...');
     console.log('Full prompt length:', fullPrompt.length);
     console.log('Has image input:', imageParts.length > 0);
@@ -285,13 +285,13 @@ exports.design = onCall(async (request) => {
     // Call Gemini API for image generation
     const result = await model.generateContent(contentParts);
     const response = await result.response;
-    
+
     console.log('Gemini API response received');
-    
+
     // Check if response contains images
     let generatedImageBase64 = null;
     let imageMimeType = null;
-    
+
     // The response may contain images in the parts
     const parts = response.candidates?.[0]?.content?.parts || [];
     for (const part of parts) {
@@ -303,12 +303,12 @@ exports.design = onCall(async (request) => {
         break;
       }
     }
-    
+
     // Also check for text response
     let generatedText = '';
     try {
       generatedText = response.text() || '';
-    console.log('Generated text length:', generatedText.length);
+      console.log('Generated text length:', generatedText.length);
     } catch (textError) {
       console.log('No text response in result');
     }
@@ -337,10 +337,10 @@ exports.design = onCall(async (request) => {
     }
 
     console.log('=== Design Generation Request Completed Successfully ===');
-    
+
     // Return the generated image as base64 data URI
     const imageDataUri = `data:${imageMimeType || 'image/png'};base64,${generatedImageBase64}`;
-    
+
     return {
       success: true,
       prompt: prompt,

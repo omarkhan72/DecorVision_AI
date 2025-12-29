@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Alert } from 'react-native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import crashlytics from '@react-native-firebase/crashlytics';
 import analytics from '@react-native-firebase/analytics';
 
@@ -53,7 +55,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     // Listen to Firebase auth state changes
-    const unsubscribe = auth().onAuthStateChanged((firebaseUser) => {
+    // Listen to Firebase auth state changes
+    const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
         setUser({
           uid: firebaseUser.uid,
@@ -61,6 +64,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           displayName: firebaseUser.displayName,
           photoURL: firebaseUser.photoURL,
         });
+
+        // Create user in Firestore if not exists
+        try {
+          const userRef = firestore().collection('users').doc(firebaseUser.uid);
+
+          try {
+            // Try to update lastLoginAt first (Optimistic Update)
+            await userRef.update({
+              lastLoginAt: firestore.FieldValue.serverTimestamp(),
+            });
+            // console.log('User document updated in Firestore');
+          } catch (updateError: any) {
+            // If document not found, create it
+            if (updateError.code === 'firestore/not-found') {
+              await userRef.set({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName,
+                photoURL: firebaseUser.photoURL,
+                createdAt: firestore.FieldValue.serverTimestamp(),
+                lastLoginAt: firestore.FieldValue.serverTimestamp(),
+              });
+              console.log('User document created in Firestore');
+              // DEBUG: Alert user on successful creation
+              // Alert.alert('Debug', 'New user document created in Firestore for ' + firebaseUser.email);
+            } else {
+              // Re-throw other errors (e.g., permission-denied)
+              throw updateError;
+            }
+          }
+        } catch (error) {
+          console.error('Error managing user in Firestore:', error);
+          crashlytics().recordError(error as Error);
+          // Alert user on error
+          Alert.alert('Error', 'Failed to save user to database: ' + (error as Error).message);
+        }
+
         // Log user login to analytics
         analytics().setUserId(firebaseUser.uid);
         analytics().setUserProperty('login_method', 'google');
@@ -87,10 +127,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           displayName: 'Mock User',
           photoURL: null,
         };
-        
+
         // Simulate a small delay
         await new Promise<void>(resolve => setTimeout(() => resolve(), 500));
-        
+
         setUser(mockUser);
         analytics().logEvent('login', { method: 'google', mock: true });
         crashlytics().log('Mock Google Sign-In successful');
@@ -107,11 +147,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('Starting Google Sign-In...');
       const googleUser = await GoogleSignin.signIn();
       console.log('Google Sign-In response:', JSON.stringify(googleUser, null, 2));
-      
+
       // Get the ID token - the response structure varies by version
       // Try different possible paths
       let idToken: string | undefined;
-      
+
       if (googleUser.data?.idToken) {
         idToken = googleUser.data.idToken;
       } else if ((googleUser as any).idToken) {
@@ -120,12 +160,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // If we have serverAuthCode, we might need to exchange it
         console.log('Received serverAuthCode, attempting to get idToken...');
       }
-      
+
       if (!idToken) {
         console.error('Google Sign-In response structure:', googleUser);
         throw new Error('No ID token received from Google Sign-In. Please check the response structure.');
       }
-      
+
       console.log('ID Token received successfully');
 
       // Create a Google credential with the token
@@ -133,26 +173,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Sign in to Firebase with the Google credential
       await auth().signInWithCredential(googleCredential);
-      
+
       // User is automatically set via onAuthStateChanged listener
       // Loading state will be set to false by onAuthStateChanged
       analytics().logEvent('login', { method: 'google' });
       crashlytics().log('Google Sign-In successful');
-      
+
     } catch (error: any) {
       setLoading(false);
-      
+
       // Handle user cancellation (don't show error)
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         console.log('User cancelled Google Sign-In');
         return;
       }
-      
+
       // Handle other errors
       console.error('Google Sign-In Error:', error);
       crashlytics().recordError(error as Error);
       crashlytics().log(`Google Sign-In failed: ${error.message || 'Unknown error'}`);
-      
+
       // Re-throw to allow UI to handle it if needed
       throw error;
     }
