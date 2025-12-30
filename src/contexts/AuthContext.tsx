@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import messaging from '@react-native-firebase/messaging';
 import crashlytics from '@react-native-firebase/crashlytics';
 import analytics from '@react-native-firebase/analytics';
 
@@ -85,6 +86,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 photoURL: firebaseUser.photoURL,
                 createdAt: firestore.FieldValue.serverTimestamp(),
                 lastLoginAt: firestore.FieldValue.serverTimestamp(),
+                tokens: {
+                  freeTokens: 3,
+                  premiumTokens: 0,
+                },
               });
               console.log('User document created in Firestore');
               // DEBUG: Alert user on successful creation
@@ -94,6 +99,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               throw updateError;
             }
           }
+
+          // Get and save FCM Token
+          try {
+            const fcmToken = await messaging().getToken();
+            if (fcmToken) {
+              await userRef.update({
+                fcmToken: fcmToken,
+              });
+              console.log('FCM Token saving to Firestore');
+            }
+          } catch (tokenError) {
+            console.log('Error saving FCM token:', tokenError);
+            // Don't crash auth flow for token error
+          }
+
         } catch (error) {
           console.error('Error managing user in Firestore:', error);
           crashlytics().recordError(error as Error);

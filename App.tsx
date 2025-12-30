@@ -22,7 +22,7 @@ import auth from '@react-native-firebase/auth';
 import SignInScreen from './src/screens/SignInScreen';
 
 const ONBOARDING_COMPLETED_KEY = '@onboarding_completed';
-const PUSH_NOTIFICATION_PERMISSION_KEY = '@push_notification_permission_requested';
+
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -80,33 +80,18 @@ function App() {
 
   const initializePushNotifications = async () => {
     try {
-      // Check if we've already requested permission
-      const permissionRequested = await AsyncStorage.getItem(PUSH_NOTIFICATION_PERMISSION_KEY);
+      // Always request permission on app launch
+      const permissionGranted = await requestUserPermission();
 
-      // Request permission on first app launch
-      if (!permissionRequested) {
-        const permissionGranted = await requestUserPermission();
-
-        if (permissionGranted) {
-          // Get FCM token
-          const token = await getFCMToken();
-          if (token) {
-            console.log('FCM Token:', token);
-            // You can save this token to Firestore here if needed
-            // await updateFCMTokenInFirestore(userId, token);
-          }
-        } else {
-          console.log('Push notification permission denied');
-        }
-
-        // Mark that we've requested permission
-        await AsyncStorage.setItem(PUSH_NOTIFICATION_PERMISSION_KEY, 'true');
-      } else {
-        // Permission was already requested, just get the token
+      if (permissionGranted) {
+        // Get FCM token
         const token = await getFCMToken();
         if (token) {
           console.log('FCM Token:', token);
+          // Token is now handled in AuthContext, but keeping log for debug
         }
+      } else {
+        console.log('Push notification permission denied');
       }
 
       // Set up notification listeners
