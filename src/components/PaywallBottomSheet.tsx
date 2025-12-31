@@ -57,8 +57,8 @@ const PaywallBottomSheet = ({
 
     useEffect(() => {
         if (visible) {
-            translateY.value = withSpring(0, { damping: 15 });
-            opacity.value = withTiming(1, { duration: 200 });
+            translateY.value = withTiming(0, { duration: 300 });
+            opacity.value = withTiming(1, { duration: 300 });
         } else {
             translateY.value = withTiming(SCREEN_HEIGHT, { duration: 200 });
             opacity.value = withTiming(0, { duration: 200 });
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         paddingHorizontal: 24,
-        paddingBottom: 40,
+        paddingBottom: 20, // Reduced from 40
     },
     headerTitle: {
         fontSize: 22,

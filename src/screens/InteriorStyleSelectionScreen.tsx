@@ -19,12 +19,13 @@ import * as analytics from '../utils/analytics';
 // Mock Mode: Set to true to use mock responses instead of real API calls
 const USE_MOCK_API = true;
 
-type Props = { 
-  onBack: () => void; 
-  onContinue?: (imageUri: string | null) => void; 
+type Props = {
+  onBack: () => void;
+  onContinue?: (imageUri: string | null) => void;
   userImage?: string | null;
   roomType?: string | null;
   designType?: 'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring' | 'cleanup';
+  onBeforeGenerate?: () => Promise<boolean>;
 };
 
 interface DesignResponse {
@@ -41,7 +42,7 @@ interface DesignResponse {
   imageMimeType?: string;
 }
 
-const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType, designType = 'interior' }: Props) => {
+const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType, designType = 'interior', onBeforeGenerate }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -70,28 +71,28 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
   const convertImageToBase64 = async (uri: string): Promise<string | null> => {
     try {
       console.log('Converting image to base64, URI:', uri.substring(0, 50) + '...');
-      
+
       // If already base64, return as is
       if (uri.startsWith('data:')) {
         console.log('Image is already base64 encoded');
         return uri;
       }
-      
+
       // Use XMLHttpRequest for file:// URIs (works in React Native)
       if (uri.startsWith('file://') || uri.startsWith('content://')) {
         return new Promise((resolve) => {
           const xhr = new XMLHttpRequest();
           xhr.open('GET', uri, true);
           xhr.responseType = 'blob';
-          xhr.onload = function() {
+          xhr.onload = function () {
             if (xhr.status === 200) {
               const reader = new FileReader();
-              reader.onloadend = function() {
+              reader.onloadend = function () {
                 const base64String = reader.result as string;
                 console.log('Image converted to base64 via XMLHttpRequest, length:', base64String.length);
                 resolve(base64String);
               };
-              reader.onerror = function() {
+              reader.onerror = function () {
                 console.warn('FileReader error, returning URI as-is');
                 resolve(uri);
               };
@@ -101,29 +102,29 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
               resolve(uri);
             }
           };
-          xhr.onerror = function() {
+          xhr.onerror = function () {
             console.warn('XMLHttpRequest error, returning URI as-is');
             resolve(uri);
           };
           xhr.send();
         });
       }
-      
+
       // Use XMLHttpRequest for http/https URIs (works in React Native)
       if (uri.startsWith('http://') || uri.startsWith('https://')) {
         return new Promise((resolve) => {
           const xhr = new XMLHttpRequest();
           xhr.open('GET', uri, true);
           xhr.responseType = 'blob';
-          xhr.onload = function() {
+          xhr.onload = function () {
             if (xhr.status === 200) {
               const reader = new FileReader();
-              reader.onloadend = function() {
+              reader.onloadend = function () {
                 const base64String = reader.result as string;
                 console.log('Image converted to base64 via XMLHttpRequest, length:', base64String.length);
                 resolve(base64String);
               };
-              reader.onerror = function() {
+              reader.onerror = function () {
                 console.warn('FileReader error, returning URI as-is');
                 resolve(uri);
               };
@@ -133,14 +134,14 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
               resolve(uri);
             }
           };
-          xhr.onerror = function() {
+          xhr.onerror = function () {
             console.warn('XMLHttpRequest error, returning URI as-is');
             resolve(uri);
           };
           xhr.send();
         });
       }
-      
+
       // Fallback: return the URI as-is and let backend handle it
       console.warn('Unsupported URI format, returning URI as-is');
       return uri;
@@ -152,12 +153,19 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
 
   const handleGenerate = async () => {
     logButtonClick('Generate Button', 'InteriorStyleSelectionScreen');
+
+    // Check tokens before starting anything
+    if (onBeforeGenerate) {
+      const canProceed = await onBeforeGenerate();
+      if (!canProceed) return;
+    }
+
     console.log('=== Generate Button Pressed ===');
     console.log('Selected style:', selectedStyle);
     console.log('Room type:', roomType);
     console.log('Design type:', designType);
     console.log('Has user image:', !!userImage);
-    
+
     // Log design generation to Analytics
     if (selectedStyle && roomType) {
       await analytics.logDesignGeneration(designType || 'interior', roomType, selectedStyle);
@@ -195,14 +203,14 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
       // v2 functions default to us-central1 region
       const functions = getFunctions(undefined, 'us-central1');
       const designFunction = httpsCallable(functions, 'design');
-      
+
       const requestData = {
         designType: designType,
         roomType: roomType,
         style: selectedStyle,
         imageBase64: imageBase64 || null,
       };
-      
+
       console.log('Request payload:', {
         designType: requestData.designType,
         roomType: requestData.roomType,
@@ -217,7 +225,7 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
         console.log('⚠️ MOCK MODE: Generating static response...');
         // Simulate network delay
         await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
-        
+
         // Use the original input image as the "generated" image
         let mockImageDataUri = null;
         if (requestData.imageBase64) {
@@ -247,7 +255,7 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
         // Real API call - uncomment the lines below when USE_MOCK_API is false
         // const result = await designFunction(requestData);
         // responseData = result.data as DesignResponse;
-        
+
         // For now, using mock even when USE_MOCK_API is false (real API is commented out)
         console.log('⚠️ Real API call commented out. Using mock response...');
         await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
@@ -286,7 +294,7 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
       if (responseData.success) {
         // Check if we got a generated image
         let generatedImageUri = null;
-        
+
         if (responseData.imageDataUri) {
           // Use the data URI directly if provided
           generatedImageUri = responseData.imageDataUri;
@@ -294,7 +302,7 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
           // Construct data URI from base64 and mime type
           generatedImageUri = `data:${responseData.imageMimeType || 'image/png'};base64,${responseData.imageBase64}`;
         }
-        
+
         if (generatedImageUri) {
           console.log('Generated image received, length:', generatedImageUri.length);
           console.log('Navigating to result screen with generated image');
@@ -303,7 +311,7 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
         } else {
           console.log('No image in response, using user image or placeholder');
           // Fallback to user image or placeholder
-        onContinue?.(userImage || null);
+          onContinue?.(userImage || null);
         }
       } else {
         console.error('Design generation failed:', responseData.message);
@@ -317,15 +325,15 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
       console.error('Error code:', error?.code || 'N/A');
       console.error('Error details:', error?.details || 'N/A');
       console.error('Full error object:', JSON.stringify(error, null, 2));
-      
+
       let errorMessage = 'Failed to generate design. Please try again.';
-      
+
       if (error?.code === 'unavailable' || error?.code === 'functions/unavailable') {
         errorMessage = 'The design service is currently unavailable. Please make sure:\n\n1. The Firebase function is deployed\n2. You have an active internet connection\n3. Try again in a few moments';
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       Alert.alert('Error', errorMessage);
       setIsGenerating(false);
     }

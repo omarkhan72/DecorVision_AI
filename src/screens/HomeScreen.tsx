@@ -700,16 +700,14 @@ const HomeScreen = () => {
               setCurrentRoute('RoomTypeSelection');
             }
           }}
-          onContinue={async (imageUri) => {
-            const tokenConsumed = await checkAndConsumeToken();
-            if (tokenConsumed) {
-              setUserUploadedImage(imageUri);
-              setCurrentRoute('DesignLoading');
-            }
+          onContinue={(imageUri) => {
+            setUserUploadedImage(imageUri);
+            setCurrentRoute('DesignLoading');
           }}
           userImage={userUploadedImage}
           roomType={selectedRoomType}
           designType={designType}
+          onBeforeGenerate={checkAndConsumeToken}
         />
       ) : currentRoute === 'NewFlooringStyleSelection' ? (
         <NewFlooringStyleSelectionScreen

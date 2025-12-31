@@ -149,7 +149,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userRef = firestore().collection('users').doc(user.uid);
 
       unsubscribeFirestore = userRef.onSnapshot((doc) => {
-        if (doc.exists) {
+        // @ts-ignore: handling type mismatch between versions
+        const exists = typeof doc.exists === 'function' ? doc.exists() : doc.exists;
+        if (exists) {
           const userData = doc.data();
           const tokens = userData?.tokens || { freeTokens: 0, premiumTokens: 0 };
           const isPremium = tokens.premiumTokens >= 1;
