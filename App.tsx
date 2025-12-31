@@ -15,20 +15,23 @@ import crashlytics from '@react-native-firebase/crashlytics';
 import analytics from '@react-native-firebase/analytics';
 import messaging from '@react-native-firebase/messaging';
 import usePushNotification from './src/hooks/usePushNotification';
-import { AuthProvider } from './src/contexts/AuthContext';
+import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import HomeScreen from './src/screens/HomeScreen';
 import OnboardingFlow from './src/onbordingscreens/OnboardingFlow';
 import auth from '@react-native-firebase/auth';
 import SignInScreen from './src/screens/SignInScreen';
+import PaywallScreen from './src/screens/PaywallScreen';
 
 const ONBOARDING_COMPLETED_KEY = '@onboarding_completed';
 
 
-function App() {
+const MainApp = () => {
+  const { user } = useAuth();
   const isDarkMode = useColorScheme() === 'dark';
   const [initializing, setInitializing] = useState(true);
-  const [user, setUser] = useState<any>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+  const [showPaywall, setShowPaywall] = useState(true);
+
   const {
     requestUserPermission,
     getFCMToken,
@@ -37,28 +40,23 @@ function App() {
     onNotificationOpenedAppFromQuit,
   } = usePushNotification();
 
-
-  // Handle user state changes
-  function onAuthStateChanged(user: any) {
-    setUser(user);
-    if (initializing) setInitializing(false);
-  }
-
+  // Listen to auth state from Firebase directly to handle initialization
   useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    return subscriber; // unsubscribe on unmount
+    const subscriber = auth().onAuthStateChanged((firebaseUser) => {
+      // Auth data handled by AuthContext but we need to stop initializing
+      if (initializing) setInitializing(false);
+    });
+    return subscriber;
   }, []);
 
   useEffect(() => {
-    // Initialize Crashlytics
+    // Initialize services
     crashlytics().setCrashlyticsCollectionEnabled(true);
     crashlytics().log('App initialized');
-
-    // Initialize Analytics
     analytics().setAnalyticsCollectionEnabled(true);
     analytics().logEvent('app_open');
 
-    // Initialize Push Notifications
+    // Push Notifications
     let unsubscribeForeground: (() => void) | undefined;
     let unsubscribeBackground: (() => void) | undefined;
 
@@ -71,7 +69,6 @@ function App() {
 
     checkOnboardingStatus();
 
-    // Cleanup on unmount
     return () => {
       if (unsubscribeForeground) unsubscribeForeground();
       if (unsubscribeBackground) unsubscribeBackground();
@@ -80,32 +77,15 @@ function App() {
 
   const initializePushNotifications = async () => {
     try {
-      // Always request permission on app launch
       const permissionGranted = await requestUserPermission();
-
       if (permissionGranted) {
-        // Get FCM token
         const token = await getFCMToken();
-        if (token) {
-          console.log('FCM Token:', token);
-          // Token is now handled in AuthContext, but keeping log for debug
-        }
-      } else {
-        console.log('Push notification permission denied');
+        if (token) console.log('FCM Token:', token);
       }
-
-      // Set up notification listeners
       const unsubscribeForeground = await listenToForegroundNotifications();
       const unsubscribeBackground = await onNotificationOpenedAppFromBackground();
-
-      // Check if app was opened from a notification when it was quit
       await onNotificationOpenedAppFromQuit();
-
-      // Return cleanup functions
-      return {
-        foreground: unsubscribeForeground,
-        background: unsubscribeBackground,
-      };
+      return { foreground: unsubscribeForeground, background: unsubscribeBackground };
     } catch (error) {
       console.error('Error initializing push notifications:', error);
       crashlytics().recordError(error as Error);
@@ -113,25 +93,18 @@ function App() {
   };
 
   const checkOnboardingStatus = async () => {
-    // TEMPORARY: Always show onboarding for testing
-    // TODO: Restore normal behavior after onboarding is fixed
+    // TEMPORARY: Always show onboarding for testing, per previous settings
     setShowOnboarding(true);
-
-    // Original code (commented out for testing):
-    // try {
-    //   const completed = await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY);
-    //   setShowOnboarding(completed !== 'true');
-    // } catch (error) {
-    //   console.error('Error checking onboarding status:', error);
-    //   // Show onboarding if there's an error
-    //   setShowOnboarding(true);
-    // }
+    // Logic:
+    // const completed = await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY);
+    // setShowOnboarding(completed !== 'true');
   };
 
   const handleOnboardingComplete = async () => {
     try {
       await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
       setShowOnboarding(false);
+      // After onboarding, Paywall will show if showPaywall is true (default)
     } catch (error) {
       console.error('Error saving onboarding status:', error);
       setShowOnboarding(false);
@@ -139,34 +112,55 @@ function App() {
   };
 
   const handleOnboardingSkip = async () => {
-    try {
-      await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
-      setShowOnboarding(false);
-    } catch (error) {
-      console.error('Error saving onboarding status:', error);
-      setShowOnboarding(false);
-    }
+    handleOnboardingComplete();
   };
 
-  // Show nothing while checking onboarding status or initializing auth
   if (showOnboarding === null || initializing) {
     return null;
   }
+
+  // Navigation Logic
+  if (showOnboarding) {
+    return (
+      <OnboardingFlow
+        onComplete={handleOnboardingComplete}
+        onSkip={handleOnboardingSkip}
+      />
+    );
+  }
+
+  if (!user) {
+    return <SignInScreen />;
+  }
+
+  // If user is logged in, check premium status
+  // Show Paywall if user is NOT premium and showPaywall is true
+  if (!user.isPremium && showPaywall) {
+    return (
+      <PaywallScreen
+        onDismiss={() => setShowPaywall(false)}
+        onSubscribe={(plan) => {
+          console.log('Subscribe to', plan);
+          // In a real app, integrate purchase flow here.
+          // For now, we can dismiss or navigate to subscription logic (Home logic handles validation)
+          // If we dismiss, they go to Home
+          setShowPaywall(false);
+        }}
+      />
+    );
+  }
+
+  return <HomeScreen />;
+};
+
+function App() {
+  const isDarkMode = useColorScheme() === 'dark';
 
   return (
     <AuthProvider>
       <SafeAreaProvider>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        {showOnboarding ? (
-          <OnboardingFlow
-            onComplete={handleOnboardingComplete}
-            onSkip={handleOnboardingSkip}
-          />
-        ) : !user ? (
-          <SignInScreen />
-        ) : (
-          <HomeScreen />
-        )}
+        <MainApp />
       </SafeAreaProvider>
     </AuthProvider>
   );
