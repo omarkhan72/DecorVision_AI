@@ -19,13 +19,15 @@ import RNFS from 'react-native-fs';
 import { saveToHistory } from '../utils/historyStorage';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
+import { useAuth } from '../contexts/AuthContext';
 
 type Props = { onBack: () => void; onRegenerate?: () => void; userImage?: string | null };
 
 const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   // Use the user's uploaded image or fallback to default
-  const imageSource = userImage 
+  const imageSource = userImage
     ? { uri: userImage }
     : require('../assets/images/interior-design.jpg');
 
@@ -93,7 +95,7 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
     try {
       let imageUriString: string;
       let tempFilePath: string | null = null;
-      
+
       if (userImage) {
         // Check if it's a base64 data URI
         if (userImage.startsWith('data:image/')) {
@@ -103,24 +105,24 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
             if (matches) {
               const mimeType = matches[1];
               const base64Data = matches[2];
-              
+
               // Determine file extension from mime type
               let extension = 'jpg';
               if (mimeType.includes('png')) extension = 'png';
               else if (mimeType.includes('jpeg') || mimeType.includes('jpg')) extension = 'jpg';
               else if (mimeType.includes('webp')) extension = 'webp';
-              
+
               // Create temporary file path
               const fileName = `design_${Date.now()}.${extension}`;
               tempFilePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
-          
+
               // Write base64 data to file
               await RNFS.writeFile(tempFilePath, base64Data, 'base64');
               console.log('Temporary file created:', tempFilePath);
-              
+
               // Use the file URI for sharing
               // react-native-share works with file:// prefix on both platforms
-            imageUriString = `file://${tempFilePath}`;
+              imageUriString = `file://${tempFilePath}`;
             } else {
               // Fallback: try to use data URI directly
               imageUriString = userImage;
@@ -154,7 +156,7 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
       };
 
       await Share.open(shareOptions);
-      
+
       // Clean up temporary file after sharing (optional - can be kept for user to access)
       // Uncomment the following lines if you want to delete the temp file immediately
       // if (tempFilePath) {
@@ -169,10 +171,10 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
       // User cancelled or error occurred
       console.log('Share error:', error);
       // Don't show error for user cancellation
-      if (!error.message?.includes('User did not share') && 
-          !error.message?.includes('cancel') &&
-          !error.message?.includes('User did not') &&
-          !error.message?.includes('User cancelled')) {
+      if (!error.message?.includes('User did not share') &&
+        !error.message?.includes('cancel') &&
+        !error.message?.includes('User did not') &&
+        !error.message?.includes('User cancelled')) {
         Alert.alert('Error', 'Unable to share image. Please try again.');
       }
     }
@@ -182,10 +184,7 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.proButton}>
-          <FontAwesome name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
-          <Text style={styles.proButtonText}>Pro</Text>
-        </TouchableOpacity>
+        <View style={{ width: 32 }} />
         <Text style={styles.headerTitle}>Your design</Text>
         <TouchableOpacity onPress={() => {
           logButtonClick('Close Button', 'DesignResultScreen');
@@ -224,8 +223,8 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
         </View>
 
         {/* Regenerate Button */}
-        <TouchableOpacity 
-          style={styles.regenerateButton} 
+        <TouchableOpacity
+          style={styles.regenerateButton}
           activeOpacity={0.9}
           onPress={() => {
             logButtonClick('Regenerate Button', 'DesignResultScreen');

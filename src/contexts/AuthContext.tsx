@@ -10,18 +10,24 @@ import analytics from '@react-native-firebase/analytics';
 // Mock Mode: Set to true to use mock responses instead of real API calls
 const USE_MOCK_API = false;
 
-interface User {
+export interface User {
   uid: string;
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  isPremium?: boolean;
+  tokens?: {
+    freeTokens: number;
+    premiumTokens: number;
+  };
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  consumeToken: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -135,6 +141,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return unsubscribe;
   }, []);
 
+  // Listen for real-time user data updates from Firestore
+  useEffect(() => {
+    let unsubscribeFirestore: (() => void) | undefined;
+
+    if (user?.uid) {
+      const userRef = firestore().collection('users').doc(user.uid);
+
+      unsubscribeFirestore = userRef.onSnapshot((doc) => {
+        if (doc.exists) {
+          const userData = doc.data();
+          const tokens = userData?.tokens || { freeTokens: 0, premiumTokens: 0 };
+          const isPremium = tokens.premiumTokens >= 1;
+
+          console.log(`Real-time update: User ${user.uid} isPremium=${isPremium}`);
+
+          setUser((prevUser) => {
+            if (!prevUser) return null;
+            return {
+              ...prevUser,
+              isPremium,
+              tokens,
+            };
+          });
+        }
+      }, (error) => {
+        console.error('Error listening to user document:', error);
+      });
+    }
+
+    return () => {
+      if (unsubscribeFirestore) {
+        unsubscribeFirestore();
+      }
+    };
+  }, [user?.uid]);
+
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
@@ -218,6 +260,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const consumeToken = async (): Promise<boolean> => {
+    if (!user || !user.uid) return false;
+
+    const userRef = firestore().collection('users').doc(user.uid);
+
+    try {
+      const result = await firestore().runTransaction(async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+        if (!userDoc.exists) {
+          console.error('User document does not exist for UID:', user.uid);
+          throw new Error('User does not exist');
+        }
+
+        const data = userDoc.data();
+        const tokens = data?.tokens || { freeTokens: 0, premiumTokens: 0 };
+        console.log(`[consumeToken] User: ${user.uid}, Free: ${tokens.freeTokens}, Premium: ${tokens.premiumTokens}`);
+
+        if (tokens.freeTokens > 0) {
+          console.log('[consumeToken] Consuming 1 FREE token');
+          transaction.update(userRef, {
+            'tokens.freeTokens': tokens.freeTokens - 1
+          });
+          return true;
+        } else if (tokens.premiumTokens > 0) {
+          console.log('[consumeToken] Consuming 1 PREMIUM token');
+          transaction.update(userRef, {
+            'tokens.premiumTokens': tokens.premiumTokens - 1
+          });
+          return true;
+        } else {
+          console.log('[consumeToken] No tokens available to consume');
+          return false;
+        }
+      });
+      return result;
+    } catch (error) {
+      console.error('Token consumption error', error);
+      return false;
+    }
+  };
+
   const signOut = async () => {
     try {
       await GoogleSignin.signOut();
@@ -232,7 +315,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut, consumeToken }}>
       {children}
     </AuthContext.Provider>
   );

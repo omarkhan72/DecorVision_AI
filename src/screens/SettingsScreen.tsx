@@ -81,19 +81,21 @@ const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
       )}
 
       {/* Header card */}
-      <View style={styles.headerCard}>
-        <View>
-          <Text style={styles.headerTitle}>Unlimited</Text>
-          <Text style={styles.headerSub}>Transformations</Text>
+      {!user?.isPremium && (
+        <View style={styles.headerCard}>
+          <View>
+            <Text style={styles.headerTitle}>Unlimited</Text>
+            <Text style={styles.headerSub}>Transformations</Text>
+          </View>
+          <TouchableOpacity style={styles.upgradeBtn} onPress={() => {
+            logButtonClick('Upgrade Now Button', 'SettingsScreen');
+            analytics.logEvent('upgrade_prompt', { source: 'settings' });
+            onUpgrade();
+          }}>
+            <Text style={styles.upgradeText}>Upgrade Now</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.upgradeBtn} onPress={() => {
-          logButtonClick('Upgrade Now Button', 'SettingsScreen');
-          analytics.logEvent('upgrade_prompt', { source: 'settings' });
-          onUpgrade();
-        }}>
-          <Text style={styles.upgradeText}>Upgrade Now</Text>
-        </TouchableOpacity>
-      </View>
+      )}
 
       {/* Options */}
       <Row icon={<MaterialCommunityIcons name="information-outline" size={16} color="#262626" />} label="About" />
