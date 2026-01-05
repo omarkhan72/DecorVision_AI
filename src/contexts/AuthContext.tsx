@@ -28,6 +28,7 @@ export interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   consumeToken: () => Promise<boolean>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -316,8 +317,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const deleteAccount = async () => {
+    if (!user || !user.uid) return;
+
+    try {
+      const uid = user.uid;
+      const userRef = firestore().collection('users').doc(uid);
+      const hashRef = firestore().collection('hash').doc(uid);
+
+      // 1. Get current tokens to backup
+      const userDoc = await userRef.get();
+      // @ts-ignore: safe check for exists property/method
+      const exists = typeof userDoc.exists === 'function' ? userDoc.exists() : userDoc.exists;
+      const userData = exists ? userDoc.data() : null;
+      const tokens = userData?.tokens || { freeTokens: 0, premiumTokens: 0 };
+
+      // 2. Archive tokens to 'hash' collection
+      await hashRef.set({
+        tokens: {
+          freeTokens: tokens.freeTokens,
+          premiumTokens: tokens.premiumTokens,
+        },
+        archivedAt: firestore.FieldValue.serverTimestamp(),
+      });
+      console.log('User tokens archived to hash collection');
+
+      // 3. Delete User Document
+      await userRef.delete();
+      console.log('User Firestore document deleted');
+
+      // 4. Delete Auth User (Best effort)
+      const currentUser = auth().currentUser;
+      if (currentUser) {
+        await currentUser.delete();
+        console.log('User deleted from Firebase Auth');
+      }
+
+      // 5. Sign Out locally
+      await signOut();
+
+      analytics().logEvent('delete_account');
+      crashlytics().log('User account deleted');
+
+    } catch (error) {
+      console.error('Delete account error:', error);
+      crashlytics().recordError(error as Error);
+      Alert.alert('Error', 'Failed to delete account completely. Some steps may have failed.');
+      await signOut();
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut, consumeToken }}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut, consumeToken, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

@@ -65,6 +65,7 @@ const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
 );
 
 import PaywallBottomSheet from '../components/PaywallBottomSheet';
+import MyInterstitialAd from '../components/MyInterstitialAd/MyInterstitialAd';
 
 const HomeScreen = () => {
   const { user, consumeToken } = useAuth();
@@ -81,6 +82,8 @@ const HomeScreen = () => {
   const [designType, setDesignType] = useState<'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring'>('interior');
   const [isReplacing, setIsReplacing] = useState(false);
   const [isPaywallVisible, setIsPaywallVisible] = useState(false);
+
+  const [isAdVisible, setIsAdVisible] = useState(false);
 
   // To store the pending resolve function when user opens paywall
   // This allows us to "resume" the action after they successfully interact with the paywall
@@ -206,24 +209,14 @@ const HomeScreen = () => {
   };
 
   const handlePaywallWatchAd = async () => {
-    // Mock Ad Logic
-    await new Promise<void>(resolve => setTimeout(resolve, 2000));
-
-    // User requested to consume token even when watching ad
-    const success = await consumeToken();
-
     setIsPaywallVisible(false);
+    setIsAdVisible(true);
+  };
+
+  const handleAdClose = () => {
+    setIsAdVisible(false);
     if (pendingAction) {
-      if (success) {
-        pendingAction.resolve(true); // Resolves true -> allows generation
-      } else {
-        // If token consumption failed (e.g. they watched ad but have 0 tokens? But logic hides button if 0 tokens)
-        // Proceed anyway since they watched the ad?
-        // User said "i want to consume the token". If it fails, maybe block?
-        // For safety, if they have tokens, we consumed one. If fail, show error.
-        Alert.alert("Error", "Failed to consume token after ad.");
-        pendingAction.resolve(false);
-      }
+      pendingAction.resolve(true); // Ad watched, grant access
       setPendingAction(null);
     }
   };
@@ -933,6 +926,11 @@ const HomeScreen = () => {
         onWatchAd={handlePaywallWatchAd}
         onUseToken={handlePaywallUseToken}
         tokenCount={(user?.tokens?.freeTokens || 0) + (user?.tokens?.premiumTokens || 0)}
+      />
+
+      <MyInterstitialAd
+        modalVisible={isAdVisible}
+        onClose={handleAdClose}
       />
     </View>
   );

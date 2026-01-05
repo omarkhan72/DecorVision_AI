@@ -150,13 +150,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
     },
     header: {
-        paddingHorizontal: 20,
+        paddingHorizontal: 16,
         paddingTop: Platform.OS === 'android' ? 10 : 0,
         alignItems: 'flex-end',
         zIndex: 10,
     },
     closeButton: {
-        padding: 8,
+        padding: 6,
         backgroundColor: '#F3F4F6',
         borderRadius: 20,
     },
@@ -166,36 +166,36 @@ const styles = StyleSheet.create({
     },
     titleContainer: {
         alignItems: 'center',
-        marginVertical: 12,
+        marginVertical: 8, // Reduced from 12
         paddingHorizontal: 10,
     },
     title: {
-        fontSize: 20,
+        fontSize: 18, // Reduced from 20
         fontWeight: '800',
         color: '#1A1A1A',
         textAlign: 'center',
         marginBottom: 4,
     },
     subtitle: {
-        fontSize: 13,
+        fontSize: 11, // Reduced from 13
         color: '#6B7280',
         textAlign: 'center',
-        lineHeight: 18,
+        lineHeight: 16,
     },
     plansContainer: {
-        gap: 14,
-        marginTop: 8,
+        gap: 10, // Reduced from 14
+        marginTop: 6,
     },
     planCard: {
         backgroundColor: '#FFFFFF',
         borderWidth: 1.5,
-        borderRadius: 16,
-        padding: 14,
+        borderRadius: 14, // Reduced radius
+        padding: 10, // Reduced from 14
         position: 'relative',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
-        shadowRadius: 4,
+        shadowRadius: 3,
         elevation: 2,
     },
     planCardSelected: {
@@ -204,33 +204,33 @@ const styles = StyleSheet.create({
     },
     badge: {
         position: 'absolute',
-        top: -10,
-        right: 14,
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 10,
+        top: -9,
+        right: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 8,
     },
     badgeText: {
         color: '#FFFFFF',
-        fontSize: 10,
+        fontSize: 9, // Reduced
         fontWeight: '700',
     },
     planTitle: {
-        fontSize: 16,
+        fontSize: 14, // Reduced from 16
         fontWeight: '700',
         marginBottom: 2,
     },
     priceContainer: {
         flexDirection: 'row',
         alignItems: 'baseline',
-        marginBottom: 10,
+        marginBottom: 6, // Reduced margin
     },
     priceAmount: {
-        fontSize: 22,
+        fontSize: 18, // Reduced from 22
         fontWeight: '800',
     },
     pricePeriod: {
-        fontSize: 12,
+        fontSize: 10, // Reduced from 12
         color: '#6B7280',
         marginLeft: 4,
         fontWeight: '500',
@@ -238,33 +238,33 @@ const styles = StyleSheet.create({
     divider: {
         height: 1,
         backgroundColor: '#F3F4F6',
-        marginBottom: 10,
+        marginBottom: 6, // Reduced margin
     },
     featuresList: {
-        gap: 6,
+        gap: 4, // Reduced gap
     },
     featureRow: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     featureText: {
-        fontSize: 12,
+        fontSize: 11, // Reduced from 12
         color: '#4B5563',
-        marginLeft: 8,
+        marginLeft: 6,
         fontWeight: '500',
     },
     footer: {
-        padding: 16,
+        padding: 12, // Reduced padding
         borderTopWidth: 1,
         borderTopColor: '#F3F4F6',
         backgroundColor: '#FFFFFF',
     },
     subscribeButton: {
         backgroundColor: '#8B5CF6',
-        paddingVertical: 14,
-        borderRadius: 14,
+        paddingVertical: 12, // Reduced height
+        borderRadius: 12,
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 6,
         shadowColor: '#8B5CF6',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
@@ -273,13 +273,13 @@ const styles = StyleSheet.create({
     },
     subscribeButtonText: {
         color: '#FFFFFF',
-        fontSize: 16,
+        fontSize: 15, // Reduced from 16
         fontWeight: '700',
     },
     disclaimer: {
         textAlign: 'center',
         color: '#9CA3AF',
-        fontSize: 11,
+        fontSize: 10, // Reduced from 11
     },
 });
 

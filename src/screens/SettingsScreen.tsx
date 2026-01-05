@@ -23,7 +23,8 @@ const Row = ({ icon, label, onPress }: { icon: React.ReactNode; label: string; o
 );
 
 const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, deleteAccount } = useAuth();
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   // Log screen view
   useEffect(() => {
@@ -45,6 +46,31 @@ const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
             } catch (error) {
               console.error("Logout failed", error);
               Alert.alert("Error", "Failed to logout. Please try again.");
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure? This will permanently delete your account, images, and data. This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              await deleteAccount();
+              // Auth State change will handle navigation
+            } catch (error) {
+              console.error("Delete account failed", error);
+              // Error handled in context, but reset loading
+              setIsDeleting(false);
             }
           }
         }
@@ -109,7 +135,11 @@ const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
         label="Logout"
         onPress={handleLogout}
       />
-      <Row icon={<MaterialCommunityIcons name="delete-outline" size={16} color="#EF4444" />} label="Delete account" />
+      <Row
+        icon={<MaterialCommunityIcons name="delete-outline" size={16} color="#EF4444" />}
+        label={isDeleting ? "Deleting..." : "Delete account"}
+        onPress={handleDeleteAccount}
+      />
     </ScrollView>
   );
 };
