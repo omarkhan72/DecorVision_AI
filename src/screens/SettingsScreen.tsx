@@ -5,6 +5,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 type Props = { onBack: () => void; onUpgrade: () => void };
 
@@ -25,122 +26,123 @@ const Row = ({ icon, label, onPress }: { icon: React.ReactNode; label: string; o
 const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
   const { user, signOut, deleteAccount } = useAuth();
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [confirmationVisible, setConfirmationVisible] = React.useState(false);
+  const [actionType, setActionType] = React.useState<'logout' | 'delete' | null>(null);
 
   // Log screen view
   useEffect(() => {
     logScreenView('SettingsScreen');
   }, []);
 
-  const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await signOut();
-            } catch (error) {
-              console.error("Logout failed", error);
-              Alert.alert("Error", "Failed to logout. Please try again.");
-            }
-          }
-        }
-      ]
-    );
+  const handleLogoutPress = () => {
+    setActionType('logout');
+    setConfirmationVisible(true);
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      "Delete Account",
-      "Are you sure? This will permanently delete your account, images, and data. This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              await deleteAccount();
-              // Auth State change will handle navigation
-            } catch (error) {
-              console.error("Delete account failed", error);
-              // Error handled in context, but reset loading
-              setIsDeleting(false);
-            }
-          }
-        }
-      ]
-    );
+  const handleDeletePress = () => {
+    setActionType('delete');
+    setConfirmationVisible(true);
+  };
+
+  const onConfirmAction = async () => {
+    setConfirmationVisible(false);
+    if (actionType === 'logout') {
+      try {
+        await signOut();
+      } catch (error) {
+        console.error("Logout failed", error);
+      }
+    } else if (actionType === 'delete') {
+      setIsDeleting(true);
+      try {
+        await deleteAccount();
+      } catch (error) {
+        console.error("Delete failed", error);
+        setIsDeleting(false);
+      }
+    }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Top bar */}
-      <View style={styles.topbar}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => {
-          logButtonClick('Back Button', 'SettingsScreen');
-          onBack();
-        }}>
-          <FontAwesome name="angle-left" color="#000" size={22} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Setting</Text>
-        <View style={{ width: 22 }} />
-      </View>
-
-      {/* Profile Section */}
-      {user && (
-        <View style={styles.profileCard}>
-          <Image
-            source={{ uri: user.photoURL || 'https://via.placeholder.com/150' }}
-            style={styles.profileImage}
-          />
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{user.displayName || 'User'}</Text>
-            <Text style={styles.profileEmail}>{user.email}</Text>
-          </View>
-        </View>
-      )}
-
-      {/* Header card */}
-      {!user?.isPremium && (
-        <View style={styles.headerCard}>
-          <View>
-            <Text style={styles.headerTitle}>Unlimited</Text>
-            <Text style={styles.headerSub}>Transformations</Text>
-          </View>
-          <TouchableOpacity style={styles.upgradeBtn} onPress={() => {
-            logButtonClick('Upgrade Now Button', 'SettingsScreen');
-            analytics.logEvent('upgrade_prompt', { source: 'settings' });
-            onUpgrade();
+    <>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Top bar */}
+        <View style={styles.topbar}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => {
+            logButtonClick('Back Button', 'SettingsScreen');
+            onBack();
           }}>
-            <Text style={styles.upgradeText}>Upgrade Now</Text>
+            <FontAwesome name="angle-left" color="#000" size={22} />
           </TouchableOpacity>
+          <Text style={styles.title}>Setting</Text>
+          <View style={{ width: 22 }} />
         </View>
-      )}
 
-      {/* Options */}
-      <Row icon={<MaterialCommunityIcons name="information-outline" size={16} color="#262626" />} label="About" />
-      <Row icon={<MaterialCommunityIcons name="alert-circle-outline" size={16} color="#262626" />} label="Report a problem" />
-      <Row icon={<MaterialCommunityIcons name="message-reply-outline" size={16} color="#262626" />} label="Feedback" />
-      <Row icon={<MaterialCommunityIcons name="account-plus-outline" size={16} color="#262626" />} label="Tell a friend" />
-      <Row icon={<MaterialCommunityIcons name="shield-outline" size={16} color="#262626" />} label="Privacy and Policy" />
-      <Row icon={<MaterialCommunityIcons name="file-document-outline" size={16} color="#262626" />} label="Terms and Conditions" />
-      <Row
-        icon={<MaterialCommunityIcons name="logout" size={16} color="#262626" />}
-        label="Logout"
-        onPress={handleLogout}
+        {/* Profile Section */}
+        {user && (
+          <View style={styles.profileCard}>
+            <Image
+              source={{ uri: user.photoURL || 'https://via.placeholder.com/150' }}
+              style={styles.profileImage}
+            />
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileName}>{user.displayName || 'User'}</Text>
+              <Text style={styles.profileEmail}>{user.email}</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Header card */}
+        {!user?.isPremium && (
+          <View style={styles.headerCard}>
+            <View>
+              <Text style={styles.headerTitle}>Unlimited</Text>
+              <Text style={styles.headerSub}>Transformations</Text>
+            </View>
+            <TouchableOpacity style={styles.upgradeBtn} onPress={() => {
+              logButtonClick('Upgrade Now Button', 'SettingsScreen');
+              analytics.logEvent('upgrade_prompt', { source: 'settings' });
+              onUpgrade();
+            }}>
+              <Text style={styles.upgradeText}>Upgrade Now</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Options */}
+        <Row icon={<MaterialCommunityIcons name="information-outline" size={16} color="#262626" />} label="About" />
+        <Row icon={<MaterialCommunityIcons name="alert-circle-outline" size={16} color="#262626" />} label="Report a problem" />
+        <Row icon={<MaterialCommunityIcons name="message-reply-outline" size={16} color="#262626" />} label="Feedback" />
+        <Row icon={<MaterialCommunityIcons name="account-plus-outline" size={16} color="#262626" />} label="Tell a friend" />
+        <Row icon={<MaterialCommunityIcons name="shield-outline" size={16} color="#262626" />} label="Privacy and Policy" />
+        <Row icon={<MaterialCommunityIcons name="file-document-outline" size={16} color="#262626" />} label="Terms and Conditions" />
+        <Row
+          icon={<MaterialCommunityIcons name="logout" size={16} color="#262626" />}
+          label="Logout"
+          onPress={handleLogoutPress}
+        />
+        <Row
+          icon={<MaterialCommunityIcons name="delete-outline" size={16} color="#EF4444" />}
+          label={isDeleting ? "Deleting..." : "Delete account"}
+          onPress={handleDeletePress}
+        />
+      </ScrollView>
+
+      <ConfirmationModal
+        visible={confirmationVisible}
+        title={actionType === 'logout' ? 'Log Out' : 'Delete Account'}
+        message={
+          actionType === 'logout'
+            ? 'Are you sure you want to log out?'
+            : 'Are you sure you want to permanently delete your account? This action cannot be undone.'
+        }
+        confirmText={actionType === 'logout' ? 'Log Out' : 'Delete'}
+        cancelText="Cancel"
+        onConfirm={onConfirmAction}
+        onCancel={() => setConfirmationVisible(false)}
+        isDestructive={true}
       />
-      <Row
-        icon={<MaterialCommunityIcons name="delete-outline" size={16} color="#EF4444" />}
-        label={isDeleting ? "Deleting..." : "Delete account"}
-        onPress={handleDeleteAccount}
-      />
-    </ScrollView>
+    </>
   );
 };
 
