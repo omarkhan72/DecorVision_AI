@@ -1,56 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, Dimensions } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
 
+const { height } = Dimensions.get('window');
+
 type Props = { onBack: () => void };
 
 const Feature = ({ text, icon }: { text: string; icon: string }) => (
   <View style={styles.featureRow}>
-    <MaterialCommunityIcons name={icon as any} size={16} color="#8B5CF6" />
+    <View style={styles.iconContainer}>
+      <MaterialCommunityIcons name={icon as any} size={20} color="#7C3AED" />
+    </View>
     <Text style={styles.featureText}>{text}</Text>
-  </View>
-);
-
-const PlanCard = ({ title, subtitle, price, selected, tag }: { title: string; subtitle: string; price: string; selected?: boolean; tag?: string }) => (
-  <View style={[styles.planCard, selected && styles.planCardSelected]}>
-    {!!tag && (
-      <View style={[styles.planTag, selected && styles.planTagSelected]}>
-        <Text style={[styles.planTagText, selected && styles.planTagTextSelected]}>{tag}</Text>
-      </View>
-    )}
-    <Text style={styles.planTitle}>{title}</Text>
-    <Text style={styles.planSubtitle}>{subtitle}</Text>
-    <View style={styles.planPriceBox}><Text style={styles.planPrice}>{price}</Text></View>
   </View>
 );
 
 const SubscriptionScreen = ({ onBack }: Props) => {
   const [selected, setSelected] = useState<'lifetime' | 'year' | 'week'>('year');
 
-  // Log screen view
   useEffect(() => {
     logScreenView('SubscriptionScreen');
   }, []);
 
   return (
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <ImageBackground source={require('../assets/images/interior-design.jpg')} style={styles.hero} imageStyle={styles.heroImg}>
-        <View style={styles.heroTop}>
-          <TouchableOpacity onPress={() => {
-            logButtonClick('Close Button', 'SubscriptionScreen');
-            onBack();
-          }} style={styles.iconBtn}>
-            <FontAwesome name="close" size={16} color="#FFFFFF" />
+    <View style={styles.container}>
+      <ImageBackground
+        source={require('../assets/images/interior-design.jpg')}
+        style={styles.hero}
+        imageStyle={styles.heroImg}
+      >
+        <View style={styles.heroOverlay}>
+          <TouchableOpacity
+            onPress={() => {
+              logButtonClick('Close Button', 'SubscriptionScreen');
+              onBack();
+            }}
+            style={styles.closeBtn}
+          >
+            <FontAwesome name="close" size={18} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.restoreText}>Restore</Text>
+          <Text style={styles.restoreBtn}>Restore</Text>
         </View>
-        <View style={styles.heroTitleWrap}>
+
+        <View style={styles.heroContent}>
           <Text style={styles.heroTitle}>Interior Design</Text>
-          <View style={styles.dots}>
-            <View style={[styles.dot, styles.dotActive]} />
+          <View style={styles.dotsRow}>
+            <View style={[styles.dot, styles.activeDot]} />
             <View style={styles.dot} />
             <View style={styles.dot} />
             <View style={styles.dot} />
@@ -58,225 +56,321 @@ const SubscriptionScreen = ({ onBack }: Props) => {
         </View>
       </ImageBackground>
 
-      <View style={styles.sheet}>
-        <Feature text="Access to All Feature" icon="view-grid-outline" />
-        <Feature text="Unlimited Home Transformations" icon="brush" />
-        <Feature text="Unlock Trending Style" icon="lock-open-outline" />
-        <Feature text="Priority Access to New Content" icon="bell-outline" />
-        <Feature text="No Ads, No Watermarks" icon="close-circle-outline" />
+      <View style={styles.bottomSheet}>
+        <View style={styles.featuresList}>
+          <Feature text="Access to All Feature" icon="view-grid-outline" />
+          <Feature text="Unlimited Home Transformations" icon="brush" />
+          <Feature text="Unlock Trending Style" icon="lock-open-outline" />
+          <Feature text="Priority Access to New Content" icon="bell-outline" />
+          <Feature text="No Ads, No Watermarks" icon="close-circle-outline" />
+        </View>
 
-        <View style={styles.planRow}>
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-            logButtonClick('Select Plan: Lifetime', 'SubscriptionScreen');
-            analytics.logSelectContent('subscription_plan', 'lifetime', 'Lifetime Plan');
-            setSelected('lifetime');
-          }}>
-            <PlanCard title="BEST VALUE" subtitle={'Lifetime\n1 Purchase'} price={'Rs 13,900.00'} selected={selected==='lifetime'} tag="BEST VALUE" />
+        <View style={styles.plansContainer}>
+          {/* Lifetime Plan */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => setSelected('lifetime')}
+            style={[styles.planCard, selected === 'lifetime' && styles.selectedCard]}
+          >
+            <Text style={styles.planEyebrow}>BEST VALUE</Text>
+            <View style={styles.planContent}>
+              <Text style={styles.planMainText}>Lifetime</Text>
+              <Text style={styles.planSubText}>1 Purchase</Text>
+            </View>
+            <View style={styles.priceContainer}>
+              <Text style={styles.priceText}>Rs 13,900.00</Text>
+            </View>
           </TouchableOpacity>
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-            logButtonClick('Select Plan: Year', 'SubscriptionScreen');
-            analytics.logSelectContent('subscription_plan', 'year', 'Year Plan');
-            setSelected('year');
-          }}>
-            <PlanCard title="Save 90%" subtitle={'1\nYear\n(Rs 159.62 / (Week))'} price={'Rs 8,300.00'} selected={selected==='year'} tag="Save 90%" />
+
+          {/* Year Plan (Featured) */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => setSelected('year')}
+            style={[styles.planCard, styles.featuredCard, selected === 'year' && styles.selectedFeaturedCard]}
+          >
+            <View style={styles.featuredHeader}>
+              <Text style={styles.featuredHeaderText}>Save 90%</Text>
+            </View>
+            <View style={styles.featuredContent}>
+              <Text style={styles.featuredMainText}>1</Text>
+              <Text style={styles.featuredSubText}>Year</Text>
+              <Text style={styles.featuredMicroText}>(Rs 159.62 / (Week))</Text>
+            </View>
+            <View style={styles.featuredPriceContainer}>
+              <Text style={styles.featuredPriceText}>Rs 8,300.00</Text>
+            </View>
           </TouchableOpacity>
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-            logButtonClick('Select Plan: Week', 'SubscriptionScreen');
-            analytics.logSelectContent('subscription_plan', 'week', 'Week Plan');
-            setSelected('week');
-          }}>
-            <PlanCard title="MOST POPULAR" subtitle={'1\nWeek'} price={'Rs 1,650.00'} selected={selected==='week'} tag="MOST POPULAR" />
+
+          {/* Week Plan */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => setSelected('week')}
+            style={[styles.planCard, selected === 'week' && styles.selectedCard]}
+          >
+            <Text style={styles.planEyebrow}>MOST POPULAR</Text>
+            <View style={styles.planContent}>
+              <Text style={styles.planMainText}>1</Text>
+              <Text style={styles.planSubText}>Week</Text>
+            </View>
+            <View style={styles.priceContainer}>
+              <Text style={styles.priceText}>Rs 1,650.00</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.cta} onPress={() => {
+        <TouchableOpacity style={styles.continueBtn} onPress={() => {
           logButtonClick('Subscribe Continue Button', 'SubscriptionScreen');
           analytics.logEvent('subscription_continue', { plan: selected });
         }}>
-          <Text style={styles.ctaText}>Continue</Text>
+          <Text style={styles.continueBtnText}>Continue</Text>
         </TouchableOpacity>
 
-        <Text style={styles.renewText}>Auto-renewable. Cancel anytime</Text>
-        <View style={styles.linksRow}>
-          <TouchableOpacity><Text style={styles.link}>User Agreement</Text></TouchableOpacity>
-          <TouchableOpacity><Text style={styles.link}>Privacy Policy</Text></TouchableOpacity>
+        <Text style={styles.disclaimer}>Auto-renewable. Cancel anytime</Text>
+
+        <View style={styles.footerLinks}>
+          <TouchableOpacity><Text style={styles.linkText}>User Agreement</Text></TouchableOpacity>
+          <TouchableOpacity><Text style={styles.linkText}>Privacy Policy</Text></TouchableOpacity>
         </View>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    paddingBottom: 40,
+    flex: 1,
+    backgroundColor: '#000',
   },
   hero: {
-    height: 220,
+    height: height * 0.45,
+    width: '100%',
+    justifyContent: 'space-between',
   },
   heroImg: {
-    width: '100%',
-    height: '100%',
+    resizeMode: 'cover',
   },
-  heroTop: {
-    marginTop: 12,
-    marginHorizontal: 12,
+  heroOverlay: {
+    paddingTop: 50,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  iconBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
+  closeBtn: {
+    padding: 5,
   },
-  restoreText: {
-    color: 'rgba(255,255,255,0.8)',
+  restoreBtn: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 16,
     fontWeight: '600',
   },
-  heroTitleWrap: {
-    marginTop: 'auto',
+  heroContent: {
     alignItems: 'center',
-    paddingBottom: 8,
+    paddingBottom: 40,
   },
   heroTitle: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 16,
-    marginBottom: 6,
+    color: '#FFF',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
-  dots: {
+  dotsRow: {
     flexDirection: 'row',
+    gap: 8,
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: 'rgba(255,255,255,0.5)',
-    marginHorizontal: 3,
   },
-  dotActive: {
-    width: 20,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#FFFFFF',
+  activeDot: {
+    width: 24,
+    backgroundColor: '#FFF',
   },
-  sheet: {
-    marginTop: -16,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    backgroundColor: '#FFFFFF',
-    padding: 16,
+  bottomSheet: {
+    flex: 1,
+    marginTop: -20,
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 20,
+    justifyContent: 'flex-start',
+  },
+  featuresList: {
+    marginBottom: 20,
   },
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
+  },
+  iconContainer: {
+    width: 24,
+    alignItems: 'center',
+    marginRight: 10,
   },
   featureText: {
-    marginLeft: 10,
-    color: '#1A1A1A',
+    fontSize: 15,
     fontWeight: '600',
-    fontSize: 13,
+    color: '#000',
   },
-  planRow: {
+  plansContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 10,
-    marginBottom: 14,
+    alignItems: 'flex-end',
+    height: 160,
+    marginBottom: 20,
   },
   planCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    flex: 1,
+    backgroundColor: '#FFF',
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    padding: 8,
-    marginHorizontal: 4,
-  },
-  planCardSelected: {
-    borderColor: '#8B5CF6',
-    borderWidth: 2,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  planTag: {
-    position: 'absolute',
-    top: -10,
-    alignSelf: 'center',
-    backgroundColor: '#E5E7EB',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  planTagSelected: {
-    backgroundColor: '#8B5CF6',
-  },
-  planTagText: {
-    color: '#6B7280',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  planTagTextSelected: {
-    color: '#FFFFFF',
-  },
-  planTitle: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#9CA3AF',
-    textAlign: 'center',
-  },
-  planSubtitle: {
-    fontSize: 10,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 4,
-    lineHeight: 14,
-  },
-  planPriceBox: {
-    marginTop: 8,
-    backgroundColor: '#F8F7FF',
-    borderRadius: 6,
-    paddingVertical: 6,
-  },
-  planPrice: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#1A1A1A',
-    textAlign: 'center',
-  },
-  cta: {
-    backgroundColor: '#8B5CF6',
     borderRadius: 12,
-    paddingVertical: 16,
+    marginHorizontal: 4,
+    paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 8,
-  },
-  ctaText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  renewText: {
-    marginTop: 8,
-    textAlign: 'center',
-    color: '#9CA3AF',
-    fontSize: 10,
-  },
-  linksRow: {
-    marginTop: 6,
-    flexDirection: 'row',
     justifyContent: 'space-between',
+    height: 140,
   },
-  link: {
-    color: '#8B5CF6',
+  featuredCard: {
+    flex: 1.1,
+    height: 160,
+    borderColor: '#7C3AED',
+    paddingVertical: 0,
+    borderWidth: 1.5,
+    overflow: 'hidden',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  selectedCard: {
+    borderColor: '#7C3AED',
+    borderWidth: 1.5,
+  },
+  selectedFeaturedCard: {
+  },
+  planEyebrow: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  planContent: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  planMainText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
+  },
+  planSubText: {
+    fontSize: 11,
+    color: '#4B5563',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  priceContainer: {
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    width: '100%',
+    alignItems: 'center',
+    paddingTop: 8,
+  },
+  priceText: {
     fontSize: 11,
     fontWeight: '700',
+    color: '#000',
+  },
+  featuredHeader: {
+    width: '100%',
+    backgroundColor: '#7C3AED',
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  featuredHeaderText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  featuredContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  featuredMainText: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#000',
+  },
+  featuredSubText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#000',
+  },
+  featuredMicroText: {
+    fontSize: 9,
+    color: '#6B7280',
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  featuredPriceContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#F9FAFB',
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  featuredPriceText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#000',
+  },
+  continueBtn: {
+    backgroundColor: '#7C3AED',
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  continueBtnText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  disclaimer: {
+    textAlign: 'center',
+    color: '#9CA3AF',
+    fontSize: 11,
+    marginBottom: 6,
+  },
+  footerLinks: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+  },
+  linkText: {
+    color: '#9CA3AF',
+    fontSize: 11,
+    textDecorationLine: 'underline',
   },
 });
 
