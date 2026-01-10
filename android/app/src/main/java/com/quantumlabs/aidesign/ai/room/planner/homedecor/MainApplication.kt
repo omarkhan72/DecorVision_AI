@@ -1,4 +1,4 @@
-package com.design_ai
+package com.quantumlabs.aidesign.ai.room.planner.homedecor
 
 import android.app.Application
 import com.facebook.react.PackageList

@@ -7,18 +7,18 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:586339131877:android:e41df5846966b2fd024f0c",
+        "mobilesdk_app_id": "1:586339131877:android:f840532cebc77018024f0c",
         "android_client_info": {
-          "package_name": "com.design_ai"
+          "package_name": "com.quantumlabs.aidesign.ai.room.planner.homedecor"
         }
       },
       "oauth_client": [
         {
-          "client_id": "586339131877-ppdsok0v84fvgrh2799kid6lr77q757r.apps.googleusercontent.com",
+          "client_id": "586339131877-ctchncvk643s157abv4pjarm553jbqrn.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.design_ai",
-            "certificate_hash": "d7184372aa51fc11752980760bf5c5ddfe472d3a"
+            "package_name": "com.quantumlabs.aidesign.ai.room.planner.homedecor",
+            "certificate_hash": "9fba2c9955800118b544041d61681d9280c9238f"
           }
         },
         {

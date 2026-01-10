@@ -78,14 +78,14 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.design_ai"
+    namespace "com.quantumlabs.aidesign.ai.room.planner.homedecor"
     
     buildFeatures {
         buildConfig = true
     }
     
     defaultConfig {
-        applicationId "com.design_ai"
+        applicationId "com.quantumlabs.aidesign.ai.room.planner.homedecor"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
