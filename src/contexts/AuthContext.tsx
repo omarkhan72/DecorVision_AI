@@ -5,6 +5,7 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import messaging from '@react-native-firebase/messaging';
 import crashlytics from '@react-native-firebase/crashlytics';
+import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
 import analytics from '@react-native-firebase/analytics';
 
 // Mock Mode: Set to true to use mock responses instead of real API calls
@@ -321,49 +322,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user || !user.uid) return;
 
     try {
-      const uid = user.uid;
-      const userRef = firestore().collection('users').doc(uid);
-      const hashRef = firestore().collection('hash').doc(uid);
+      setLoading(true);
+      console.log('Calling deleteUserAccount Cloud Function...');
 
-      // 1. Get current tokens to backup
-      const userDoc = await userRef.get();
-      // @ts-ignore: safe check for exists property/method
-      const exists = typeof userDoc.exists === 'function' ? userDoc.exists() : userDoc.exists;
-      const userData = exists ? userDoc.data() : null;
-      const tokens = userData?.tokens || { freeTokens: 0, premiumTokens: 0 };
+      // Import explicitly if not available in scope, but typically imports are at top.
+      const functions = getFunctions(undefined, 'us-central1');
+      const deleteUserAccountFn = httpsCallable(functions, 'deleteUserAccount');
 
-      // 2. Archive tokens to 'hash' collection
-      await hashRef.set({
-        tokens: {
-          freeTokens: tokens.freeTokens,
-          premiumTokens: tokens.premiumTokens,
-        },
-        archivedAt: firestore.FieldValue.serverTimestamp(),
-      });
-      console.log('User tokens archived to hash collection');
+      const result = await deleteUserAccountFn();
+      console.log('Delete account result:', result.data);
 
-      // 3. Delete User Document
-      await userRef.delete();
-      console.log('User Firestore document deleted');
-
-      // 4. Delete Auth User (Best effort)
-      const currentUser = auth().currentUser;
-      if (currentUser) {
-        await currentUser.delete();
-        console.log('User deleted from Firebase Auth');
-      }
-
-      // 5. Sign Out locally
+      // Sign out locally after successful server-side deletion
       await signOut();
 
       analytics().logEvent('delete_account');
-      crashlytics().log('User account deleted');
+      crashlytics().log('User account deleted via Cloud Function');
+      Alert.alert('Account Deleted', 'Your account has been successfully deleted.');
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Delete account error:', error);
       crashlytics().recordError(error as Error);
-      Alert.alert('Error', 'Failed to delete account completely. Some steps may have failed.');
-      await signOut();
+
+      let errorMessage = 'Failed to delete account. Please try again.';
+      if (error.code === 'functions/unauthenticated') {
+        errorMessage = 'You must be logged in to delete your account.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert('Error', errorMessage);
+      setLoading(false);
     }
   };
 

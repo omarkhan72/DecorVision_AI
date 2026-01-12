@@ -378,3 +378,7 @@ exports.replace = require('./replace').replace;
  * Import and export the newFlooringWalls function
  */
 exports.newFlooringWalls = require('./newFlooringWalls').newFlooringWalls;
+/**
+ * Import and export the deleteUserAccount function
+ */
+exports.deleteUserAccount = require('./deleteUserAccount').deleteUserAccount;
