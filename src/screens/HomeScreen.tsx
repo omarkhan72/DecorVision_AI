@@ -455,6 +455,9 @@ const HomeScreen = () => {
     { name: 'Interior Design', icon: 'couch', isCustom: false }, // Sofa icon
     { name: 'Exterior Design', icon: 'home', isCustom: false },
     { name: 'Garden Design', icon: 'fence', isCustom: true }, // Custom three vertical bars
+    { name: 'New Walls', icon: 'texture', isCustom: false },
+    { name: 'Replace', icon: 'autorenew', isCustom: false },
+    { name: 'New Flooring', icon: 'view-grid', isCustom: false },
   ];
 
   const featureCards = [
@@ -504,12 +507,13 @@ const HomeScreen = () => {
       {currentRoute === 'Tabs' && (
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <View style={styles.logoIconWrapper}>
-              <MaterialCommunityIcons name="flower" size={24} color="#8B5CF6" />
-            </View>
+            <Image
+              source={require('../assets/images/iconImage.png')}
+              style={{ width: 32, height: 32, marginRight: 8, resizeMode: 'cover', borderRadius: 10 }}
+            />
             <Text style={styles.logoText}>
-              <Text style={styles.logoTextRegular}>Dream </Text>
-              <Text style={styles.logoTextPurple}>Ai</Text>
+              <Text style={styles.logoTextRegular}>AI </Text>
+              <Text style={styles.logoTextPurple}>Visuals</Text>
             </Text>
           </View>
           <View style={styles.headerRight}>
@@ -807,7 +811,36 @@ const HomeScreen = () => {
               contentContainerStyle={styles.categoryContainer}
               style={styles.categoryScrollView}>
               {categories.map((category, index) => (
-                <TouchableOpacity key={index} style={styles.categoryButton}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.categoryButton}
+                  onPress={() => {
+                    console.log('=== Category Pressed ===');
+                    console.log('Category:', category.name);
+
+                    setUserUploadedImage(null); // Reset
+
+                    if (category.name === 'Interior Design') {
+                      setDesignType('interior');
+                      setCurrentRoute('InteriorUpload');
+                    } else if (category.name === 'Exterior Design') {
+                      setDesignType('exterior');
+                      setCurrentRoute('ExteriorUpload');
+                    } else if (category.name === 'Garden Design') {
+                      setDesignType('garden');
+                      setCurrentRoute('GardenUpload');
+                    } else if (category.name === 'New Walls') {
+                      setDesignType('newwalls');
+                      setCurrentRoute('NewWallsUpload');
+                    } else if (category.name === 'Replace') {
+                      setDesignType('replace');
+                      setCurrentRoute('ReplaceUpload');
+                    } else if (category.name === 'New Flooring') {
+                      setDesignType('newflooring');
+                      setCurrentRoute('NewFlooringUpload');
+                    }
+                  }}
+                >
                   <View style={styles.categoryIconContainer}>
                     {category.isCustom ? (
                       <FenceIcon size={18} color="#FFFFFF" />
