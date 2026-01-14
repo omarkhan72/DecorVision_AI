@@ -4,24 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
-  Image,
   StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-} from 'react-native-reanimated';
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+import AutoBeforeAfterSlider from '../components/AutoBeforeAfterSlider';
 import adjust from '../utils/Adjust';
-
-const { width } = Dimensions.get('window');
 
 type Props = {
   onNext: () => void;
@@ -31,75 +19,24 @@ type Props = {
 const OnboardingScreen2: React.FC<Props> = ({ onNext, onSkip }) => {
   const insets = useSafeAreaInsets();
 
-  // Slider State (Start in the middle)
-  const translateX = useSharedValue(width / 2);
-  const context = useSharedValue(0);
-
-  const panGesture = Gesture.Pan()
-    .onStart(() => {
-      context.value = translateX.value;
-    })
-    .onUpdate((event) => {
-      // Clamp values between 0 and width
-      let newValue = context.value + event.translationX;
-      if (newValue < 0) newValue = 0;
-      if (newValue > width) newValue = width;
-      translateX.value = newValue;
-    });
-
-  const foregroundStyle = useAnimatedStyle(() => {
-    return {
-      width: translateX.value,
-    };
-  });
-
-  const handleStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: translateX.value }],
-    };
-  });
-
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <View style={styles.container}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
         {/* --- Comparison Slider Section --- */}
         <View style={styles.sliderContainer}>
-          <GestureDetector gesture={panGesture}>
-            <View style={styles.sliderContent}>
-              {/* Background Image (Before - Chair) - Visible on the Right */}
-              <Image
-                source={require('../assets/images/secondonbording1.jpg')}
-                style={styles.imageFull}
-                resizeMode="cover"
-              />
+          {/* Main Slider (Auto-Playing) */}
+          <AutoBeforeAfterSlider
+            beforeImage={require('../assets/images/secondonbording1.jpg')}
+            afterImage={require('../assets/images/secondonbording2.png')}
+          />
 
-              {/* Foreground Image (After - Empty) - Visible on the Left (Masked) */}
-              <Animated.View style={[styles.foregroundWrapper, foregroundStyle]}>
-                <Image
-                  source={require('../assets/images/secondonbording2.png')}
-                  style={styles.imageFull}
-                  resizeMode="cover"
-                />
-              </Animated.View>
-
-              {/* Labels Overlay */}
-              <View style={styles.labelsContainer} pointerEvents="none">
-                <Text style={styles.labelAfter}>After</Text>
-                <Text style={styles.labelBefore}>Before</Text>
-              </View>
-
-              {/* Slider Handle */}
-              <Animated.View style={[styles.sliderHandleContainer, handleStyle]}>
-                <View style={styles.sliderHandle}>
-                  <View style={styles.sliderHandleDot} />
-                </View>
-                {/* Vertical Line Visual */}
-                <View style={styles.sliderLine} />
-              </Animated.View>
-            </View>
-          </GestureDetector>
+          {/* Labels Overlay (Absolutely Positioned on Top) */}
+          <View style={styles.labelsContainer} pointerEvents="none">
+            <Text style={styles.labelAfter}>After</Text>
+            <Text style={styles.labelBefore}>Before</Text>
+          </View>
         </View>
 
         {/* --- Bottom Content Section --- */}
@@ -138,7 +75,7 @@ const OnboardingScreen2: React.FC<Props> = ({ onNext, onSkip }) => {
           </View>
         </View>
       </View>
-    </GestureHandlerRootView>
+    </View>
   );
 };
 
@@ -155,32 +92,13 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: adjust(30),
     borderBottomRightRadius: adjust(30),
   },
-  sliderContent: {
-    flex: 1,
-    position: 'relative',
-  },
-  imageFull: {
-    width: width,
-    height: '100%',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  },
-  foregroundWrapper: {
-    height: '100%',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    overflow: 'hidden',
-    borderRightWidth: 0,
-  },
   labelsContainer: {
     ...StyleSheet.absoluteFillObject,
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: adjust(40),
     paddingTop: adjust(40),
-    zIndex: 5,
+    zIndex: 20, // Sit above the slider
   },
   labelBefore: {
     fontSize: adjust(24),
@@ -197,44 +115,6 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(255, 255, 255, 0.5)',
     textShadowOffset: { width: 0, height: adjust(1) },
     textShadowRadius: adjust(2),
-  },
-  sliderHandleContainer: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-    width: 0,
-  },
-  sliderLine: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 2,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.8,
-  },
-  sliderHandle: {
-    width: adjust(40),
-    height: adjust(40),
-    borderRadius: adjust(20),
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-    zIndex: 20,
-  },
-  sliderHandleDot: {
-    width: adjust(6),
-    height: adjust(6),
-    borderRadius: adjust(3),
-    backgroundColor: '#D1D5DB', // Light gray dot inside
   },
 
   bottomContent: {

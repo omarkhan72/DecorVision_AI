@@ -4,25 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
-  Image,
   StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+import AutoBeforeAfterSlider from '../components/AutoBeforeAfterSlider';
 import adjust from '../utils/Adjust';
-
-const { width, height } = Dimensions.get('window');
 
 type Props = {
   onNext: () => void;
@@ -32,70 +19,17 @@ type Props = {
 const OnboardingScreen1: React.FC<Props> = ({ onNext, onSkip }) => {
   const insets = useSafeAreaInsets();
 
-  // Slider State (Start in the middle)
-  const translateX = useSharedValue(width / 2);
-  const context = useSharedValue(0);
-
-  const panGesture = Gesture.Pan()
-    .onStart(() => {
-      context.value = translateX.value;
-    })
-    .onUpdate((event) => {
-      // Clamp values between 0 and width
-      let newValue = context.value + event.translationX;
-      if (newValue < 0) newValue = 0;
-      if (newValue > width) newValue = width;
-      translateX.value = newValue;
-    });
-
-  const foregroundStyle = useAnimatedStyle(() => {
-    return {
-      width: translateX.value,
-    };
-  });
-
-  const handleStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: translateX.value }],
-    };
-  });
-
   return (
-    // The Gesture Handler must be at the root or wrapping the detector
-    <GestureHandlerRootView style={styles.container}>
+    <View style={styles.container}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
         {/* --- Comparison Slider Section --- */}
         <View style={styles.sliderContainer}>
-          <GestureDetector gesture={panGesture}>
-            <View style={styles.sliderContent}>
-              {/* Background Image (After/Clean) - Fixed Full Size */}
-              <Image
-                source={require('../assets/images/firstonbording2.png')}
-                style={styles.imageFull}
-                resizeMode="cover"
-              />
-
-              {/* Foreground Image (Before/Decorated) - Masked by Width */}
-              <Animated.View style={[styles.foregroundWrapper, foregroundStyle]}>
-                <Image
-                  source={require('../assets/images/firstonbording.jpg')}
-                  style={styles.imageFull}
-                  resizeMode="cover"
-                />
-              </Animated.View>
-
-              {/* Slider Handle */}
-              <Animated.View style={[styles.sliderHandleContainer, handleStyle]}>
-                <View style={styles.sliderHandle}>
-                  <View style={styles.sliderHandleDot} />
-                </View>
-                {/* Vertical Line Visual */}
-                <View style={styles.sliderLine} />
-              </Animated.View>
-            </View>
-          </GestureDetector>
+          <AutoBeforeAfterSlider
+            beforeImage={require('../assets/images/firstonbording.jpg')}
+            afterImage={require('../assets/images/firstonbording2.png')}
+          />
         </View>
 
         {/* --- Bottom Content Section --- */}
@@ -133,7 +67,7 @@ const OnboardingScreen1: React.FC<Props> = ({ onNext, onSkip }) => {
           </View>
         </View>
       </View>
-    </GestureHandlerRootView>
+    </View>
   );
 };
 
@@ -147,67 +81,9 @@ const styles = StyleSheet.create({
     width: '100%',
     position: 'relative',
     overflow: 'hidden',
-    borderBottomLeftRadius: adjust(30), // Optional: rounded styling if desired, though image didn't maximize it
+    borderBottomLeftRadius: adjust(30),
     borderBottomRightRadius: adjust(30),
   },
-  sliderContent: {
-    flex: 1,
-    position: 'relative',
-  },
-  imageFull: {
-    width: width,
-    height: '100%',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  },
-  foregroundWrapper: {
-    height: '100%',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    overflow: 'hidden', // Clips the image inside
-    borderRightWidth: 0, // Border handled by the line component
-  },
-  sliderHandleContainer: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0, // Animated via transform
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-    width: 0, // Centered on the position
-  },
-  sliderLine: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 2,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.8,
-  },
-  sliderHandle: {
-    width: adjust(40),
-    height: adjust(40),
-    borderRadius: adjust(20),
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-    zIndex: 20,
-  },
-  sliderHandleDot: {
-    width: adjust(6),
-    height: adjust(6),
-    borderRadius: adjust(3),
-    backgroundColor: '#D1D5DB', // Light gray dot inside
-  },
-
   bottomContent: {
     flex: 0.25,
     paddingHorizontal: adjust(24),
@@ -224,7 +100,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   titleText: {
-    fontSize: adjust(28), // Large bold text
+    fontSize: adjust(28),
     fontWeight: '800',
     color: '#000000',
     lineHeight: adjust(34),
@@ -250,7 +126,7 @@ const styles = StyleSheet.create({
     marginBottom: adjust(10),
   },
   skipBtn: {
-    width: adjust(60), // Fixed width for alignment
+    width: adjust(60),
     paddingVertical: adjust(10),
   },
   skipText: {
@@ -270,11 +146,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB', // Gray
   },
   dotActive: {
-    width: adjust(8), // Changed to circle to match screenshot better
+    width: adjust(8),
     backgroundColor: '#7C3AED', // Purple
   },
 });
 
 export default OnboardingScreen1;
-
-
