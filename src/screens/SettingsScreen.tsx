@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Linking } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
@@ -114,8 +114,16 @@ const SettingsScreen = ({ onBack, onUpgrade }: Props) => {
         <Row icon={<MaterialCommunityIcons name="alert-circle-outline" size={16} color="#262626" />} label="Report a problem" />
         <Row icon={<MaterialCommunityIcons name="message-reply-outline" size={16} color="#262626" />} label="Feedback" />
         <Row icon={<MaterialCommunityIcons name="account-plus-outline" size={16} color="#262626" />} label="Tell a friend" />
-        <Row icon={<MaterialCommunityIcons name="shield-outline" size={16} color="#262626" />} label="Privacy and Policy" />
-        <Row icon={<MaterialCommunityIcons name="file-document-outline" size={16} color="#262626" />} label="Terms and Conditions" />
+        <Row
+          icon={<MaterialCommunityIcons name="shield-outline" size={16} color="#262626" />}
+          label="Privacy and Policy"
+          onPress={() => Linking.openURL('https://quantumlabsai.com.pk/products/ai-room-planner/privacy-policy.html')}
+        />
+        <Row
+          icon={<MaterialCommunityIcons name="file-document-outline" size={16} color="#262626" />}
+          label="Terms and Conditions"
+          onPress={() => Linking.openURL('https://quantumlabsai.com.pk/products/ai-room-planner/terms-and-conditions.html')}
+        />
         <Row
           icon={<MaterialCommunityIcons name="logout" size={16} color="#262626" />}
           label="Logout"
