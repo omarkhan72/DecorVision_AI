@@ -5,12 +5,24 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Image,
   StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+import adjust from '../utils/Adjust';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 type Props = {
   onNext: () => void;
@@ -20,48 +32,108 @@ type Props = {
 const OnboardingScreen1: React.FC<Props> = ({ onNext, onSkip }) => {
   const insets = useSafeAreaInsets();
 
+  // Slider State (Start in the middle)
+  const translateX = useSharedValue(width / 2);
+  const context = useSharedValue(0);
+
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      context.value = translateX.value;
+    })
+    .onUpdate((event) => {
+      // Clamp values between 0 and width
+      let newValue = context.value + event.translationX;
+      if (newValue < 0) newValue = 0;
+      if (newValue > width) newValue = width;
+      translateX.value = newValue;
+    });
+
+  const foregroundStyle = useAnimatedStyle(() => {
+    return {
+      width: translateX.value,
+    };
+  });
+
+  const handleStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+    };
+  });
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" />
+    // The Gesture Handler must be at the root or wrapping the detector
+    <GestureHandlerRootView style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      <View style={styles.gradientOverlay} />
+        {/* --- Comparison Slider Section --- */}
+        <View style={styles.sliderContainer}>
+          <GestureDetector gesture={panGesture}>
+            <View style={styles.sliderContent}>
+              {/* Background Image (After/Clean) - Fixed Full Size */}
+              <Image
+                source={require('../assets/images/firstonbording2.png')}
+                style={styles.imageFull}
+                resizeMode="cover"
+              />
 
-      <View style={styles.content}>
-        <Text style={styles.welcomeText}>Welcome</Text>
-        <Text style={styles.subHeadingText}>Transform Your Home</Text>
-        <Text style={styles.descriptionText}>See your house redesign in seconds</Text>
+              {/* Foreground Image (Before/Decorated) - Masked by Width */}
+              <Animated.View style={[styles.foregroundWrapper, foregroundStyle]}>
+                <Image
+                  source={require('../assets/images/firstonbording.jpg')}
+                  style={styles.imageFull}
+                  resizeMode="cover"
+                />
+              </Animated.View>
 
-        <TouchableOpacity
-          style={styles.primaryCircleButton}
-          onPress={onNext}
-          activeOpacity={0.85}>
-          <FontAwesome name="arrow-right" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
+              {/* Slider Handle */}
+              <Animated.View style={[styles.sliderHandleContainer, handleStyle]}>
+                <View style={styles.sliderHandle}>
+                  <View style={styles.sliderHandleDot} />
+                </View>
+                {/* Vertical Line Visual */}
+                <View style={styles.sliderLine} />
+              </Animated.View>
+            </View>
+          </GestureDetector>
+        </View>
+
+        {/* --- Bottom Content Section --- */}
+        <View style={styles.bottomContent}>
+          {/* Title & Next Button Row */}
+          <View style={styles.titleRow}>
+            <View style={styles.titleContainer}>
+              <Text style={styles.titleText}>AI Interior Design</Text>
+              <Text style={styles.titleText}>& Remodeling</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.nextButton}
+              onPress={onNext}
+              activeOpacity={0.8}
+            >
+              <FontAwesome name="arrow-right" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Footer Controls (Skip, Dots) */}
+          <View style={styles.footerRow}>
+            <TouchableOpacity onPress={onSkip} style={styles.skipBtn}>
+              <Text style={styles.skipText}>Skip</Text>
+            </TouchableOpacity>
+
+            <View style={styles.paginationContainer}>
+              <View style={[styles.dot, styles.dotActive]} />
+              <View style={styles.dot} />
+              <View style={styles.dot} />
+            </View>
+
+            {/* Spacer to balance layout */}
+            <View style={styles.skipBtn} />
+          </View>
+        </View>
       </View>
-
-      <View style={styles.houseWrapper}>
-        <View style={styles.houseBackground} />
-        <FontAwesome
-          name="magic"
-          size={80}
-          color="rgba(139,92,246,0.08)"
-          style={styles.magicIcon}
-        />
-        <FontAwesome
-          name="home"
-          size={220}
-          color="rgba(139,92,246,0.06)"
-          style={styles.houseIcon}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.skipButton, { bottom: insets.bottom + 24 }]}
-        onPress={onSkip}
-        activeOpacity={0.7}>
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
-    </View>
+    </GestureHandlerRootView>
   );
 };
 
@@ -70,87 +142,136 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  gradientOverlay: {
+  sliderContainer: {
+    flex: 0.75, // Takes up ~75% of screen
+    width: '100%',
+    position: 'relative',
+    overflow: 'hidden',
+    borderBottomLeftRadius: adjust(30), // Optional: rounded styling if desired, though image didn't maximize it
+    borderBottomRightRadius: adjust(30),
+  },
+  sliderContent: {
+    flex: 1,
+    position: 'relative',
+  },
+  imageFull: {
+    width: width,
+    height: '100%',
     position: 'absolute',
     top: 0,
-    right: 0,
-    width: width * 0.6,
-    height: 260,
-    backgroundColor: '#FFE082',
-    opacity: 0.35,
-    borderBottomLeftRadius: 180,
+    left: 0,
   },
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: 64,
+  foregroundWrapper: {
+    height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    overflow: 'hidden', // Clips the image inside
+    borderRightWidth: 0, // Border handled by the line component
   },
-  welcomeText: {
-    fontSize: 44,
-    fontWeight: 'bold',
-    color: '#000000',
+  sliderHandleContainer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0, // Animated via transform
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    width: 0, // Centered on the position
   },
-  subHeadingText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#000000',
-    marginTop: 8,
+  sliderLine: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 2,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.8,
   },
-  descriptionText: {
-    fontSize: 18,
-    color: '#111111',
-    marginTop: 18,
-    maxWidth: '80%',
-  },
-  primaryCircleButton: {
-    marginTop: 40,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#7C3AED',
+  sliderHandle: {
+    width: adjust(40),
+    height: adjust(40),
+    borderRadius: adjust(20),
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 20,
   },
-  houseWrapper: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 320,
-    justifyContent: 'flex-end',
+  sliderHandleDot: {
+    width: adjust(6),
+    height: adjust(6),
+    borderRadius: adjust(3),
+    backgroundColor: '#D1D5DB', // Light gray dot inside
+  },
+
+  bottomContent: {
+    flex: 0.25,
+    paddingHorizontal: adjust(24),
+    paddingTop: adjust(24),
+    justifyContent: 'space-between',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: adjust(10),
   },
-  houseBackground: {
-    position: 'absolute',
-    bottom: -40,
-    width: width * 0.9,
-    height: 260,
-    backgroundColor: 'rgba(124,58,237,0.04)',
-    borderTopLeftRadius: 220,
-    borderTopRightRadius: 220,
+  titleContainer: {
+    flex: 1,
   },
-  magicIcon: {
-    position: 'absolute',
-    bottom: 170,
-    left: 32,
+  titleText: {
+    fontSize: adjust(28), // Large bold text
+    fontWeight: '800',
+    color: '#000000',
+    lineHeight: adjust(34),
   },
-  houseIcon: {
-    position: 'absolute',
-    bottom: -20,
-    right: 16,
+  nextButton: {
+    width: adjust(56),
+    height: adjust(56),
+    borderRadius: adjust(28),
+    backgroundColor: '#7C3AED', // Purple
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: adjust(16),
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  skipButton: {
-    position: 'absolute',
-    left: 24,
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: adjust(10),
+  },
+  skipBtn: {
+    width: adjust(60), // Fixed width for alignment
+    paddingVertical: adjust(10),
   },
   skipText: {
-    fontSize: 16,
-    color: '#111111',
+    fontSize: adjust(16),
+    fontWeight: '600',
+    color: '#000000',
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: adjust(8),
+  },
+  dot: {
+    width: adjust(8),
+    height: adjust(8),
+    borderRadius: adjust(4),
+    backgroundColor: '#E5E7EB', // Gray
+  },
+  dotActive: {
+    width: adjust(8), // Changed to circle to match screenshot better
+    backgroundColor: '#7C3AED', // Purple
   },
 });
 

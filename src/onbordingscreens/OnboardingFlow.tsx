@@ -12,6 +12,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import OnboardingScreen3 from './OnboardingScreen3';
+import OnboardingScreen1 from './OnboardingScreen1';
+import OnboardingScreen2 from './OnboardingScreen2';
 
 
 const { width } = Dimensions.get('window');
@@ -28,105 +30,6 @@ type ScreenProps = {
 
 const onboardingImage2 = require('../assets/images/onbordingscreen2.png');
 const onboardingImage3 = require('../assets/images/onbordingscreen3.png');
-
-const ScreenOne: React.FC<ScreenProps> = ({ onNext, onSkip }) => {
-  const insets = useSafeAreaInsets();
-
-  return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" />
-
-      <View style={styles.gradientOverlay} />
-
-      <View style={styles.screenOneContent}>
-        <Text style={styles.welcomeText}>Welcome</Text>
-        <Text style={styles.subHeadingText}>Transform Your Home</Text>
-        <Text style={styles.descriptionText}>See your house redesign in seconds</Text>
-
-        <TouchableOpacity
-          style={styles.primaryCircleButton}
-          onPress={onNext}
-          activeOpacity={0.85}>
-          <FontAwesome name="arrow-right" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.screenOneHouseWrapper}>
-        <View style={styles.houseBackground} />
-        <FontAwesome
-          name="magic"
-          size={80}
-          color="rgba(139,92,246,0.08)"
-          style={styles.magicIcon}
-        />
-        <FontAwesome
-          name="home"
-          size={220}
-          color="rgba(139,92,246,0.06)"
-          style={styles.houseIcon}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.skipButton, { bottom: insets.bottom + 24 }]}
-        onPress={onSkip}
-        activeOpacity={0.7}>
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
-
-const ScreenTwo: React.FC<ScreenProps> = ({ onNext, onSkip }) => {
-  const insets = useSafeAreaInsets();
-
-  return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" />
-
-      <View style={styles.screenTwoCardWrapper}>
-        <View style={styles.cardShadow}>
-          <Image
-            source={onboardingImage2 as ImageSourcePropType}
-            style={styles.beforeAfterImage}
-            resizeMode="cover"
-          />
-          <View style={styles.cardImageOverlay} />
-          <View style={styles.cardTextContainer}>
-            <Text style={styles.cardHeadlineText}>
-              A bright, open,{'\n'}contemporary{'\n'}space.
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.screenTwoTextBlock}>
-        <Text style={styles.paragraphText}>
-          <Text style={styles.boldText}>Compare before </Text>
-          <Text>and </Text>
-          <Text style={styles.boldText}>after </Text>
-          <Text>with a smooth slider that shows the </Text>
-          <Text style={styles.boldText}>difference</Text>
-          <Text> clearly.</Text>
-        </Text>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.skipButton, { bottom: insets.bottom + 24 }]}
-        onPress={onSkip}
-        activeOpacity={0.7}>
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.primaryCircleButton, styles.secondaryFloatingButton]}
-        onPress={onNext}
-        activeOpacity={0.85}>
-        <FontAwesome name="arrow-right" size={22} color="#FFFFFF" />
-      </TouchableOpacity>
-    </View>
-  );
-};
 
 // ScreenThree is now handled by OnboardingScreen3 component
 
@@ -158,26 +61,18 @@ const OnboardingFlow: React.FC<Props> = ({ onComplete, onSkip }) => {
     return (
       <View style={styles.flowContainer}>
         <OnboardingScreen3 onNext={handleNext} onSkip={handleSkip} />
-        <View style={styles.progressBarContainer}>
-          <View style={styles.progressTrack} />
-          <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-        </View>
       </View>
     );
   }
 
-  let ScreenComponent: React.FC<ScreenProps> = ScreenOne;
+  let ScreenComponent: React.FC<any> = OnboardingScreen1;
   if (currentIndex === 1) {
-    ScreenComponent = ScreenTwo;
+    ScreenComponent = OnboardingScreen2;
   }
 
   return (
     <View style={styles.flowContainer}>
       <ScreenComponent onNext={handleNext} onSkip={handleSkip} />
-      <View style={styles.progressBarContainer}>
-        <View style={styles.progressTrack} />
-        <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-      </View>
     </View>
   );
 };
