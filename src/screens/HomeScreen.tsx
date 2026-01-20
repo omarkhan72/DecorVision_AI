@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
   StatusBar,
+  Dimensions,
 } from 'react-native';
 import Animated, {
   Extrapolate,
@@ -22,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import AutoBeforeAfterSlider from '../components/AutoBeforeAfterSlider';
 import DesignScreen from './DesignScreen';
 import HistoryScreen from './HistoryScreen';
 import SettingsScreen from './SettingsScreen';
@@ -451,6 +453,8 @@ const HomeScreen = () => {
     };
   }, []);
 
+  const { width } = Dimensions.get('window');
+
   const categories = [
     { name: 'Interior Design', icon: 'couch', isCustom: false }, // Sofa icon
     { name: 'Exterior Design', icon: 'home', isCustom: false },
@@ -498,6 +502,8 @@ const HomeScreen = () => {
       image: require('../assets/images/new-flooring.jpg'),
     },
   ];
+
+  const cardWidth = width - 40;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -900,7 +906,63 @@ const HomeScreen = () => {
                   console.log('Current route set, design type:', card.id === 2 ? 'exterior' : card.id === 3 ? 'garden' : card.id === 4 ? 'replace' : card.id === 6 ? 'newwalls' : card.id === 7 ? 'newflooring' : 'interior');
                 }}>
                 <View style={styles.card}>
-                  <Image source={card.image} style={styles.cardImage} />
+                  {card.title === 'Interior Design' ? (
+                    <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/images/interiorslide1.jpeg')}
+                        afterImage={require('../assets/images/interiorslide2.jpeg')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                      />
+                    </View>
+                  ) : card.title === 'Exterior Design' ? (
+                    <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/images/Exteriorslide1 (1).jpeg')}
+                        afterImage={require('../assets/images/Exteriorslide2.jpeg')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                      />
+                    </View>
+                  ) : card.title === 'Garden Design' ? (
+                    <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/images/Gardenslide1.jpeg')}
+                        afterImage={require('../assets/images/Gardenslide2.jpeg')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                      />
+                    </View>
+                  ) : card.title === 'Replace' ? (
+                    <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/images/replaceslide1.jpeg')}
+                        afterImage={require('../assets/images/replaceslide2.jpeg')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                      />
+                    </View>
+                  ) : card.title === 'New Flooring' ? (
+                    <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/images/flooringslide1.jpeg')}
+                        afterImage={require('../assets/images/flooringslide2.jpeg')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                      />
+                    </View>
+                  ) : card.title === 'New walls' ? (
+                    <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/images/interiorslide1.jpeg')}
+                        afterImage={require('../assets/images/interiorslide2.jpeg')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                      />
+                    </View>
+                  ) : (
+                    <Image source={card.image} style={styles.cardImage} />
+                  )}
                   <View style={styles.cardContent}>
                     <View style={styles.cardTextContainer}>
                       <Text style={styles.cardTitle}>{card.title}</Text>

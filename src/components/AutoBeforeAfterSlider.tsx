@@ -22,11 +22,13 @@ const { width } = Dimensions.get('window');
 type Props = {
     beforeImage: ImageSourcePropType;
     afterImage: ImageSourcePropType;
+    sliderWidth?: number;
+    containerStyle?: any;
 };
 
-const AutoBeforeAfterSlider: React.FC<Props> = ({ beforeImage, afterImage }) => {
+const AutoBeforeAfterSlider: React.FC<Props> = ({ beforeImage, afterImage, sliderWidth = width, containerStyle }) => {
     // Start fully revealing the "Before" image (which will be the foreground)
-    const translateX = useSharedValue(width);
+    const translateX = useSharedValue(sliderWidth);
 
     useEffect(() => {
         // Animate from Width -> 0 (Reveal After) -> Width (Cover with Before)
@@ -38,13 +40,13 @@ const AutoBeforeAfterSlider: React.FC<Props> = ({ beforeImage, afterImage }) => 
                 ),
                 withDelay(
                     1000,
-                    withTiming(width, { duration: 3000, easing: Easing.inOut(Easing.ease) }) // Swipe back to "Before"
+                    withTiming(sliderWidth, { duration: 3000, easing: Easing.inOut(Easing.ease) }) // Swipe back to "Before"
                 )
             ),
             -1, // Infinite loop
             false // Do not reverse the sequence automatically, we defined the full cycle
         );
-    }, []);
+    }, [sliderWidth]);
 
     const foregroundStyle = useAnimatedStyle(() => {
         return {
@@ -59,11 +61,11 @@ const AutoBeforeAfterSlider: React.FC<Props> = ({ beforeImage, afterImage }) => 
     });
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, containerStyle]}>
             {/* Background Image (After / New) - Always Full */}
             <Image
                 source={afterImage}
-                style={styles.imageFull}
+                style={[styles.imageFull, { width: sliderWidth }]}
                 resizeMode="cover"
             />
 
@@ -71,7 +73,7 @@ const AutoBeforeAfterSlider: React.FC<Props> = ({ beforeImage, afterImage }) => 
             <Animated.View style={[styles.foregroundWrapper, foregroundStyle]}>
                 <Image
                     source={beforeImage}
-                    style={styles.imageFull}
+                    style={[styles.imageFull, { width: sliderWidth }]}
                     resizeMode="cover"
                 />
             </Animated.View>
