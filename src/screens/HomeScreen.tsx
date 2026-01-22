@@ -909,8 +909,8 @@ const HomeScreen = () => {
                   {card.title === 'Interior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/interiorslide1.jpeg')}
-                        afterImage={require('../assets/images/interiorslide2.jpeg')}
+                        beforeImage={require('../assets/images/Interior (1).png')}
+                        afterImage={require('../assets/images/Interior (2).png')}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                       />
@@ -918,17 +918,18 @@ const HomeScreen = () => {
                   ) : card.title === 'Exterior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/Exteriorslide1 (1).jpeg')}
-                        afterImage={require('../assets/images/Exteriorslide2.jpeg')}
+                        beforeImage={require('../assets/images/exterior  (1).png')}
+                        afterImage={require('../assets/images/exterior  (2).png')}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                        startFrom="left"
                       />
                     </View>
                   ) : card.title === 'Garden Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/Gardenslide1.jpeg')}
-                        afterImage={require('../assets/images/Gardenslide2.jpeg')}
+                        beforeImage={require('../assets/images/Garden (1).png')}
+                        afterImage={require('../assets/images/Garden (2).png')}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                       />
@@ -936,19 +937,21 @@ const HomeScreen = () => {
                   ) : card.title === 'Replace' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/replaceslide1.jpeg')}
-                        afterImage={require('../assets/images/replaceslide2.jpeg')}
+                        beforeImage={require('../assets/images/replace (1).png')}
+                        afterImage={require('../assets/images/replace (2).png')}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                        startFrom="left"
                       />
                     </View>
                   ) : card.title === 'New Flooring' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/flooringslide1.jpeg')}
-                        afterImage={require('../assets/images/flooringslide2.jpeg')}
+                        beforeImage={require('../assets/images/Flooring (1).png')}
+                        afterImage={require('../assets/images/Flooring (2).png')}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                        startFrom="left"
                       />
                     </View>
                   ) : card.title === 'New walls' ? (

@@ -24,29 +24,36 @@ type Props = {
     afterImage: ImageSourcePropType;
     sliderWidth?: number;
     containerStyle?: any;
+    startFrom?: 'left' | 'right';
 };
 
-const AutoBeforeAfterSlider: React.FC<Props> = ({ beforeImage, afterImage, sliderWidth = width, containerStyle }) => {
-    // Start fully revealing the "Before" image (which will be the foreground)
-    const translateX = useSharedValue(sliderWidth);
+const AutoBeforeAfterSlider: React.FC<Props> = ({ beforeImage, afterImage, sliderWidth = width, containerStyle, startFrom = 'right' }) => {
+    // Determine initial state and animation targets based on start direction
+    // startFrom = 'right' (Default): Start full width (Before visible), wipe to 0 (After visible) -> Move R to L
+    // startFrom = 'left': Start 0 width (After visible), wipe to full (Before visible) -> Move L to R
+
+    const initialValue = startFrom === 'left' ? 0 : sliderWidth;
+    const firstTarget = startFrom === 'left' ? sliderWidth : 0;
+    const secondTarget = startFrom === 'left' ? 0 : sliderWidth;
+
+    const translateX = useSharedValue(initialValue);
 
     useEffect(() => {
-        // Animate from Width -> 0 (Reveal After) -> Width (Cover with Before)
         translateX.value = withRepeat(
             withSequence(
                 withDelay(
-                    1000,
-                    withTiming(0, { duration: 3000, easing: Easing.inOut(Easing.ease) }) // Swipe to reveal "After"
+                    500,
+                    withTiming(firstTarget, { duration: 2000, easing: Easing.inOut(Easing.ease) })
                 ),
                 withDelay(
-                    1000,
-                    withTiming(sliderWidth, { duration: 3000, easing: Easing.inOut(Easing.ease) }) // Swipe back to "Before"
+                    500,
+                    withTiming(secondTarget, { duration: 2000, easing: Easing.inOut(Easing.ease) })
                 )
             ),
             -1, // Infinite loop
             false // Do not reverse the sequence automatically, we defined the full cycle
         );
-    }, [sliderWidth]);
+    }, [sliderWidth, startFrom]);
 
     const foregroundStyle = useAnimatedStyle(() => {
         return {
