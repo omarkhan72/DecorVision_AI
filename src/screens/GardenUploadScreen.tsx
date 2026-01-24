@@ -31,17 +31,17 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   // If styleImage is provided, add it as the first sample image
   const sampleImages = styleImage
     ? [
-        styleImage,
-        require('../assets/images/garden-design.jpg'),
-        require('../assets/images/garden-design.jpg'),
-        require('../assets/images/garden-design.jpg'),
-      ]
+      styleImage,
+      require('../assets/images/Garden samples/Gemini_Generated_Image_3m8wqu3m8wqu3m8w.png'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_7st6nv7st6nv7st6.png'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_j99eyfj99eyfj99e.png'),
+    ]
     : [
-        require('../assets/images/garden-design.jpg'),
-        require('../assets/images/garden-design.jpg'),
-        require('../assets/images/garden-design.jpg'),
-        require('../assets/images/garden-design.jpg'),
-      ];
+      require('../assets/images/Garden samples/Gemini_Generated_Image_3m8wqu3m8wqu3m8w.png'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_7st6nv7st6nv7st6.png'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_j99eyfj99eyfj99e.png'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_zab9kpzab9kpzab9.png'),
+    ];
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -129,10 +129,7 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.proButton}>
-          <FontAwesome name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
-          <Text style={styles.proButtonText}>Pro</Text>
-        </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Garden Inspiration's</Text>
         <TouchableOpacity onPress={() => {
           logButtonClick('Close Button', 'GardenUploadScreen');

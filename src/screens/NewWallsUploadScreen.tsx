@@ -31,17 +31,17 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   // If styleImage is provided, add it as the first sample image
   const sampleImages = styleImage
     ? [
-        styleImage,
-        require('../assets/images/new-walls.jpg'),
-        require('../assets/images/new-walls.jpg'),
-        require('../assets/images/new-walls.jpg'),
-      ]
+      styleImage,
+      require('../assets/images/New Walls samples/11f0e226858ad8f847d01399450cdd95.jpg'),
+      require('../assets/images/New Walls samples/2db608f0efb2babf67be791d28792e52.jpg'),
+      require('../assets/images/New Walls samples/8a9717044a46a566f3ecd2acf18f5b5c.jpg'),
+    ]
     : [
-        require('../assets/images/new-walls.jpg'),
-        require('../assets/images/new-walls.jpg'),
-        require('../assets/images/new-walls.jpg'),
-        require('../assets/images/new-walls.jpg'),
-      ];
+      require('../assets/images/New Walls samples/11f0e226858ad8f847d01399450cdd95.jpg'),
+      require('../assets/images/New Walls samples/2db608f0efb2babf67be791d28792e52.jpg'),
+      require('../assets/images/New Walls samples/8a9717044a46a566f3ecd2acf18f5b5c.jpg'),
+      require('../assets/images/New Walls samples/c3689a32402de0e02a36090459b86dee.jpg'),
+    ];
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -129,10 +129,7 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.proButton}>
-          <FontAwesome name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
-          <Text style={styles.proButtonText}>Pro</Text>
-        </TouchableOpacity>
+
         <Text style={styles.headerTitle}>New Walls Inspiration's</Text>
         <TouchableOpacity onPress={() => {
           logButtonClick('Close Button', 'NewWallsUploadScreen');

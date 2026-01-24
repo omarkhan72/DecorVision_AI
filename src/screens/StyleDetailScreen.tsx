@@ -20,10 +20,7 @@ const StyleDetailScreen = ({ onBack, onTryStyle, roomName = 'Living Room', image
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.proButton}>
-          <FontAwesome name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
-          <Text style={styles.proButtonText}>Pro</Text>
-        </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Your design</Text>
         <TouchableOpacity onPress={onBack} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#1A1A1A" />

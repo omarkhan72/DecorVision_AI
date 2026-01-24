@@ -31,17 +31,17 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   // If styleImage is provided, add it as the first sample image
   const sampleImages = styleImage
     ? [
-        styleImage,
-        require('../assets/images/exterior-design.jpg'),
-        require('../assets/images/exterior-design.jpg'),
-        require('../assets/images/exterior-design.jpg'),
-      ]
+      styleImage,
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_5v649s5v649s5v64.png'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_n8wtmkn8wtmkn8wt.png'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_u79xc4u79xc4u79x.png'),
+    ]
     : [
-        require('../assets/images/exterior-design.jpg'),
-        require('../assets/images/exterior-design.jpg'),
-        require('../assets/images/exterior-design.jpg'),
-        require('../assets/images/exterior-design.jpg'),
-      ];
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_5v649s5v649s5v64.png'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_n8wtmkn8wtmkn8wt.png'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_u79xc4u79xc4u79x.png'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_y5luuhy5luuhy5lu.png'),
+    ];
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -129,10 +129,7 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.proButton}>
-          <FontAwesome name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
-          <Text style={styles.proButtonText}>Pro</Text>
-        </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Exterior Inspiration's</Text>
         <TouchableOpacity onPress={() => {
           logButtonClick('Close Button', 'ExteriorUploadScreen');

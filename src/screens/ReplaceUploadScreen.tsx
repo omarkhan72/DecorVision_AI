@@ -31,17 +31,17 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   // If styleImage is provided, add it as the first sample image
   const sampleImages = styleImage
     ? [
-        styleImage,
-        require('../assets/images/replace.jpg'),
-        require('../assets/images/replace.jpg'),
-        require('../assets/images/replace.jpg'),
-      ]
+      styleImage,
+      require('../assets/images/Replace samples/4078202662d91e6e5496d3f650572a69.jpg'),
+      require('../assets/images/Replace samples/855fab9fae45b6d0e22af2a56483bd81.jpg'),
+      require('../assets/images/Replace samples/89ea9a0d49daa9154c82dd5849810881.jpg'),
+    ]
     : [
-        require('../assets/images/replace.jpg'),
-        require('../assets/images/replace.jpg'),
-        require('../assets/images/replace.jpg'),
-        require('../assets/images/replace.jpg'),
-      ];
+      require('../assets/images/Replace samples/4078202662d91e6e5496d3f650572a69.jpg'),
+      require('../assets/images/Replace samples/855fab9fae45b6d0e22af2a56483bd81.jpg'),
+      require('../assets/images/Replace samples/89ea9a0d49daa9154c82dd5849810881.jpg'),
+      require('../assets/images/Replace samples/d4af94dc454058468f4fde144cd7d993.jpg'),
+    ];
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -129,10 +129,7 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.proButton}>
-          <FontAwesome name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
-          <Text style={styles.proButtonText}>Pro</Text>
-        </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Replace Inspiration's</Text>
         <TouchableOpacity onPress={onBack} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />

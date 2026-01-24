@@ -24,17 +24,17 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   // If styleImage is provided, add it as the first sample image
   const sampleImages = styleImage
     ? [
-        styleImage,
-        require('../assets/images/cleanup.jpg'),
-        require('../assets/images/cleanup.jpg'),
-        require('../assets/images/cleanup.jpg'),
-      ]
+      styleImage,
+      require('../assets/images/cleanup.jpg'),
+      require('../assets/images/cleanup.jpg'),
+      require('../assets/images/cleanup.jpg'),
+    ]
     : [
-        require('../assets/images/cleanup.jpg'),
-        require('../assets/images/cleanup.jpg'),
-        require('../assets/images/cleanup.jpg'),
-        require('../assets/images/cleanup.jpg'),
-      ];
+      require('../assets/images/cleanup.jpg'),
+      require('../assets/images/cleanup.jpg'),
+      require('../assets/images/cleanup.jpg'),
+      require('../assets/images/cleanup.jpg'),
+    ];
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -107,10 +107,7 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.proButton}>
-          <FontAwesome name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
-          <Text style={styles.proButtonText}>Pro</Text>
-        </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Cleanup Inspiration's</Text>
         <TouchableOpacity onPress={onBack} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />

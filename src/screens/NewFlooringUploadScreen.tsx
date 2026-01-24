@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
+import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import * as analytics from '../utils/analytics';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
@@ -29,17 +31,17 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   // If styleImage is provided, add it as the first sample image
   const sampleImages = styleImage
     ? [
-        styleImage,
-        require('../assets/images/new-flooring.jpg'),
-        require('../assets/images/new-flooring.jpg'),
-        require('../assets/images/new-flooring.jpg'),
-      ]
+      styleImage,
+      require('../assets/images/New Flooring samples/53a77ab7693c84f299e73831bc9967c2.jpg'),
+      require('../assets/images/New Flooring samples/53e5d2c716f898d8d254603fae4d0c7f.jpg'),
+      require('../assets/images/New Flooring samples/bf1163114f82d43f0c3413215c02c9b6.jpg'),
+    ]
     : [
-        require('../assets/images/new-flooring.jpg'),
-        require('../assets/images/new-flooring.jpg'),
-        require('../assets/images/new-flooring.jpg'),
-        require('../assets/images/new-flooring.jpg'),
-      ];
+      require('../assets/images/New Flooring samples/53a77ab7693c84f299e73831bc9967c2.jpg'),
+      require('../assets/images/New Flooring samples/53e5d2c716f898d8d254603fae4d0c7f.jpg'),
+      require('../assets/images/New Flooring samples/bf1163114f82d43f0c3413215c02c9b6.jpg'),
+      require('../assets/images/New Flooring samples/c12265ce669ff60011b0fa2c05a4d4f5.jpg'),
+    ];
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -125,10 +127,7 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.proButton}>
-          <FontAwesome name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
-          <Text style={styles.proButtonText}>Pro</Text>
-        </TouchableOpacity>
+
         <Text style={styles.headerTitle}>New Flooring Inspiration's</Text>
         <TouchableOpacity onPress={() => {
           logButtonClick('Close Button', 'NewFlooringUploadScreen');

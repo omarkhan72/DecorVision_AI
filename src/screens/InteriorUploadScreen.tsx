@@ -31,17 +31,17 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   // If styleImage is provided, add it as the first sample image
   const sampleImages = styleImage
     ? [
-        styleImage,
-        require('../assets/images/interior-design.jpg'),
-        require('../assets/images/interior-design.jpg'),
-        require('../assets/images/interior-design.jpg'),
-      ]
+      styleImage,
+      require('../assets/images/Interior samples/living room.png'),
+      require('../assets/images/Interior samples/badroom.png'),
+      require('../assets/images/Interior samples/bathroom.png'),
+    ]
     : [
-        require('../assets/images/interior-design.jpg'),
-        require('../assets/images/interior-design.jpg'),
-        require('../assets/images/interior-design.jpg'),
-        require('../assets/images/interior-design.jpg'),
-      ];
+      require('../assets/images/Interior samples/living room.png'),
+      require('../assets/images/Interior samples/badroom.png'),
+      require('../assets/images/Interior samples/bathroom.png'),
+      require('../assets/images/Interior samples/9980bb9e0a70db62dfae9bea68a778e6.jpg'),
+    ];
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -73,7 +73,7 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     console.log('Error message:', response.errorMessage || 'None');
     console.log('Has assets:', !!response.assets);
     console.log('Assets count:', response.assets?.length || 0);
-    
+
     if (response.didCancel) {
       console.log('User cancelled image selection');
       return;
@@ -93,7 +93,7 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       console.log('Image height:', asset.height);
       console.log('Image file size:', asset.fileSize ? `${(asset.fileSize / 1024 / 1024).toFixed(2)} MB` : 'Unknown');
       console.log('Has base64:', !!asset.base64);
-      
+
       // Prefer base64 if available, otherwise use URI
       let imageData: string | null = null;
       if (asset.base64) {
@@ -104,7 +104,7 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         imageData = asset.uri;
         console.log('Using URI (will need conversion later)');
       }
-      
+
       setSelectedImage(imageData);
       console.log('Image set in state successfully');
     } else {
@@ -135,10 +135,10 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     analytics.logImageUpload('camera', 'interior');
     console.log('=== Take Photo Button Pressed ===');
     console.log('Requesting camera permission...');
-    
+
     const hasPermission = await requestCameraPermission();
     console.log('Camera permission granted:', hasPermission);
-    
+
     if (!hasPermission) {
       console.warn('Camera permission denied');
       Alert.alert('Permission Denied', 'Camera permission is required to take photos');
@@ -161,10 +161,7 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.proButton}>
-          <FontAwesome name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
-          <Text style={styles.proButtonText}>Pro</Text>
-        </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Interior Inspiration's</Text>
         <TouchableOpacity onPress={() => {
           logButtonClick('Close Button', 'InteriorUploadScreen');
