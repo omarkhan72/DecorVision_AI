@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { Alert } from 'react-native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
@@ -7,6 +7,7 @@ import messaging from '@react-native-firebase/messaging';
 import crashlytics from '@react-native-firebase/crashlytics';
 import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
 import analytics from '@react-native-firebase/analytics';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 // Mock Mode: Set to true to use mock responses instead of real API calls
 const USE_MOCK_API = false;
@@ -49,6 +50,8 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const isCheckingProfile = useRef(false);
+  const [sessionExpiredVisible, setSessionExpiredVisible] = useState(false);
 
   useEffect(() => {
     // Configure Google Sign-In
@@ -67,6 +70,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Listen to Firebase auth state changes
     const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
+        // Flag that we are checking/creating profile to prevent premature logout
+        isCheckingProfile.current = true;
+
         setUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email,
@@ -127,6 +133,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           crashlytics().recordError(error as Error);
           // Alert user on error
           Alert.alert('Error', 'Failed to save user to database: ' + (error as Error).message);
+        } finally {
+          // We are done checking/creating the profile
+          isCheckingProfile.current = false;
         }
 
         // Log user login to analytics
@@ -168,6 +177,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               tokens,
             };
           });
+        } else {
+          // Document does not exist.
+          // If we are NOT currently creating the profile (e.g. during login race condition),
+          // then this means the account was deleted externally.
+          if (!isCheckingProfile.current) {
+            console.log('User document deleted externally. Showing expiration modal...');
+            setSessionExpiredVisible(true);
+          }
         }
       }, (error) => {
         console.error('Error listening to user document:', error);
@@ -355,9 +372,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const handleSessionExpiredConfirm = async () => {
+    setSessionExpiredVisible(false);
+    await signOut();
+  };
+
   return (
     <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut, consumeToken, deleteAccount }}>
       {children}
+      <ConfirmationModal
+        visible={sessionExpiredVisible}
+        title="Session Expired"
+        message="Your account has been deleted. You will now be logged out."
+        confirmText="OK"
+        onConfirm={handleSessionExpiredConfirm}
+        onCancel={() => { }} // Not used with singleButton
+        singleButton={true}
+        isDestructive={false}
+      />
     </AuthContext.Provider>
   );
 };

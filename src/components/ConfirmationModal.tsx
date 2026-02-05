@@ -12,6 +12,7 @@ interface ConfirmationModalProps {
     onConfirm: () => void;
     onCancel: () => void;
     isDestructive?: boolean;
+    singleButton?: boolean;
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -23,6 +24,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     onConfirm,
     onCancel,
     isDestructive = false,
+    singleButton = false,
 }) => {
     return (
         <Modal visible={visible} transparent animationType="fade">
@@ -32,12 +34,18 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                     <Text style={styles.message}>{message}</Text>
 
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-                            <Text style={styles.cancelButtonText}>{cancelText}</Text>
-                        </TouchableOpacity>
+                        {!singleButton && (
+                            <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+                                <Text style={styles.cancelButtonText}>{cancelText}</Text>
+                            </TouchableOpacity>
+                        )}
 
                         <TouchableOpacity
-                            style={[styles.confirmButton, isDestructive && styles.destructiveButton]}
+                            style={[
+                                styles.confirmButton,
+                                isDestructive && styles.destructiveButton,
+                                singleButton && styles.singleButton
+                            ]}
                             onPress={onConfirm}
                         >
                             <Text style={styles.confirmButtonText}>{confirmText}</Text>
@@ -104,6 +112,10 @@ const styles = StyleSheet.create({
     },
     destructiveButton: {
         backgroundColor: '#EF4444',
+    },
+    singleButton: {
+        flex: 0,
+        width: '100%',
     },
     cancelButtonText: {
         color: '#374151',
