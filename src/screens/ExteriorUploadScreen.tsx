@@ -32,15 +32,15 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const sampleImages = styleImage
     ? [
       styleImage,
-      require('../assets/images/Exterior samples/Gemini_Generated_Image_5v649s5v649s5v64.png'),
-      require('../assets/images/Exterior samples/Gemini_Generated_Image_n8wtmkn8wtmkn8wt.png'),
-      require('../assets/images/Exterior samples/Gemini_Generated_Image_u79xc4u79xc4u79x.png'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_5v649s5v649s5v64.webp'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_n8wtmkn8wtmkn8wt.webp'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_u79xc4u79xc4u79x.webp'),
     ]
     : [
-      require('../assets/images/Exterior samples/Gemini_Generated_Image_5v649s5v649s5v64.png'),
-      require('../assets/images/Exterior samples/Gemini_Generated_Image_n8wtmkn8wtmkn8wt.png'),
-      require('../assets/images/Exterior samples/Gemini_Generated_Image_u79xc4u79xc4u79x.png'),
-      require('../assets/images/Exterior samples/Gemini_Generated_Image_y5luuhy5luuhy5lu.png'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_5v649s5v649s5v64.webp'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_n8wtmkn8wtmkn8wt.webp'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_u79xc4u79xc4u79x.webp'),
+      require('../assets/images/Exterior samples/Gemini_Generated_Image_y5luuhy5luuhy5lu.webp'),
     ];
 
   // Request camera permissions for Android

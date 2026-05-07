@@ -32,15 +32,15 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const sampleImages = styleImage
     ? [
       styleImage,
-      require('../assets/images/New Flooring samples/53a77ab7693c84f299e73831bc9967c2.jpg'),
-      require('../assets/images/New Flooring samples/53e5d2c716f898d8d254603fae4d0c7f.jpg'),
-      require('../assets/images/New Flooring samples/bf1163114f82d43f0c3413215c02c9b6.jpg'),
+      require('../assets/images/New Flooring samples/53a77ab7693c84f299e73831bc9967c2.webp'),
+      require('../assets/images/New Flooring samples/53e5d2c716f898d8d254603fae4d0c7f.webp'),
+      require('../assets/images/New Flooring samples/bf1163114f82d43f0c3413215c02c9b6.webp'),
     ]
     : [
-      require('../assets/images/New Flooring samples/53a77ab7693c84f299e73831bc9967c2.jpg'),
-      require('../assets/images/New Flooring samples/53e5d2c716f898d8d254603fae4d0c7f.jpg'),
-      require('../assets/images/New Flooring samples/bf1163114f82d43f0c3413215c02c9b6.jpg'),
-      require('../assets/images/New Flooring samples/c12265ce669ff60011b0fa2c05a4d4f5.jpg'),
+      require('../assets/images/New Flooring samples/53a77ab7693c84f299e73831bc9967c2.webp'),
+      require('../assets/images/New Flooring samples/53e5d2c716f898d8d254603fae4d0c7f.webp'),
+      require('../assets/images/New Flooring samples/bf1163114f82d43f0c3413215c02c9b6.webp'),
+      require('../assets/images/New Flooring samples/c12265ce669ff60011b0fa2c05a4d4f5.webp'),
     ];
 
   // Request camera permissions for Android

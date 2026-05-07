@@ -32,15 +32,15 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const sampleImages = styleImage
     ? [
       styleImage,
-      require('../assets/images/Garden samples/Gemini_Generated_Image_3m8wqu3m8wqu3m8w.png'),
-      require('../assets/images/Garden samples/Gemini_Generated_Image_7st6nv7st6nv7st6.png'),
-      require('../assets/images/Garden samples/Gemini_Generated_Image_j99eyfj99eyfj99e.png'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_3m8wqu3m8wqu3m8w.webp'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_7st6nv7st6nv7st6.webp'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_j99eyfj99eyfj99e.webp'),
     ]
     : [
-      require('../assets/images/Garden samples/Gemini_Generated_Image_3m8wqu3m8wqu3m8w.png'),
-      require('../assets/images/Garden samples/Gemini_Generated_Image_7st6nv7st6nv7st6.png'),
-      require('../assets/images/Garden samples/Gemini_Generated_Image_j99eyfj99eyfj99e.png'),
-      require('../assets/images/Garden samples/Gemini_Generated_Image_zab9kpzab9kpzab9.png'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_3m8wqu3m8wqu3m8w.webp'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_7st6nv7st6nv7st6.webp'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_j99eyfj99eyfj99e.webp'),
+      require('../assets/images/Garden samples/Gemini_Generated_Image_zab9kpzab9kpzab9.webp'),
     ];
 
   // Request camera permissions for Android

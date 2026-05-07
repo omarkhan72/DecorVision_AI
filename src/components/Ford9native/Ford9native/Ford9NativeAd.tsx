@@ -32,7 +32,7 @@ const FORD9_APPS: AppInfo[] = [
     packageName: 'com.ford9.AI.Story.Maker.Novel.Generator.Creator.Writer.Builder',
     title: 'AI Story Generator',
     description: 'Turn ideas into legendary tales with AI-powered story creation',
-    image: require('./NativeadImages/AiStory.png'),
+    image: require('./NativeadImages/AiStory.webp'),
     playStoreUrl:
       'https://play.google.com/store/apps/details?id=com.ford9.AI.Story.Maker.Novel.Generator.Creator.Writer.Builder',
   },
@@ -42,7 +42,7 @@ const FORD9_APPS: AppInfo[] = [
       'com.ford9.ai.coding.generator.code.creator.maker.writer.builder.assistant',
     title: 'AI Code Generator',
     description: 'Generate code in Python, JavaScript, HTML, CSS, and more',
-    image: require('./NativeadImages/AICode.png'),
+    image: require('./NativeadImages/AICode.webp'),
     playStoreUrl:
       'https://play.google.com/store/apps/details?id=com.ford9.ai.coding.generator.code.creator.maker.writer.builder.assistant',
   },

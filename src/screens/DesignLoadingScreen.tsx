@@ -27,7 +27,7 @@ const DesignLoadingScreen = ({ onComplete, userImage }: Props) => {
   // Use the user's uploaded image or fallback to default
   const backgroundImage = userImage 
     ? { uri: userImage }
-    : require('../assets/images/interior-design.jpg');
+    : require('../assets/images/interior-design.webp');
 
   // Animation value for scanning line (0 to topSectionHeight)
   const scanLinePosition = useSharedValue(0);

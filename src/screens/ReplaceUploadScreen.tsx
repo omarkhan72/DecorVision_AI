@@ -32,15 +32,15 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const sampleImages = styleImage
     ? [
       styleImage,
-      require('../assets/images/Replace samples/4078202662d91e6e5496d3f650572a69.jpg'),
-      require('../assets/images/Replace samples/855fab9fae45b6d0e22af2a56483bd81.jpg'),
-      require('../assets/images/Replace samples/89ea9a0d49daa9154c82dd5849810881.jpg'),
+      require('../assets/images/Replace samples/4078202662d91e6e5496d3f650572a69.webp'),
+      require('../assets/images/Replace samples/855fab9fae45b6d0e22af2a56483bd81.webp'),
+      require('../assets/images/Replace samples/89ea9a0d49daa9154c82dd5849810881.webp'),
     ]
     : [
-      require('../assets/images/Replace samples/4078202662d91e6e5496d3f650572a69.jpg'),
-      require('../assets/images/Replace samples/855fab9fae45b6d0e22af2a56483bd81.jpg'),
-      require('../assets/images/Replace samples/89ea9a0d49daa9154c82dd5849810881.jpg'),
-      require('../assets/images/Replace samples/d4af94dc454058468f4fde144cd7d993.jpg'),
+      require('../assets/images/Replace samples/4078202662d91e6e5496d3f650572a69.webp'),
+      require('../assets/images/Replace samples/855fab9fae45b6d0e22af2a56483bd81.webp'),
+      require('../assets/images/Replace samples/89ea9a0d49daa9154c82dd5849810881.webp'),
+      require('../assets/images/Replace samples/d4af94dc454058468f4fde144cd7d993.webp'),
     ];
 
   // Request camera permissions for Android

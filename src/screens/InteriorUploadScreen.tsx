@@ -32,15 +32,15 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const sampleImages = styleImage
     ? [
       styleImage,
-      require('../assets/images/Interior samples/living room.png'),
-      require('../assets/images/Interior samples/badroom.png'),
-      require('../assets/images/Interior samples/bathroom.png'),
+      require('../assets/images/Interior samples/living room.webp'),
+      require('../assets/images/Interior samples/badroom.webp'),
+      require('../assets/images/Interior samples/bathroom.webp'),
     ]
     : [
-      require('../assets/images/Interior samples/living room.png'),
-      require('../assets/images/Interior samples/badroom.png'),
-      require('../assets/images/Interior samples/bathroom.png'),
-      require('../assets/images/Interior samples/9980bb9e0a70db62dfae9bea68a778e6.jpg'),
+      require('../assets/images/Interior samples/living room.webp'),
+      require('../assets/images/Interior samples/badroom.webp'),
+      require('../assets/images/Interior samples/bathroom.webp'),
+      require('../assets/images/Interior samples/9980bb9e0a70db62dfae9bea68a778e6.webp'),
     ];
 
   // Request camera permissions for Android

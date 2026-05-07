@@ -40,45 +40,45 @@ const ExteriorsListScreen = ({ onBack, onImagePress }: Props) => {
       <Section
         title="Home"
         images={[
-          require('../assets/images/exterior-design.jpg'),
-          require('../assets/images/new-walls.jpg'),
-          require('../assets/images/new-flooring.jpg'),
+          require('../assets/images/exterior-design.webp'),
+          require('../assets/images/new-walls.webp'),
+          require('../assets/images/new-flooring.webp'),
         ]}
         onImagePress={onImagePress}
       />
       <Section
         title="Office"
         images={[
-          require('../assets/images/style-transfer.jpg'),
-          require('../assets/images/interior-design.jpg'),
-          require('../assets/images/replace.jpg'),
+          require('../assets/images/exterior-design.webp'),
+          require('../assets/images/interior-design.webp'),
+          require('../assets/images/replace.webp'),
         ]}
         onImagePress={onImagePress}
       />
       <Section
         title="Yard"
         images={[
-          require('../assets/images/garden-design.jpg'),
-          require('../assets/images/exterior-design.jpg'),
-          require('../assets/images/new-walls.jpg'),
+          require('../assets/images/garden-design.webp'),
+          require('../assets/images/exterior-design.webp'),
+          require('../assets/images/new-walls.webp'),
         ]}
         onImagePress={onImagePress}
       />
       <Section
         title="Swimming pool"
         images={[
-          require('../assets/images/garden-design.jpg'),
-          require('../assets/images/new-flooring.jpg'),
-          require('../assets/images/exterior-design.jpg'),
+          require('../assets/images/garden-design.webp'),
+          require('../assets/images/new-flooring.webp'),
+          require('../assets/images/exterior-design.webp'),
         ]}
         onImagePress={onImagePress}
       />
       <Section
         title="Villa"
         images={[
-          require('../assets/images/exterior-design.jpg'),
-          require('../assets/images/garden-design.jpg'),
-          require('../assets/images/style-transfer.jpg'),
+          require('../assets/images/exterior-design.webp'),
+          require('../assets/images/garden-design.webp'),
+          require('../assets/images/exterior-design.webp'),
         ]}
         onImagePress={onImagePress}
       />

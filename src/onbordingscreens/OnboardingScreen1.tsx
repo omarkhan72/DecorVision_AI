@@ -27,8 +27,8 @@ const OnboardingScreen1: React.FC<Props> = ({ onNext, onSkip }) => {
         {/* --- Comparison Slider Section --- */}
         <View style={styles.sliderContainer}>
           <AutoBeforeAfterSlider
-            beforeImage={require('../assets/images/firstonbording.jpg')}
-            afterImage={require('../assets/images/firstonbording2.png')}
+            beforeImage={require('../assets/images/firstonbording.webp')}
+            afterImage={require('../assets/images/firstonbording2.webp')}
           />
         </View>
 

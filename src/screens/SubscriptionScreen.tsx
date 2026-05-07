@@ -28,7 +28,7 @@ const SubscriptionScreen = ({ onBack }: Props) => {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('../assets/images/interior-design.jpg')}
+        source={require('../assets/images/interior-design.webp')}
         style={styles.hero}
         imageStyle={styles.heroImg}
       >

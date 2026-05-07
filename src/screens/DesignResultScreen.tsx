@@ -29,7 +29,7 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
   // Use the user's uploaded image or fallback to default
   const imageSource = userImage
     ? { uri: userImage }
-    : require('../assets/images/interior-design.jpg');
+    : require('../assets/images/interior-design.webp');
 
   // Log screen view and save to history when screen loads
   useEffect(() => {

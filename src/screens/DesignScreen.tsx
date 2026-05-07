@@ -51,7 +51,7 @@ const DesignScreen = ({ onOpenInteriors, onOpenExteriors }: Props) => {
             onOpenInteriors?.();
           }}>
             <Card
-              image={require('../assets/images/interior-design.jpg')}
+              image={require('../assets/images/interior-design.webp')}
               count={82}
               label="Living Room"
             />
@@ -67,7 +67,7 @@ const DesignScreen = ({ onOpenInteriors, onOpenExteriors }: Props) => {
             onOpenExteriors?.();
           }}>
             <Card
-              image={require('../assets/images/exterior-design.jpg')}
+              image={require('../assets/images/exterior-design.webp')}
               count={75}
               label="House"
             />

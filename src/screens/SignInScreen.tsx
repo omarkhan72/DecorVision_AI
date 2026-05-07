@@ -18,7 +18,7 @@ const { width, height } = Dimensions.get('window');
 
 // You might need to add this image to your assets or use a placeholder
 // For now I'll use a placeholder or the app icon if available
-const iconImage = require('../assets/images/iconImage.png');
+const iconImage = require('../assets/images/iconImage.webp');
 
 const SignInScreen = () => {
     const insets = useSafeAreaInsets();

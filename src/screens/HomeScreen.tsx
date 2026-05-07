@@ -469,37 +469,37 @@ const HomeScreen = () => {
       id: 1,
       title: 'Interior Design',
       description: 'Transform your interior space',
-      image: require('../assets/images/interior-design.jpg'),
+      image: require('../assets/images/interior-design.webp'),
     },
     {
       id: 2,
       title: 'Exterior Design',
       description: 'Transform your exterior space',
-      image: require('../assets/images/exterior-design.jpg'),
+      image: require('../assets/images/exterior-design.webp'),
     },
     {
       id: 3,
       title: 'Garden Design',
       description: 'Transfer your garden',
-      image: require('../assets/images/garden-design.jpg'),
+      image: require('../assets/images/garden-design.webp'),
     },
     {
       id: 4,
       title: 'Replace',
       description: 'Replace any part of your space',
-      image: require('../assets/images/replace.jpg'),
+      image: require('../assets/images/replace.webp'),
     },
     {
       id: 6,
       title: 'New walls',
       description: 'Change paint wall paper and more',
-      image: require('../assets/images/new-walls.jpg'),
+      image: require('../assets/images/new-walls.webp'),
     },
     {
       id: 7,
       title: 'New Flooring',
       description: 'Chose wood, carpet, tile, and more',
-      image: require('../assets/images/new-flooring.jpg'),
+      image: require('../assets/images/new-flooring.webp'),
     },
   ];
 
@@ -514,7 +514,7 @@ const HomeScreen = () => {
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Image
-              source={require('../assets/images/iconImage.png')}
+              source={require('../assets/images/iconImage.webp')}
               style={{ width: 32, height: 32, marginRight: 8, resizeMode: 'cover', borderRadius: 10 }}
             />
             <Text style={styles.logoText}>
@@ -909,8 +909,8 @@ const HomeScreen = () => {
                   {card.title === 'Interior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/Interior (1).png')}
-                        afterImage={require('../assets/images/Interior (2).png')}
+                        beforeImage={require('../assets/images/Interior (1).webp')}
+                        afterImage={require('../assets/images/Interior (2).webp')}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                       />
@@ -918,8 +918,8 @@ const HomeScreen = () => {
                   ) : card.title === 'Exterior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/exterior  (1).png')}
-                        afterImage={require('../assets/images/exterior  (2).png')}
+                        beforeImage={require('../assets/images/exterior  (1).webp')}
+                        afterImage={require('../assets/images/exterior  (2).webp')}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                         startFrom="left"
@@ -928,8 +928,8 @@ const HomeScreen = () => {
                   ) : card.title === 'Garden Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/Garden (1).png')}
-                        afterImage={require('../assets/images/Garden (2).png')}
+                        beforeImage={require('../assets/images/Garden (1).webp')}
+                        afterImage={require('../assets/images/Garden (2).webp')}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                       />
@@ -937,8 +937,8 @@ const HomeScreen = () => {
                   ) : card.title === 'Replace' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/replace (1).png')}
-                        afterImage={require('../assets/images/replace (2).png')}
+                        beforeImage={require('../assets/images/replace (1).webp')}
+                        afterImage={require('../assets/images/replace (2).webp')}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                         startFrom="left"
@@ -947,8 +947,8 @@ const HomeScreen = () => {
                   ) : card.title === 'New Flooring' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/Flooring (1).png')}
-                        afterImage={require('../assets/images/Flooring (2).png')}
+                        beforeImage={require('../assets/images/Flooring (1).webp')}
+                        afterImage={require('../assets/images/Flooring (2).webp')}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                         startFrom="left"
@@ -957,8 +957,8 @@ const HomeScreen = () => {
                   ) : card.title === 'New walls' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/interiorslide1.jpeg')}
-                        afterImage={require('../assets/images/interiorslide2.jpeg')}
+                        beforeImage={require('../assets/images/interiorslide1.webp')}
+                        afterImage={require('../assets/images/interiorslide2.webp')}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                       />

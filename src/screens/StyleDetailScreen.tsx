@@ -34,7 +34,7 @@ const StyleDetailScreen = ({ onBack, onTryStyle, roomName = 'Living Room', image
         {/* Main Image Display */}
         <View style={styles.imageContainer}>
           <Image
-            source={image || require('../assets/images/interior-design.jpg')}
+            source={image || require('../assets/images/interior-design.webp')}
             style={styles.mainImage}
             resizeMode="cover"
           />

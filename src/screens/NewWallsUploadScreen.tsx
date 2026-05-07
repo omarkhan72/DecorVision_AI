@@ -32,15 +32,15 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const sampleImages = styleImage
     ? [
       styleImage,
-      require('../assets/images/New Walls samples/11f0e226858ad8f847d01399450cdd95.jpg'),
-      require('../assets/images/New Walls samples/2db608f0efb2babf67be791d28792e52.jpg'),
-      require('../assets/images/New Walls samples/8a9717044a46a566f3ecd2acf18f5b5c.jpg'),
+      require('../assets/images/New Walls samples/11f0e226858ad8f847d01399450cdd95.webp'),
+      require('../assets/images/New Walls samples/2db608f0efb2babf67be791d28792e52.webp'),
+      require('../assets/images/New Walls samples/8a9717044a46a566f3ecd2acf18f5b5c.webp'),
     ]
     : [
-      require('../assets/images/New Walls samples/11f0e226858ad8f847d01399450cdd95.jpg'),
-      require('../assets/images/New Walls samples/2db608f0efb2babf67be791d28792e52.jpg'),
-      require('../assets/images/New Walls samples/8a9717044a46a566f3ecd2acf18f5b5c.jpg'),
-      require('../assets/images/New Walls samples/c3689a32402de0e02a36090459b86dee.jpg'),
+      require('../assets/images/New Walls samples/11f0e226858ad8f847d01399450cdd95.webp'),
+      require('../assets/images/New Walls samples/2db608f0efb2babf67be791d28792e52.webp'),
+      require('../assets/images/New Walls samples/8a9717044a46a566f3ecd2acf18f5b5c.webp'),
+      require('../assets/images/New Walls samples/c3689a32402de0e02a36090459b86dee.webp'),
     ];
 
   // Request camera permissions for Android

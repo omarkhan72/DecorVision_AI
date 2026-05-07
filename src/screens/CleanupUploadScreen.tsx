@@ -25,15 +25,15 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const sampleImages = styleImage
     ? [
       styleImage,
-      require('../assets/images/cleanup.jpg'),
-      require('../assets/images/cleanup.jpg'),
-      require('../assets/images/cleanup.jpg'),
+      require('../assets/images/cleanup.webp'),
+      require('../assets/images/cleanup.webp'),
+      require('../assets/images/cleanup.webp'),
     ]
     : [
-      require('../assets/images/cleanup.jpg'),
-      require('../assets/images/cleanup.jpg'),
-      require('../assets/images/cleanup.jpg'),
-      require('../assets/images/cleanup.jpg'),
+      require('../assets/images/cleanup.webp'),
+      require('../assets/images/cleanup.webp'),
+      require('../assets/images/cleanup.webp'),
+      require('../assets/images/cleanup.webp'),
     ];
 
   // Request camera permissions for Android

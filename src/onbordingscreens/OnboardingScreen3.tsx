@@ -28,8 +28,8 @@ const OnboardingScreen3: React.FC<Props> = ({ onNext, onSkip }) => {
         <View style={styles.sliderContainer}>
           {/* Main Slider (Auto-Playing) */}
           <AutoBeforeAfterSlider
-            beforeImage={require('../assets/images/thirdonbording1.png')}
-            afterImage={require('../assets/images/thirdonbording2.jpg')}
+            beforeImage={require('../assets/images/thirdonbording1.webp')}
+            afterImage={require('../assets/images/thirdonbording2.webp')}
           />
         </View>
 

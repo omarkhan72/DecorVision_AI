@@ -28,8 +28,8 @@ const OnboardingScreen2: React.FC<Props> = ({ onNext, onSkip }) => {
         <View style={styles.sliderContainer}>
           {/* Main Slider (Auto-Playing) */}
           <AutoBeforeAfterSlider
-            beforeImage={require('../assets/images/secondonbording1.jpg')}
-            afterImage={require('../assets/images/secondonbording2.png')}
+            beforeImage={require('../assets/images/secondonbording1.webp')}
+            afterImage={require('../assets/images/secondonbording2.webp')}
           />
 
           {/* Labels Overlay (Absolutely Positioned on Top) */}

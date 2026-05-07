@@ -51,18 +51,18 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
   }, []);
 
   const stylesData = [
-    { id: 'modern', name: 'Modern', image: require('../assets/images/interior-design.jpg') },
-    { id: 'cozy', name: 'Cozy', image: require('../assets/images/interior-design.jpg') },
-    { id: 'luxury', name: 'Luxury', image: require('../assets/images/interior-design.jpg') },
-    { id: 'minimalist', name: 'Minimalist', image: require('../assets/images/interior-design.jpg') },
-    { id: 'scandinavian', name: 'Scandinavian', image: require('../assets/images/interior-design.jpg') },
-    { id: 'airbnb', name: 'Airbnb', image: require('../assets/images/interior-design.jpg') },
-    { id: 'midcentury', name: 'Mid Century', image: require('../assets/images/interior-design.jpg') },
-    { id: 'rustic', name: 'Rustic', image: require('../assets/images/interior-design.jpg') },
-    { id: 'zen', name: 'Zen', image: require('../assets/images/interior-design.jpg') },
-    { id: 'tropical', name: 'Tropical', image: require('../assets/images/interior-design.jpg') },
-    { id: 'coastal', name: 'Coastal', image: require('../assets/images/interior-design.jpg') },
-    { id: 'vintage', name: 'Vintage', image: require('../assets/images/interior-design.jpg') },
+    { id: 'modern', name: 'Modern', image: require('../assets/images/interior-design.webp') },
+    { id: 'cozy', name: 'Cozy', image: require('../assets/images/interior-design.webp') },
+    { id: 'luxury', name: 'Luxury', image: require('../assets/images/interior-design.webp') },
+    { id: 'minimalist', name: 'Minimalist', image: require('../assets/images/interior-design.webp') },
+    { id: 'scandinavian', name: 'Scandinavian', image: require('../assets/images/interior-design.webp') },
+    { id: 'airbnb', name: 'Airbnb', image: require('../assets/images/interior-design.webp') },
+    { id: 'midcentury', name: 'Mid Century', image: require('../assets/images/interior-design.webp') },
+    { id: 'rustic', name: 'Rustic', image: require('../assets/images/interior-design.webp') },
+    { id: 'zen', name: 'Zen', image: require('../assets/images/interior-design.webp') },
+    { id: 'tropical', name: 'Tropical', image: require('../assets/images/interior-design.webp') },
+    { id: 'coastal', name: 'Coastal', image: require('../assets/images/interior-design.webp') },
+    { id: 'vintage', name: 'Vintage', image: require('../assets/images/interior-design.webp') },
   ];
 
   // Convert image URI to base64
