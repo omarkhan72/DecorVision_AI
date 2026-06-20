@@ -10,38 +10,42 @@ import {
   Platform,
   PermissionsAndroid,
 } from 'react-native';
+import { UploadScreenSkeleton } from '../components/SkeletonLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
 const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
+  const GARDEN_SAMPLE_IMAGES = [
+    'Garden (1).webp',
+    'Garden (2).webp',
+    'Gardenslide1.webp',
+    'Gardenslide2.webp',
+  ];
+
+  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(GARDEN_SAMPLE_IMAGES);
+  
+  // Convert dictionary back to an array for rendering
+  const firebaseImages = GARDEN_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
 
   // Log screen view
   useEffect(() => {
     logScreenView('GardenUploadScreen');
   }, []);
 
-  // If styleImage is provided, add it as the first sample image
+  // Use style image if provided, otherwise use fetched firebase images
   const sampleImages = styleImage
-    ? [
-      styleImage,
-      require('../assets/images/Garden samples/Gemini_Generated_Image_3m8wqu3m8wqu3m8w.webp'),
-      require('../assets/images/Garden samples/Gemini_Generated_Image_7st6nv7st6nv7st6.webp'),
-      require('../assets/images/Garden samples/Gemini_Generated_Image_j99eyfj99eyfj99e.webp'),
-    ]
-    : [
-      require('../assets/images/Garden samples/Gemini_Generated_Image_3m8wqu3m8wqu3m8w.webp'),
-      require('../assets/images/Garden samples/Gemini_Generated_Image_7st6nv7st6nv7st6.webp'),
-      require('../assets/images/Garden samples/Gemini_Generated_Image_j99eyfj99eyfj99e.webp'),
-      require('../assets/images/Garden samples/Gemini_Generated_Image_zab9kpzab9kpzab9.webp'),
-    ];
+    ? [styleImage, ...firebaseImages.slice(0, 3)]
+    : firebaseImages;
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -72,20 +76,27 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       return;
     }
     if (response.errorMessage) {
-      Alert.alert('Error', response.errorMessage);
+      if (response.errorMessage.toLowerCase().includes('activity error')) {
+        Alert.alert(
+          'App Reload Required',
+          'The app lost connection to the Android Activity due to Fast Refresh. Please go to your terminal running Metro Bundler and press "r" to reload the app, or fully restart the emulator app.'
+        );
+      } else {
+        Alert.alert('Error', response.errorMessage);
+      }
       return;
     }
     if (response.assets && response.assets[0]) {
       const asset = response.assets[0];
-      // Prefer base64 if available, otherwise use URI
-      let imageData: string | null = null;
-      if (asset.base64) {
-        const mimeType = asset.type || 'image/jpeg';
-        imageData = `data:${mimeType};base64,${asset.base64}`;
-      } else if (asset.uri) {
-        imageData = asset.uri;
+      if (asset.uri) {
+        setSelectedImage(asset.uri);
+      } else {
+        Alert.alert('Error', 'Selected image has no valid path');
       }
-      setSelectedImage(imageData);
+    } else {
+      if (!response.didCancel && !response.errorMessage) {
+        Alert.alert('Error', 'Could not retrieve image. Please try again.');
+      }
     }
   };
 
@@ -98,7 +109,6 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
         selectionLimit: 1,
-        includeBase64: true,
       },
       handleImageResponse
     );
@@ -118,8 +128,6 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
-        saveToPhotos: true,
-        includeBase64: true,
       },
       handleImageResponse
     );
@@ -210,18 +218,22 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
-          <View style={styles.gridRow}>
-            {sampleImages.map((image, index) => (
-              <View key={index} style={styles.sampleImageContainer}>
-                <Image source={image} style={styles.sampleImage} />
-                <View style={styles.sampleOverlay}>
-                  <Text style={styles.sampleText}>
-                    {styleImage && index === 0 ? 'Your Style' : 'Sample'}
-                  </Text>
+          {loadingImages ? (
+            <UploadScreenSkeleton count={4} />
+          ) : (
+            <View style={styles.gridRow}>
+              {sampleImages.map((image, index) => (
+                <View key={index} style={styles.sampleImageContainer}>
+                  <Image source={image} style={styles.sampleImage} />
+                  <View style={styles.sampleOverlay}>
+                    <Text style={styles.sampleText}>
+                      {styleImage && index === 0 ? 'Your Style' : 'Sample'}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 

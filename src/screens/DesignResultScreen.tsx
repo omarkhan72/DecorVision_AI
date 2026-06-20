@@ -20,16 +20,21 @@ import { saveToHistory } from '../utils/historyStorage';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+
+const IMAGES = ['interior-design.webp'];
 
 type Props = { onBack: () => void; onRegenerate?: () => void; userImage?: string | null };
 
 const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { images } = useFirebaseImagePaths(IMAGES);
+  
   // Use the user's uploaded image or fallback to default
   const imageSource = userImage
     ? { uri: userImage }
-    : require('../assets/images/interior-design.webp');
+    : images['interior-design.webp'] || { uri: '' };
 
   // Log screen view and save to history when screen loads
   useEffect(() => {

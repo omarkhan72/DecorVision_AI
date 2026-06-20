@@ -10,6 +10,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AutoBeforeAfterSlider from '../components/AutoBeforeAfterSlider';
 import adjust from '../utils/Adjust';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+
+const IMAGES = ['thirdonbording1.webp', 'thirdonbording2.webp'];
 
 type Props = {
   onNext: () => void;
@@ -18,6 +21,7 @@ type Props = {
 
 const OnboardingScreen3: React.FC<Props> = ({ onNext, onSkip }) => {
   const insets = useSafeAreaInsets();
+  const { images } = useFirebaseImagePaths(IMAGES);
 
   return (
     <View style={styles.container}>
@@ -27,10 +31,14 @@ const OnboardingScreen3: React.FC<Props> = ({ onNext, onSkip }) => {
         {/* --- Comparison Slider Section --- */}
         <View style={styles.sliderContainer}>
           {/* Main Slider (Auto-Playing) */}
-          <AutoBeforeAfterSlider
-            beforeImage={require('../assets/images/thirdonbording1.webp')}
-            afterImage={require('../assets/images/thirdonbording2.webp')}
-          />
+          {images['thirdonbording1.webp'] && images['thirdonbording2.webp'] ? (
+            <AutoBeforeAfterSlider
+              beforeImage={images['thirdonbording1.webp']}
+              afterImage={images['thirdonbording2.webp']}
+            />
+          ) : (
+            <View style={{ flex: 1, backgroundColor: '#E5E7EB' }} />
+          )}
         </View>
 
         {/* --- Bottom Content Section --- */}

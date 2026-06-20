@@ -4,6 +4,9 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+
+const SUBSCRIPTION_IMAGES = ['interior-design.webp'];
 
 const { height } = Dimensions.get('window');
 
@@ -20,6 +23,7 @@ const Feature = ({ text, icon }: { text: string; icon: string }) => (
 
 const SubscriptionScreen = ({ onBack }: Props) => {
   const [selected, setSelected] = useState<'lifetime' | 'year' | 'week'>('year');
+  const { images } = useFirebaseImagePaths(SUBSCRIPTION_IMAGES);
 
   useEffect(() => {
     logScreenView('SubscriptionScreen');
@@ -28,7 +32,7 @@ const SubscriptionScreen = ({ onBack }: Props) => {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('../assets/images/interior-design.webp')}
+        source={images['interior-design.webp'] || { uri: '' }}
         style={styles.hero}
         imageStyle={styles.heroImg}
       >

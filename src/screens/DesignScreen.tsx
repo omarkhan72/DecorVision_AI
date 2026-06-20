@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+
+const IMAGES = ['interior-design.webp', 'exterior-design.webp'];
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
@@ -29,6 +32,7 @@ type Props = { onOpenInteriors?: () => void; onOpenExteriors?: () => void };
 
 const DesignScreen = ({ onOpenInteriors, onOpenExteriors }: Props) => {
   const insets = useSafeAreaInsets();
+  const { images } = useFirebaseImagePaths(IMAGES);
 
   useEffect(() => {
     logScreenView('DesignScreen');
@@ -51,7 +55,7 @@ const DesignScreen = ({ onOpenInteriors, onOpenExteriors }: Props) => {
             onOpenInteriors?.();
           }}>
             <Card
-              image={require('../assets/images/interior-design.webp')}
+              image={images['interior-design.webp'] || { uri: '' }}
               count={82}
               label="Living Room"
             />
@@ -67,7 +71,7 @@ const DesignScreen = ({ onOpenInteriors, onOpenExteriors }: Props) => {
             onOpenExteriors?.();
           }}>
             <Card
-              image={require('../assets/images/exterior-design.webp')}
+              image={images['exterior-design.webp'] || { uri: '' }}
               count={75}
               label="House"
             />

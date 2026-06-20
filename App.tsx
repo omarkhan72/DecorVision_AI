@@ -135,7 +135,7 @@ const MainApp = () => {
 
   // If user is logged in, check premium status
   // Show Paywall if user is NOT premium and showPaywall is true
-  if (!user.isPremium && showPaywall) {
+  if (!user.isPremium && showPaywall && !user.isGuest) {
     return (
       <PaywallScreen
         onDismiss={() => setShowPaywall(false)}

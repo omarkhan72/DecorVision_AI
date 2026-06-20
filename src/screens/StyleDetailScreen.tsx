@@ -10,11 +10,15 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+
+const STYLE_DETAIL_IMAGES = ['interior-design.webp'];
 
 type Props = { onBack: () => void; onTryStyle?: () => void; roomName?: string; image?: any };
 
 const StyleDetailScreen = ({ onBack, onTryStyle, roomName = 'Living Room', image }: Props) => {
   const insets = useSafeAreaInsets();
+  const { images } = useFirebaseImagePaths(STYLE_DETAIL_IMAGES);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -34,7 +38,7 @@ const StyleDetailScreen = ({ onBack, onTryStyle, roomName = 'Living Room', image
         {/* Main Image Display */}
         <View style={styles.imageContainer}>
           <Image
-            source={image || require('../assets/images/interior-design.webp')}
+            source={image || images['interior-design.webp'] || { uri: '' }}
             style={styles.mainImage}
             resizeMode="cover"
           />

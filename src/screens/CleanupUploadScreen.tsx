@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,13 @@ import {
   Alert,
   Platform,
   PermissionsAndroid,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
+import { useFirebaseImages } from '../hooks/useFirebaseImages';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
@@ -21,20 +23,12 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // If styleImage is provided, add it as the first sample image
+  const { images: firebaseImages, loading: loadingImages } = useFirebaseImages('Cleanup samples', 4);
+
+  // Use style image if provided, otherwise use fetched firebase images
   const sampleImages = styleImage
-    ? [
-      styleImage,
-      require('../assets/images/cleanup.webp'),
-      require('../assets/images/cleanup.webp'),
-      require('../assets/images/cleanup.webp'),
-    ]
-    : [
-      require('../assets/images/cleanup.webp'),
-      require('../assets/images/cleanup.webp'),
-      require('../assets/images/cleanup.webp'),
-      require('../assets/images/cleanup.webp'),
-    ];
+    ? [styleImage, ...firebaseImages.slice(0, 3)]
+    : firebaseImages;
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -97,7 +91,6 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
-        saveToPhotos: true,
       },
       handleImageResponse
     );
@@ -179,18 +172,24 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
-          <View style={styles.gridRow}>
-            {sampleImages.map((image, index) => (
-              <View key={index} style={styles.sampleImageContainer}>
-                <Image source={image} style={styles.sampleImage} />
-                <View style={styles.sampleOverlay}>
-                  <Text style={styles.sampleText}>
-                    {styleImage && index === 0 ? 'Your Style' : 'Sample'}
-                  </Text>
+          {loadingImages ? (
+            <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#8B5CF6" />
+            </View>
+          ) : (
+            <View style={styles.gridRow}>
+              {sampleImages.map((image, index) => (
+                <View key={index} style={styles.sampleImageContainer}>
+                  <Image source={image} style={styles.sampleImage} />
+                  <View style={styles.sampleOverlay}>
+                    <Text style={styles.sampleText}>
+                      {styleImage && index === 0 ? 'Your Style' : 'Sample'}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 

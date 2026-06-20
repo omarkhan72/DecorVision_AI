@@ -13,17 +13,18 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useAuth } from '../contexts/AuthContext';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
 
 const { width, height } = Dimensions.get('window');
 
-// You might need to add this image to your assets or use a placeholder
-// For now I'll use a placeholder or the app icon if available
-const iconImage = require('../assets/images/iconImage.webp');
+const SIGN_IN_IMAGES = ['iconImage.webp'];
 
 const SignInScreen = () => {
     const insets = useSafeAreaInsets();
-    const { signInWithGoogle } = useAuth();
+    const { signInWithGoogle, skipSignIn } = useAuth();
     const [isSigningIn, setIsSigningIn] = useState(false);
+    const { images } = useFirebaseImagePaths(SIGN_IN_IMAGES);
+    const iconImage = images['iconImage.webp'];
 
     const handleGoogleSignIn = async () => {
         try {
@@ -43,6 +44,16 @@ const SignInScreen = () => {
         }
     };
 
+    const handleSkip = () => {
+        try {
+            setIsSigningIn(true);
+            skipSignIn();
+        } catch (error: any) {
+            Alert.alert('Error', 'Failed to skip sign in. Please try again.');
+            setIsSigningIn(false);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
@@ -56,11 +67,15 @@ const SignInScreen = () => {
             <View style={styles.contentContainer}>
                 {/* App Icon/Image */}
                 <View style={styles.iconContainer}>
-                    <Image
-                        source={iconImage}
-                        style={styles.iconImage}
-                        resizeMode="contain"
-                    />
+                    {iconImage ? (
+                        <Image
+                            source={iconImage}
+                            style={styles.iconImage}
+                            resizeMode="contain"
+                        />
+                    ) : (
+                        <View style={[styles.iconImage, { backgroundColor: '#E0E7FF', borderRadius: 20 }]} />
+                    )}
                 </View>
 
                 <Text style={styles.appName}>Visuals AI</Text>
@@ -91,6 +106,15 @@ const SignInScreen = () => {
                             <Text style={styles.googleButtonText}>Continue with Google</Text>
                         </>
                     )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.skipButton}
+                    onPress={handleSkip}
+                    disabled={isSigningIn}
+                    activeOpacity={0.9}
+                >
+                    <Text style={styles.skipButtonText}>Skip for now</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -188,6 +212,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         color: '#FFFFFF',
+    },
+    skipButton: {
+        marginTop: 16,
+        alignItems: 'center',
+        paddingVertical: 10,
+    },
+    skipButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#6B7280',
     },
 });
 

@@ -10,12 +10,14 @@ import {
   Platform,
   PermissionsAndroid,
 } from 'react-native';
+import { UploadScreenSkeleton } from '../components/SkeletonLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
@@ -23,25 +25,25 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  const FLOORING_SAMPLE_IMAGES = [
+    'Flooring (1).webp',
+    'Flooring (2).webp',
+    'new-flooring.webp',
+    'interiorslide1.webp',
+  ];
+
+  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(FLOORING_SAMPLE_IMAGES);
+  const firebaseImages = FLOORING_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
+
   // Log screen view
   useEffect(() => {
     logScreenView('NewFlooringUploadScreen');
   }, []);
 
-  // If styleImage is provided, add it as the first sample image
+  // Use style image if provided, otherwise use fetched firebase images
   const sampleImages = styleImage
-    ? [
-      styleImage,
-      require('../assets/images/New Flooring samples/53a77ab7693c84f299e73831bc9967c2.webp'),
-      require('../assets/images/New Flooring samples/53e5d2c716f898d8d254603fae4d0c7f.webp'),
-      require('../assets/images/New Flooring samples/bf1163114f82d43f0c3413215c02c9b6.webp'),
-    ]
-    : [
-      require('../assets/images/New Flooring samples/53a77ab7693c84f299e73831bc9967c2.webp'),
-      require('../assets/images/New Flooring samples/53e5d2c716f898d8d254603fae4d0c7f.webp'),
-      require('../assets/images/New Flooring samples/bf1163114f82d43f0c3413215c02c9b6.webp'),
-      require('../assets/images/New Flooring samples/c12265ce669ff60011b0fa2c05a4d4f5.webp'),
-    ];
+    ? [styleImage, ...firebaseImages.slice(0, 3)]
+    : firebaseImages;
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -72,20 +74,27 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       return;
     }
     if (response.errorMessage) {
-      Alert.alert('Error', response.errorMessage);
+      if (response.errorMessage.toLowerCase().includes('activity error')) {
+        Alert.alert(
+          'App Reload Required',
+          'The app lost connection to the Android Activity due to Fast Refresh. Please go to your terminal running Metro Bundler and press "r" to reload the app, or fully restart the emulator app.'
+        );
+      } else {
+        Alert.alert('Error', response.errorMessage);
+      }
       return;
     }
     if (response.assets && response.assets[0]) {
       const asset = response.assets[0];
-      // Prefer base64 if available, otherwise use URI
-      let imageData: string | null = null;
-      if (asset.base64) {
-        const mimeType = asset.type || 'image/jpeg';
-        imageData = `data:${mimeType};base64,${asset.base64}`;
-      } else if (asset.uri) {
-        imageData = asset.uri;
+      if (asset.uri) {
+        setSelectedImage(asset.uri);
+      } else {
+        Alert.alert('Error', 'Selected image has no valid path');
       }
-      setSelectedImage(imageData);
+    } else {
+      if (!response.didCancel && !response.errorMessage) {
+        Alert.alert('Error', 'Could not retrieve image. Please try again.');
+      }
     }
   };
 
@@ -96,7 +105,6 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
         selectionLimit: 1,
-        includeBase64: true,
       },
       handleImageResponse
     );
@@ -116,8 +124,6 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
-        saveToPhotos: true,
-        includeBase64: true,
       },
       handleImageResponse
     );
@@ -208,18 +214,22 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
-          <View style={styles.gridRow}>
-            {sampleImages.map((image, index) => (
-              <View key={index} style={styles.sampleImageContainer}>
-                <Image source={image} style={styles.sampleImage} />
-                <View style={styles.sampleOverlay}>
-                  <Text style={styles.sampleText}>
-                    {styleImage && index === 0 ? 'Your Style' : 'Sample'}
-                  </Text>
+          {loadingImages ? (
+            <UploadScreenSkeleton count={4} />
+          ) : (
+            <View style={styles.gridRow}>
+              {sampleImages.map((image, index) => (
+                <View key={index} style={styles.sampleImageContainer}>
+                  <Image source={image} style={styles.sampleImage} />
+                  <View style={styles.sampleOverlay}>
+                    <Text style={styles.sampleText}>
+                      {styleImage && index === 0 ? 'Your Style' : 'Sample'}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 

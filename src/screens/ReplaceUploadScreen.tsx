@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
   PermissionsAndroid,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -16,6 +17,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
@@ -23,25 +25,25 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  const REPLACE_SAMPLE_IMAGES = [
+    'replace (1).webp',
+    'replace (2).webp',
+    'replace.webp',
+    'cleanup.webp',
+  ];
+
+  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(REPLACE_SAMPLE_IMAGES);
+  const firebaseImages = REPLACE_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
+
   // Log screen view
   useEffect(() => {
     logScreenView('ReplaceUploadScreen');
   }, []);
 
-  // If styleImage is provided, add it as the first sample image
+  // Use style image if provided, otherwise use fetched firebase images
   const sampleImages = styleImage
-    ? [
-      styleImage,
-      require('../assets/images/Replace samples/4078202662d91e6e5496d3f650572a69.webp'),
-      require('../assets/images/Replace samples/855fab9fae45b6d0e22af2a56483bd81.webp'),
-      require('../assets/images/Replace samples/89ea9a0d49daa9154c82dd5849810881.webp'),
-    ]
-    : [
-      require('../assets/images/Replace samples/4078202662d91e6e5496d3f650572a69.webp'),
-      require('../assets/images/Replace samples/855fab9fae45b6d0e22af2a56483bd81.webp'),
-      require('../assets/images/Replace samples/89ea9a0d49daa9154c82dd5849810881.webp'),
-      require('../assets/images/Replace samples/d4af94dc454058468f4fde144cd7d993.webp'),
-    ];
+    ? [styleImage, ...firebaseImages.slice(0, 3)]
+    : firebaseImages;
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -72,20 +74,27 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       return;
     }
     if (response.errorMessage) {
-      Alert.alert('Error', response.errorMessage);
+      if (response.errorMessage.toLowerCase().includes('activity error')) {
+        Alert.alert(
+          'App Reload Required',
+          'The app lost connection to the Android Activity due to Fast Refresh. Please go to your terminal running Metro Bundler and press "r" to reload the app, or fully restart the emulator app.'
+        );
+      } else {
+        Alert.alert('Error', response.errorMessage);
+      }
       return;
     }
     if (response.assets && response.assets[0]) {
       const asset = response.assets[0];
-      // Prefer base64 if available, otherwise use URI
-      let imageData: string | null = null;
-      if (asset.base64) {
-        const mimeType = asset.type || 'image/jpeg';
-        imageData = `data:${mimeType};base64,${asset.base64}`;
-      } else if (asset.uri) {
-        imageData = asset.uri;
+      if (asset.uri) {
+        setSelectedImage(asset.uri);
+      } else {
+        Alert.alert('Error', 'Selected image has no valid path');
       }
-      setSelectedImage(imageData);
+    } else {
+      if (!response.didCancel && !response.errorMessage) {
+        Alert.alert('Error', 'Could not retrieve image. Please try again.');
+      }
     }
   };
 
@@ -98,7 +107,6 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
         selectionLimit: 1,
-        includeBase64: true,
       },
       handleImageResponse
     );
@@ -118,8 +126,6 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
-        saveToPhotos: true,
-        includeBase64: true,
       },
       handleImageResponse
     );
@@ -207,18 +213,24 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
-          <View style={styles.gridRow}>
-            {sampleImages.map((image, index) => (
-              <View key={index} style={styles.sampleImageContainer}>
-                <Image source={image} style={styles.sampleImage} />
-                <View style={styles.sampleOverlay}>
-                  <Text style={styles.sampleText}>
-                    {styleImage && index === 0 ? 'Your Style' : 'Sample'}
-                  </Text>
+          {loadingImages ? (
+            <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#8B5CF6" />
+            </View>
+          ) : (
+            <View style={styles.gridRow}>
+              {sampleImages.map((image, index) => (
+                <View key={index} style={styles.sampleImageContainer}>
+                  <Image source={image} style={styles.sampleImage} />
+                  <View style={styles.sampleOverlay}>
+                    <Text style={styles.sampleText}>
+                      {styleImage && index === 0 ? 'Your Style' : 'Sample'}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 

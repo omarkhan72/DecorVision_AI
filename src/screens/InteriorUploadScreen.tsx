@@ -10,12 +10,14 @@ import {
   Platform,
   PermissionsAndroid,
 } from 'react-native';
+import { UploadScreenSkeleton } from '../components/SkeletonLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
@@ -23,25 +25,25 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  const INTERIOR_SAMPLE_IMAGES = [
+    'Interior (1).webp',
+    'Interior (2).webp',
+    'interiorslide1.webp',
+    'interiorslide2.webp',
+  ];
+
+  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(INTERIOR_SAMPLE_IMAGES);
+  const firebaseImages = INTERIOR_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
+
   // Log screen view
   useEffect(() => {
     logScreenView('InteriorUploadScreen');
   }, []);
 
-  // If styleImage is provided, add it as the first sample image
+  // Use style image if provided, otherwise use fetched firebase images
   const sampleImages = styleImage
-    ? [
-      styleImage,
-      require('../assets/images/Interior samples/living room.webp'),
-      require('../assets/images/Interior samples/badroom.webp'),
-      require('../assets/images/Interior samples/bathroom.webp'),
-    ]
-    : [
-      require('../assets/images/Interior samples/living room.webp'),
-      require('../assets/images/Interior samples/badroom.webp'),
-      require('../assets/images/Interior samples/bathroom.webp'),
-      require('../assets/images/Interior samples/9980bb9e0a70db62dfae9bea68a778e6.webp'),
-    ];
+    ? [styleImage, ...firebaseImages.slice(0, 3)]
+    : firebaseImages;
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -80,7 +82,14 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     }
     if (response.errorMessage) {
       console.error('Image picker error:', response.errorMessage);
-      Alert.alert('Error', response.errorMessage);
+      if (response.errorMessage.toLowerCase().includes('activity error')) {
+        Alert.alert(
+          'App Reload Required',
+          'The app lost connection to the Android Activity due to Fast Refresh. Please go to your terminal running Metro Bundler and press "r" to reload the app, or fully restart the emulator app.'
+        );
+      } else {
+        Alert.alert('Error', response.errorMessage);
+      }
       return;
     }
     if (response.assets && response.assets[0]) {
@@ -88,27 +97,21 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       console.log('=== Image Selected ===');
       console.log('Image URI:', asset.uri);
       console.log('Image type:', asset.type);
-      console.log('Image file name:', asset.fileName);
       console.log('Image width:', asset.width);
       console.log('Image height:', asset.height);
-      console.log('Image file size:', asset.fileSize ? `${(asset.fileSize / 1024 / 1024).toFixed(2)} MB` : 'Unknown');
-      console.log('Has base64:', !!asset.base64);
 
-      // Prefer base64 if available, otherwise use URI
-      let imageData: string | null = null;
-      if (asset.base64) {
-        const mimeType = asset.type || 'image/jpeg';
-        imageData = `data:${mimeType};base64,${asset.base64}`;
-        console.log('Using base64 data, length:', imageData.length);
-      } else if (asset.uri) {
-        imageData = asset.uri;
-        console.log('Using URI (will need conversion later)');
+      if (asset.uri) {
+        setSelectedImage(asset.uri);
+        console.log('Image URI set in state successfully');
+      } else {
+        console.warn('Asset found but URI is missing');
+        Alert.alert('Error', 'Selected image has no valid path');
       }
-
-      setSelectedImage(imageData);
-      console.log('Image set in state successfully');
     } else {
       console.warn('No image assets found in response');
+      if (!response.didCancel && !response.errorMessage) {
+        Alert.alert('Error', 'Could not retrieve image. Please try again.');
+      }
     }
   };
 
@@ -123,7 +126,6 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
         selectionLimit: 1,
-        includeBase64: true,
       },
       handleImageResponse
     );
@@ -150,8 +152,6 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
-        saveToPhotos: true,
-        includeBase64: true,
       },
       handleImageResponse
     );
@@ -248,18 +248,22 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
-          <View style={styles.gridRow}>
-            {sampleImages.map((image, index) => (
-              <View key={index} style={styles.sampleImageContainer}>
-                <Image source={image} style={styles.sampleImage} />
-                <View style={styles.sampleOverlay}>
-                  <Text style={styles.sampleText}>
-                    {styleImage && index === 0 ? 'Your Style' : 'Sample'}
-                  </Text>
+          {loadingImages ? (
+            <UploadScreenSkeleton count={4} />
+          ) : (
+            <View style={styles.gridRow}>
+              {sampleImages.map((image, index) => (
+                <View key={index} style={styles.sampleImageContainer}>
+                  <Image source={image} style={styles.sampleImage} />
+                  <View style={styles.sampleOverlay}>
+                    <Text style={styles.sampleText}>
+                      {styleImage && index === 0 ? 'Your Style' : 'Sample'}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 

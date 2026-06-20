@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
 
 type Props = { onBack: () => void; onImagePress?: (image: any, roomName: string) => void };
 
@@ -26,6 +27,41 @@ const Section = ({ title, images, onImagePress }: { title: string; images: any[]
 );
 
 const ExteriorsListScreen = ({ onBack, onImagePress }: Props) => {
+  const EXTERIOR_IMAGES = [
+    'exterior  (1).webp',
+    'exterior  (2).webp',
+    'Exteriorslide1 (1).webp',
+    'Exteriorslide2.webp',
+    'exterior-design.webp',
+    'Garden (1).webp',
+    'Garden (2).webp',
+    'Gardenslide1.webp',
+    'Gardenslide2.webp',
+    'garden-design.webp',
+    'Interior (1).webp',
+    'Interior (2).webp',
+    'interior-design.webp',
+    'new-walls.webp',
+    'new-flooring.webp'
+  ];
+
+  const { images: firebaseImagesDict, loading } = useFirebaseImagePaths(EXTERIOR_IMAGES);
+  
+  // Safely map dictionary back to array
+  const firebaseImages = EXTERIOR_IMAGES.map(key => firebaseImagesDict[key] || null).filter(Boolean);
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+      </View>
+    );
+  }
+
+  const getImagesForSection = (startIndex: number) => {
+    return firebaseImages.slice(startIndex, startIndex + 3);
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
       {/* Top bar */}
@@ -39,47 +75,27 @@ const ExteriorsListScreen = ({ onBack, onImagePress }: Props) => {
 
       <Section
         title="Home"
-        images={[
-          require('../assets/images/exterior-design.webp'),
-          require('../assets/images/new-walls.webp'),
-          require('../assets/images/new-flooring.webp'),
-        ]}
+        images={getImagesForSection(0)}
         onImagePress={onImagePress}
       />
       <Section
         title="Office"
-        images={[
-          require('../assets/images/exterior-design.webp'),
-          require('../assets/images/interior-design.webp'),
-          require('../assets/images/replace.webp'),
-        ]}
+        images={getImagesForSection(3)}
         onImagePress={onImagePress}
       />
       <Section
         title="Yard"
-        images={[
-          require('../assets/images/garden-design.webp'),
-          require('../assets/images/exterior-design.webp'),
-          require('../assets/images/new-walls.webp'),
-        ]}
+        images={getImagesForSection(6)}
         onImagePress={onImagePress}
       />
       <Section
         title="Swimming pool"
-        images={[
-          require('../assets/images/garden-design.webp'),
-          require('../assets/images/new-flooring.webp'),
-          require('../assets/images/exterior-design.webp'),
-        ]}
+        images={getImagesForSection(9)}
         onImagePress={onImagePress}
       />
       <Section
         title="Villa"
-        images={[
-          require('../assets/images/exterior-design.webp'),
-          require('../assets/images/garden-design.webp'),
-          require('../assets/images/exterior-design.webp'),
-        ]}
+        images={getImagesForSection(12)}
         onImagePress={onImagePress}
       />
     </ScrollView>

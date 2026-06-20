@@ -28,8 +28,7 @@ type ScreenProps = {
   onSkip: () => void;
 };
 
-const onboardingImage2 = require('../assets/images/onbordingscreen2.webp');
-const onboardingImage3 = require('../assets/images/onbordingscreen3.webp');
+
 
 // ScreenThree is now handled by OnboardingScreen3 component
 

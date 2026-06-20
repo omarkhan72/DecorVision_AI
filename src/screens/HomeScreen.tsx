@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   View,
@@ -53,9 +53,35 @@ import ReplacePromptScreen from './ReplacePromptScreen';
 import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
 import { Alert } from 'react-native';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
+import { convertImageToBase64 } from '../utils/imageUtils';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import SkeletonItem from '../components/SkeletonLoader';
 
 // Mock Mode: Set to true to use mock responses instead of real API calls
 const USE_MOCK_API = true;
+
+// All root-level image paths in Firebase Storage needed by HomeScreen
+const HOME_IMAGE_PATHS = [
+  'iconImage.webp',
+  'interior-design.webp',
+  'exterior-design.webp',
+  'garden-design.webp',
+  'replace.webp',
+  'new-walls.webp',
+  'new-flooring.webp',
+  'Interior (1).webp',
+  'Interior (2).webp',
+  'exterior  (1).webp',
+  'exterior  (2).webp',
+  'Garden (1).webp',
+  'Garden (2).webp',
+  'replace (1).webp',
+  'replace (2).webp',
+  'Flooring (1).webp',
+  'Flooring (2).webp',
+  'interiorslide1.webp',
+  'interiorslide2.webp',
+];
 
 // Custom Fence Icon Component (Three Vertical Bars)
 const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
@@ -68,6 +94,38 @@ const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
 
 import PaywallBottomSheet from '../components/PaywallBottomSheet';
 import MyInterstitialAd from '../components/MyInterstitialAd/MyInterstitialAd';
+
+// Extracted BouncyCard as a proper top-level component.
+// Previously defined inside useMemo which caused hooks to be called inside a factory function — an anti-pattern.
+const BouncyCardComponent = ({ children, onPress }: { children: React.ReactNode; onPress?: () => void }) => {
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
+
+  const onPressIn = () => {
+    scale.value = withTiming(0.98, { duration: 150 });
+    opacity.value = withTiming(0.95, { duration: 150 });
+  };
+
+  const onPressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+    opacity.value = withTiming(1, { duration: 150 });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}>
+      <Animated.View style={animatedStyle}>{children}</Animated.View>
+    </TouchableOpacity>
+  );
+};
 
 const HomeScreen = () => {
   const { user, consumeToken } = useAuth();
@@ -87,6 +145,9 @@ const HomeScreen = () => {
 
   const [isAdVisible, setIsAdVisible] = useState(false);
 
+  // Fetch images from Firebase Storage
+  const { images: homeImages } = useFirebaseImagePaths(HOME_IMAGE_PATHS);
+
   // To store the pending resolve function when user opens paywall
   // This allows us to "resume" the action after they successfully interact with the paywall
   const [pendingAction, setPendingAction] = useState<{
@@ -99,88 +160,7 @@ const HomeScreen = () => {
   }, []);
 
   // Convert image URI to base64 helper function
-  const convertImageToBase64 = async (uri: string): Promise<string | null> => {
-    try {
-      console.log('Converting image to base64, URI:', uri.substring(0, 50) + '...');
-
-      // If already base64, return as is
-      if (uri.startsWith('data:')) {
-        console.log('Image is already base64 encoded');
-        return uri;
-      }
-
-      // Use XMLHttpRequest for file:// URIs (works in React Native)
-      if (uri.startsWith('file://') || uri.startsWith('content://')) {
-        return new Promise((resolve) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open('GET', uri, true);
-          xhr.responseType = 'blob';
-          xhr.onload = function () {
-            if (xhr.status === 200) {
-              const reader = new FileReader();
-              reader.onloadend = function () {
-                const base64String = reader.result as string;
-                console.log('Image converted to base64 via XMLHttpRequest, length:', base64String.length);
-                resolve(base64String);
-              };
-              reader.onerror = function () {
-                console.warn('FileReader error, returning URI as-is');
-                resolve(uri);
-              };
-              reader.readAsDataURL(xhr.response);
-            } else {
-              console.warn('XMLHttpRequest failed, returning URI as-is');
-              resolve(uri);
-            }
-          };
-          xhr.onerror = function () {
-            console.warn('XMLHttpRequest error, returning URI as-is');
-            resolve(uri);
-          };
-          xhr.send();
-        });
-      }
-
-      // Use XMLHttpRequest for http/https URIs (works in React Native)
-      if (uri.startsWith('http://') || uri.startsWith('https://')) {
-        return new Promise((resolve) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open('GET', uri, true);
-          xhr.responseType = 'blob';
-          xhr.onload = function () {
-            if (xhr.status === 200) {
-              const reader = new FileReader();
-              reader.onloadend = function () {
-                const base64String = reader.result as string;
-                console.log('Image converted to base64 via XMLHttpRequest, length:', base64String.length);
-                resolve(base64String);
-              };
-              reader.onerror = function () {
-                console.warn('FileReader error, returning URI as-is');
-                resolve(uri);
-              };
-              reader.readAsDataURL(xhr.response);
-            } else {
-              console.warn('XMLHttpRequest failed, returning URI as-is');
-              resolve(uri);
-            }
-          };
-          xhr.onerror = function () {
-            console.warn('XMLHttpRequest error, returning URI as-is');
-            resolve(uri);
-          };
-          xhr.send();
-        });
-      }
-
-      // Fallback: return the URI as-is and let backend handle it
-      console.warn('Unsupported URI format, returning URI as-is');
-      return uri;
-    } catch (error: any) {
-      console.error('Error converting image to base64:', error);
-      return null;
-    }
-  };
+  // Uses shared utility from ../utils/imageUtils
 
   // Helper to check and consume tokens
   const checkAndConsumeToken = async (): Promise<boolean> => {
@@ -420,37 +400,9 @@ const HomeScreen = () => {
   const designIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: designScale.value }] }));
   const historyIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: historyScale.value }] }));
 
-  // Beautiful card press animation component
-  const BouncyCard = useMemo(() => {
-    return ({ children, onPress }: { children: React.ReactNode; onPress?: () => void }) => {
-      const scale = useSharedValue(1);
-      const opacity = useSharedValue(1);
-
-      const onPressIn = () => {
-        scale.value = withTiming(0.98, { duration: 150 });
-        opacity.value = withTiming(0.95, { duration: 150 });
-      };
-
-      const onPressOut = () => {
-        scale.value = withSpring(1, { damping: 15, stiffness: 300 });
-        opacity.value = withTiming(1, { duration: 150 });
-      };
-
-      const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: scale.value }],
-        opacity: opacity.value,
-      }));
-
-      return (
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={onPress}
-          onPressIn={onPressIn}
-          onPressOut={onPressOut}>
-          <Animated.View style={animatedStyle}>{children}</Animated.View>
-        </TouchableOpacity>
-      );
-    };
+  // Beautiful card press animation component - extracted to avoid hooks-in-useMemo anti-pattern
+  const BouncyCard = useCallback(({ children, onPress }: { children: React.ReactNode; onPress?: () => void }) => {
+    return <BouncyCardComponent onPress={onPress}>{children}</BouncyCardComponent>;
   }, []);
 
   const { width } = Dimensions.get('window');
@@ -469,37 +421,37 @@ const HomeScreen = () => {
       id: 1,
       title: 'Interior Design',
       description: 'Transform your interior space',
-      image: require('../assets/images/interior-design.webp'),
+      image: homeImages['interior-design.webp'],
     },
     {
       id: 2,
       title: 'Exterior Design',
       description: 'Transform your exterior space',
-      image: require('../assets/images/exterior-design.webp'),
+      image: homeImages['exterior-design.webp'],
     },
     {
       id: 3,
       title: 'Garden Design',
       description: 'Transfer your garden',
-      image: require('../assets/images/garden-design.webp'),
+      image: homeImages['garden-design.webp'],
     },
     {
       id: 4,
       title: 'Replace',
       description: 'Replace any part of your space',
-      image: require('../assets/images/replace.webp'),
+      image: homeImages['replace.webp'],
     },
     {
       id: 6,
       title: 'New walls',
       description: 'Change paint wall paper and more',
-      image: require('../assets/images/new-walls.webp'),
+      image: homeImages['new-walls.webp'],
     },
     {
       id: 7,
       title: 'New Flooring',
       description: 'Chose wood, carpet, tile, and more',
-      image: require('../assets/images/new-flooring.webp'),
+      image: homeImages['new-flooring.webp'],
     },
   ];
 
@@ -513,10 +465,14 @@ const HomeScreen = () => {
       {currentRoute === 'Tabs' && (
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <Image
-              source={require('../assets/images/iconImage.webp')}
-              style={{ width: 32, height: 32, marginRight: 8, resizeMode: 'cover', borderRadius: 10 }}
-            />
+            {homeImages['iconImage.webp'] ? (
+              <Image
+                source={homeImages['iconImage.webp']}
+                style={styles.logoIcon}
+              />
+            ) : (
+              <View style={[styles.logoIcon, { backgroundColor: '#E5E7EB' }]} />
+            )}
             <Text style={styles.logoText}>
               <Text style={styles.logoTextRegular}>AI </Text>
               <Text style={styles.logoTextPurple}>Visuals</Text>
@@ -908,63 +864,91 @@ const HomeScreen = () => {
                 <View style={styles.card}>
                   {card.title === 'Interior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/Interior (1).webp')}
-                        afterImage={require('../assets/images/Interior (2).webp')}
-                        sliderWidth={cardWidth}
-                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                      />
+                      {homeImages['Interior (1).webp'] && homeImages['Interior (2).webp'] ? (
+                        <AutoBeforeAfterSlider
+                          beforeImage={homeImages['Interior (1).webp']}
+                          afterImage={homeImages['Interior (2).webp']}
+                          sliderWidth={cardWidth}
+                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                        />
+                      ) : (
+                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
+                      )}
                     </View>
                   ) : card.title === 'Exterior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/exterior  (1).webp')}
-                        afterImage={require('../assets/images/exterior  (2).webp')}
-                        sliderWidth={cardWidth}
-                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                        startFrom="left"
-                      />
+                      {homeImages['exterior  (1).webp'] && homeImages['exterior  (2).webp'] ? (
+                        <AutoBeforeAfterSlider
+                          beforeImage={homeImages['exterior  (1).webp']}
+                          afterImage={homeImages['exterior  (2).webp']}
+                          sliderWidth={cardWidth}
+                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                          startFrom="left"
+                        />
+                      ) : (
+                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
+                      )}
                     </View>
                   ) : card.title === 'Garden Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/Garden (1).webp')}
-                        afterImage={require('../assets/images/Garden (2).webp')}
-                        sliderWidth={cardWidth}
-                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                      />
+                      {homeImages['Garden (1).webp'] && homeImages['Garden (2).webp'] ? (
+                        <AutoBeforeAfterSlider
+                          beforeImage={homeImages['Garden (1).webp']}
+                          afterImage={homeImages['Garden (2).webp']}
+                          sliderWidth={cardWidth}
+                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                        />
+                      ) : (
+                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
+                      )}
                     </View>
                   ) : card.title === 'Replace' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/replace (1).webp')}
-                        afterImage={require('../assets/images/replace (2).webp')}
-                        sliderWidth={cardWidth}
-                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                        startFrom="left"
-                      />
+                      {homeImages['replace (1).webp'] && homeImages['replace (2).webp'] ? (
+                        <AutoBeforeAfterSlider
+                          beforeImage={homeImages['replace (1).webp']}
+                          afterImage={homeImages['replace (2).webp']}
+                          sliderWidth={cardWidth}
+                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                          startFrom="left"
+                        />
+                      ) : (
+                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
+                      )}
                     </View>
                   ) : card.title === 'New Flooring' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/Flooring (1).webp')}
-                        afterImage={require('../assets/images/Flooring (2).webp')}
-                        sliderWidth={cardWidth}
-                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                        startFrom="left"
-                      />
+                      {homeImages['Flooring (1).webp'] && homeImages['Flooring (2).webp'] ? (
+                        <AutoBeforeAfterSlider
+                          beforeImage={homeImages['Flooring (1).webp']}
+                          afterImage={homeImages['Flooring (2).webp']}
+                          sliderWidth={cardWidth}
+                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                          startFrom="left"
+                        />
+                      ) : (
+                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
+                      )}
                     </View>
                   ) : card.title === 'New walls' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/images/interiorslide1.webp')}
-                        afterImage={require('../assets/images/interiorslide2.webp')}
-                        sliderWidth={cardWidth}
-                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                      />
+                      {homeImages['interiorslide1.webp'] && homeImages['interiorslide2.webp'] ? (
+                        <AutoBeforeAfterSlider
+                          beforeImage={homeImages['interiorslide1.webp']}
+                          afterImage={homeImages['interiorslide2.webp']}
+                          sliderWidth={cardWidth}
+                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                        />
+                      ) : (
+                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
+                      )}
                     </View>
                   ) : (
-                    <Image source={card.image} style={styles.cardImage} />
+                    card.image ? (
+                      <Image source={card.image} style={styles.cardImage} />
+                    ) : (
+                      <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
+                    )
                   )}
                   <View style={styles.cardContent}>
                     <View style={styles.cardTextContainer}>
@@ -1251,6 +1235,13 @@ const styles = StyleSheet.create({
   fenceBar: {
     height: '100%',
     borderRadius: 2,
+  },
+  logoIcon: {
+    width: 32,
+    height: 32,
+    marginRight: 8,
+    resizeMode: 'cover',
+    borderRadius: 10,
   },
 });
 

@@ -8,13 +8,15 @@ import {
   Image,
   Alert,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
+import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import { convertImageToBase64 } from '../utils/imageUtils';
+import { StyleSelectionSkeleton } from '../components/SkeletonLoader';
 
 // Mock Mode: Set to true to use mock responses instead of real API calls
 const USE_MOCK_API = true;
@@ -45,109 +47,46 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const STYLE_IMAGES = [
+    'Interior (1).webp',
+    'Interior (2).webp',
+    'interiorslide1.webp',
+    'interiorslide2.webp',
+    'interior-design.webp',
+    'Garden (1).webp',
+    'Garden (2).webp',
+    'Gardenslide1.webp',
+    'Gardenslide2.webp',
+    'garden-design.webp',
+    'exterior-design.webp',
+    'new-walls.webp'
+  ];
+
+  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(STYLE_IMAGES);
+  
+  // Safely map dictionary back to array
+  const firebaseImages = STYLE_IMAGES.map(key => firebaseImagesDict[key] || null);
+
   // Log screen view
   useEffect(() => {
     logScreenView('NewFlooringStyleSelectionScreen');
   }, []);
 
   const stylesData = [
-    { id: 'modern', name: 'Modern', image: require('../assets/images/interior-design.webp') },
-    { id: 'cozy', name: 'Cozy', image: require('../assets/images/interior-design.webp') },
-    { id: 'luxury', name: 'Luxury', image: require('../assets/images/interior-design.webp') },
-    { id: 'minimalist', name: 'Minimalist', image: require('../assets/images/interior-design.webp') },
-    { id: 'scandinavian', name: 'Scandinavian', image: require('../assets/images/interior-design.webp') },
-    { id: 'airbnb', name: 'Airbnb', image: require('../assets/images/interior-design.webp') },
-    { id: 'midcentury', name: 'Mid Century', image: require('../assets/images/interior-design.webp') },
-    { id: 'rustic', name: 'Rustic', image: require('../assets/images/interior-design.webp') },
-    { id: 'zen', name: 'Zen', image: require('../assets/images/interior-design.webp') },
-    { id: 'tropical', name: 'Tropical', image: require('../assets/images/interior-design.webp') },
-    { id: 'coastal', name: 'Coastal', image: require('../assets/images/interior-design.webp') },
-    { id: 'vintage', name: 'Vintage', image: require('../assets/images/interior-design.webp') },
+    { id: 'modern', name: 'Modern', image: firebaseImages[0] },
+    { id: 'cozy', name: 'Cozy', image: firebaseImages[1] },
+    { id: 'luxury', name: 'Luxury', image: firebaseImages[2] },
+    { id: 'minimalist', name: 'Minimalist', image: firebaseImages[3] },
+    { id: 'scandinavian', name: 'Scandinavian', image: firebaseImages[4] },
+    { id: 'airbnb', name: 'Airbnb', image: firebaseImages[5] },
+    { id: 'midcentury', name: 'Mid Century', image: firebaseImages[6] },
+    { id: 'rustic', name: 'Rustic', image: firebaseImages[7] },
+    { id: 'zen', name: 'Zen', image: firebaseImages[8] },
+    { id: 'tropical', name: 'Tropical', image: firebaseImages[9] },
+    { id: 'coastal', name: 'Coastal', image: firebaseImages[10] },
+    { id: 'vintage', name: 'Vintage', image: firebaseImages[11] },
   ];
 
-  // Convert image URI to base64
-  const convertImageToBase64 = async (uri: string): Promise<string | null> => {
-    try {
-      console.log('Converting image to base64, URI:', uri.substring(0, 50) + '...');
-      
-      // If already base64, return as is
-      if (uri.startsWith('data:')) {
-        console.log('Image is already base64 encoded');
-        return uri;
-      }
-      
-      // Use XMLHttpRequest for file:// URIs (works in React Native)
-      if (uri.startsWith('file://') || uri.startsWith('content://')) {
-        return new Promise((resolve) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open('GET', uri, true);
-          xhr.responseType = 'blob';
-          xhr.onload = function() {
-            if (xhr.status === 200) {
-              const reader = new FileReader();
-              reader.onloadend = function() {
-                const base64String = reader.result as string;
-                console.log('Image converted to base64 via XMLHttpRequest, length:', base64String.length);
-                resolve(base64String);
-              };
-              reader.onerror = function() {
-                console.warn('FileReader error, returning URI as-is');
-                resolve(uri);
-              };
-              reader.readAsDataURL(xhr.response);
-            } else {
-              console.warn('XMLHttpRequest failed, returning URI as-is');
-              resolve(uri);
-            }
-          };
-          xhr.onerror = function() {
-            console.warn('XMLHttpRequest error, returning URI as-is');
-            resolve(uri);
-          };
-          xhr.send();
-        });
-      }
-      
-      // Use XMLHttpRequest for http/https URIs (works in React Native)
-      if (uri.startsWith('http://') || uri.startsWith('https://')) {
-        return new Promise((resolve) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open('GET', uri, true);
-          xhr.responseType = 'blob';
-          xhr.onload = function() {
-            if (xhr.status === 200) {
-              const reader = new FileReader();
-              reader.onloadend = function() {
-                const base64String = reader.result as string;
-                console.log('Image converted to base64 via XMLHttpRequest, length:', base64String.length);
-                resolve(base64String);
-              };
-              reader.onerror = function() {
-                console.warn('FileReader error, returning URI as-is');
-                resolve(uri);
-              };
-              reader.readAsDataURL(xhr.response);
-            } else {
-              console.warn('XMLHttpRequest failed, returning URI as-is');
-              resolve(uri);
-            }
-          };
-          xhr.onerror = function() {
-            console.warn('XMLHttpRequest error, returning URI as-is');
-            resolve(uri);
-          };
-          xhr.send();
-        });
-      }
-      
-      // Fallback: return the URI as-is and let backend handle it
-      console.warn('Unsupported URI format, returning URI as-is');
-      return uri;
-    } catch (error: any) {
-      console.error('Error converting image to base64:', error);
-      return null;
-    }
-  };
 
   // Map style to flooring material prompt
   const getFlooringPrompt = (style: string): string => {
@@ -229,25 +168,18 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
         // Simulate network delay
         await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
         
-        // Use the original input image as the "generated" image
-        let mockImageDataUri = null;
-        if (requestData.imageBase64) {
-          // If it's already a data URI, use it directly
-          if (requestData.imageBase64.startsWith('data:')) {
-            mockImageDataUri = requestData.imageBase64;
-          } else {
-            // If it's just base64, construct data URI
-            mockImageDataUri = `data:image/jpeg;base64,${requestData.imageBase64}`;
-          }
-        }
-
-        // Create mock response
+        // In mock mode, simply return the user's uploaded image directly without base64 conversion
+        // since base64 conversion can cause memory issues on emulators.
         responseData = {
           success: true,
-          message: 'Mock flooring design generated successfully',
-          hasImage: !!mockImageDataUri,
-          targetArea: requestData.targetArea,
-          imageDataUri: mockImageDataUri,
+          message: 'Mock design generated successfully',
+          hasImage: !!userImage,
+          designType: requestData.designType,
+          roomType: requestData.roomType,
+          style: requestData.style,
+          prompt: `Generate a ${requestData.style} style ${requestData.roomType} design`,
+          generatedDescription: `This is a mock ${requestData.style} style ${requestData.roomType} design.`,
+          imageDataUri: userImage || undefined,
           imageMimeType: 'image/jpeg',
         };
       } else {
@@ -258,20 +190,16 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
         // For now, using mock even when USE_MOCK_API is false (real API is commented out)
         console.log('⚠️ Real API call commented out. Using mock response...');
         await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
-        let mockImageDataUri = null;
-        if (requestData.imageBase64) {
-          if (requestData.imageBase64.startsWith('data:')) {
-            mockImageDataUri = requestData.imageBase64;
-          } else {
-            mockImageDataUri = `data:image/jpeg;base64,${requestData.imageBase64}`;
-          }
-        }
         responseData = {
           success: true,
-          message: 'Mock flooring design generated successfully',
-          hasImage: !!mockImageDataUri,
-          targetArea: requestData.targetArea,
-          imageDataUri: mockImageDataUri,
+          message: 'Mock design generated successfully',
+          hasImage: !!userImage,
+          designType: requestData.designType,
+          roomType: requestData.roomType,
+          style: requestData.style,
+          prompt: `Generate a ${requestData.style} style ${requestData.roomType} design`,
+          generatedDescription: `This is a mock ${requestData.style} style ${requestData.roomType} design.`,
+          imageDataUri: userImage || undefined,
           imageMimeType: 'image/jpeg',
         };
       }
@@ -371,6 +299,9 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
         <Text style={styles.sectionTitle}>Select A Style</Text>
 
         {/* Style Grid */}
+        {loadingImages ? (
+          <StyleSelectionSkeleton count={12} />
+        ) : (
         <View style={styles.stylesGrid}>
           {stylesData.map((styleItem) => (
             <TouchableOpacity
@@ -400,6 +331,7 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
             </TouchableOpacity>
           ))}
         </View>
+        )}
       </ScrollView>
 
       {/* Generate Now Button */}

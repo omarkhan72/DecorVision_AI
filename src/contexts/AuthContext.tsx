@@ -18,6 +18,7 @@ export interface User {
   displayName: string | null;
   photoURL: string | null;
   isPremium?: boolean;
+  isGuest?: boolean;
   tokens?: {
     freeTokens: number;
     premiumTokens: number;
@@ -28,6 +29,7 @@ export interface AuthContextType {
   user: User | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  skipSignIn: () => void;
   signOut: () => Promise<void>;
   consumeToken: () => Promise<boolean>;
   deleteAccount: () => Promise<void>;
@@ -281,6 +283,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const skipSignIn = () => {
+    const guestUser: User = {
+      uid: 'guest_' + Date.now().toString(),
+      email: 'guest@visualsai.app',
+      displayName: 'Guest User',
+      photoURL: null,
+      isPremium: false,
+      isGuest: true,
+      tokens: { freeTokens: 3, premiumTokens: 0 }
+    };
+    setUser(guestUser);
+    setLoading(false);
+  };
+
   const consumeToken = async (): Promise<boolean> => {
     if (!user || !user.uid) return false;
 
@@ -378,7 +394,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut, consumeToken, deleteAccount }}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, skipSignIn, signOut, consumeToken, deleteAccount }}>
       {children}
       <ConfirmationModal
         visible={sessionExpiredVisible}
