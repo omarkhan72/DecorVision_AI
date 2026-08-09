@@ -26,7 +26,7 @@ type Props = {
   onContinue?: (imageUri: string | null) => void;
   userImage?: string | null;
   roomType?: string | null;
-  designType?: 'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring' | 'cleanup';
+  designType?: 'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring' | 'cleanup' | 'blueprint';
   onBeforeGenerate?: () => Promise<boolean>;
 };
 

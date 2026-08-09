@@ -36,6 +36,7 @@ import GardenUploadScreen from './GardenUploadScreen';
 import ReplaceUploadScreen from './ReplaceUploadScreen';
 import NewWallsUploadScreen from './NewWallsUploadScreen';
 import NewFlooringUploadScreen from './NewFlooringUploadScreen';
+import BlueprintUploadScreen from './BlueprintUploadScreen';
 import RoomTypeSelectionScreen from './RoomTypeSelectionScreen';
 import RoomTypeExteriorScreen from './RoomTypeExteriorScreen';
 import RoomTypeGardenScreen from './RoomTypeGardenScreen';
@@ -131,7 +132,7 @@ const HomeScreen = () => {
   const { user, consumeToken } = useAuth();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'History'>('Home');
-  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'ExteriorUpload' | 'GardenUpload' | 'ReplaceUpload' | 'ReplaceMask' | 'ReplacePrompt' | 'NewWallsUpload' | 'NewFlooringUpload' | 'RoomTypeSelection' | 'RoomTypeExterior' | 'RoomTypeGarden' | 'RoomTypeReplace' | 'RoomTypeNewWalls' | 'RoomTypeNewFlooring' | 'InteriorStyleSelection' | 'NewFlooringStyleSelection' | 'NewWallsStyleSelection' | 'DesignLoading' | 'DesignResult' | 'StyleDetail'>('Tabs');
+  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'ExteriorUpload' | 'GardenUpload' | 'ReplaceUpload' | 'ReplaceMask' | 'ReplacePrompt' | 'NewWallsUpload' | 'NewFlooringUpload' | 'BlueprintUpload' | 'RoomTypeSelection' | 'RoomTypeExterior' | 'RoomTypeGarden' | 'RoomTypeReplace' | 'RoomTypeNewWalls' | 'RoomTypeNewFlooring' | 'InteriorStyleSelection' | 'NewFlooringStyleSelection' | 'NewWallsStyleSelection' | 'DesignLoading' | 'DesignResult' | 'StyleDetail'>('Tabs');
   const [selectedStyleImage, setSelectedStyleImage] = useState<any>(null);
   const [selectedRoomName, setSelectedRoomName] = useState<string>('Living Room');
   const [selectedRoomType, setSelectedRoomType] = useState<string | null>(null);
@@ -139,7 +140,7 @@ const HomeScreen = () => {
   const [userUploadedImage, setUserUploadedImage] = useState<string | null>(null);
   const [maskImageUri, setMaskImageUri] = useState<string | null>(null);
   const [replacePrompt, setReplacePrompt] = useState<string | null>(null);
-  const [designType, setDesignType] = useState<'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring'>('interior');
+  const [designType, setDesignType] = useState<'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring' | 'blueprint'>('interior');
   const [isReplacing, setIsReplacing] = useState(false);
   const [isPaywallVisible, setIsPaywallVisible] = useState(false);
 
@@ -375,6 +376,106 @@ const HomeScreen = () => {
     }
   };
 
+  // Handle blueprint 3D design generation call
+  const handleBlueprintGenerate = async (imageUri: string) => {
+    if (!imageUri) {
+      Alert.alert('Error', 'Missing required blueprint image');
+      return;
+    }
+
+    // Check and consume token before starting
+    const tokenConsumed = await checkAndConsumeToken();
+    if (!tokenConsumed) return;
+
+    setUserUploadedImage(imageUri);
+    setCurrentRoute('DesignLoading');
+
+    try {
+      const prompt = `Act as an expert 3D architectural renderer. Convert this 2D architectural floor plan into a photorealistic 3D rendered layout. Strictly maintain the structural integrity, walls, and room placements provided in the blueprint, and render it as a high-quality, fully furnished 3D isometric or top-down perspective.`;
+
+      console.log('=== Blueprint 3D Generation Request Started ===');
+      console.log('Blueprint image:', imageUri);
+      console.log('Prompt:', prompt);
+
+      // Convert image to base64
+      const imageBase64 = await convertImageToBase64(imageUri);
+      if (!imageBase64) {
+        throw new Error('Failed to convert blueprint image to base64');
+      }
+
+      console.log('Calling Firebase Function: replace (multimodal dynamic prompt)');
+      const functions = getFunctions(undefined, 'us-central1');
+      const replaceFunction = httpsCallable(functions, 'replace');
+
+      const requestData = {
+        imageBase64: imageBase64,
+        prompt: prompt.trim(),
+        maskImageBase64: null,
+      };
+
+      let responseData: any;
+
+      if (USE_MOCK_API) {
+        console.log('⚠️ MOCK MODE: Generating static 3D blueprint response...');
+        await new Promise<void>(resolve => setTimeout(() => resolve(), 2000));
+
+        let mockImageDataUri = null;
+        if (requestData.imageBase64) {
+          if (requestData.imageBase64.startsWith('data:')) {
+            mockImageDataUri = requestData.imageBase64;
+          } else {
+            mockImageDataUri = `data:image/jpeg;base64,${requestData.imageBase64}`;
+          }
+        }
+
+        responseData = {
+          success: true,
+          message: 'Mock 3D render generated successfully',
+          hasImage: !!mockImageDataUri,
+          imageDataUri: mockImageDataUri,
+          imageMimeType: 'image/jpeg',
+        };
+      } else {
+        const result = await replaceFunction(requestData);
+        responseData = result.data as any;
+      }
+
+      console.log('=== Blueprint 3D Generation Response ===');
+      console.log('Success:', responseData.success);
+      console.log('Has image:', responseData.hasImage);
+
+      if (responseData.success && responseData.hasImage) {
+        let generatedImageUri = null;
+
+        if (responseData.imageDataUri) {
+          generatedImageUri = responseData.imageDataUri;
+        } else if (responseData.generatedImageBase64) {
+          generatedImageUri = `data:${responseData.imageMimeType || 'image/png'};base64,${responseData.generatedImageBase64}`;
+        }
+
+        if (generatedImageUri) {
+          console.log('Generated 3D render received, navigating to result');
+          setUserUploadedImage(generatedImageUri);
+          setCurrentRoute('DesignResult');
+        } else {
+          throw new Error('No image in response');
+        }
+      } else {
+        throw new Error(responseData.message || '3D Design generation failed');
+      }
+    } catch (error: any) {
+      console.error('=== Error in handleBlueprintGenerate ===', error);
+      let errorMessage = 'Failed to generate 3D design. Please try again.';
+      if (error?.code === 'unavailable' || error?.code === 'functions/unavailable') {
+        errorMessage = 'The 3D design service is currently unavailable. Please make sure:\n\n1. The Firebase function is deployed\n2. You have an active internet connection\n3. Try again in a few moments';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      Alert.alert('Error', errorMessage);
+      setCurrentRoute('BlueprintUpload');
+    }
+  };
+
   // Reanimated shared values
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler(event => {
@@ -452,6 +553,12 @@ const HomeScreen = () => {
       title: 'New Flooring',
       description: 'Chose wood, carpet, tile, and more',
       image: homeImages['new-flooring.webp'],
+    },
+    {
+      id: 8,
+      title: '3D Design Maker',
+      description: 'Create 3D models and designs',
+      image: { uri: 'https://plus.unsplash.com/premium_photo-1747771129197-010a72fe735b?q=80&w=484&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
     },
   ];
 
@@ -575,6 +682,14 @@ const HomeScreen = () => {
           onContinue={(imageUri) => {
             setUserUploadedImage(imageUri);
             setCurrentRoute('RoomTypeNewFlooring');
+          }}
+          styleImage={selectedStyleImage}
+        />
+      ) : currentRoute === 'BlueprintUpload' ? (
+        <BlueprintUploadScreen
+          onBack={() => setCurrentRoute('Tabs')}
+          onContinue={(imageUri) => {
+            handleBlueprintGenerate(imageUri);
           }}
           styleImage={selectedStyleImage}
         />
@@ -718,6 +833,8 @@ const HomeScreen = () => {
               setCurrentRoute('NewWallsUpload');
             } else if (designType === 'newflooring') {
               setCurrentRoute('NewFlooringUpload');
+            } else if (designType === 'blueprint') {
+              setCurrentRoute('BlueprintUpload');
             } else {
               setCurrentRoute('InteriorUpload');
             }
@@ -854,12 +971,16 @@ const HomeScreen = () => {
                     console.log('Navigating to New Flooring Upload');
                     setDesignType('newflooring');
                     setCurrentRoute('NewFlooringUpload');
+                  } else if (card.id === 8) {
+                    console.log('Navigating to Blueprint Upload');
+                    setDesignType('blueprint');
+                    setCurrentRoute('BlueprintUpload');
                   } else {
                     console.log('Navigating to Interior Upload');
                     setDesignType('interior');
                     setCurrentRoute('InteriorUpload');
                   }
-                  console.log('Current route set, design type:', card.id === 2 ? 'exterior' : card.id === 3 ? 'garden' : card.id === 4 ? 'replace' : card.id === 6 ? 'newwalls' : card.id === 7 ? 'newflooring' : 'interior');
+                  console.log('Current route set, design type:', card.id === 2 ? 'exterior' : card.id === 3 ? 'garden' : card.id === 4 ? 'replace' : card.id === 6 ? 'newwalls' : card.id === 7 ? 'newflooring' : card.id === 8 ? 'blueprint' : 'interior');
                 }}>
                 <View style={styles.card}>
                   {card.title === 'Interior Design' ? (
