@@ -1,92 +1,77 @@
 import { useState, useEffect } from 'react';
-import { getStorage, ref, getDownloadURL } from '@react-native-firebase/storage';
+import { ImageSourcePropType } from 'react-native';
 
 /**
- * In-memory cache for individual Firebase Storage file download URLs.
- * Key: storage path (e.g. 'iconImage.webp'), Value: download URL string
+ * Local Static Assets Map.
+ * Maps storage file paths directly to local assets using require().
+ * This completely removes the Firebase Storage dependency and avoids billing errors.
  */
-const pathCache: Map<string, string> = new Map();
+const LOCAL_IMAGE_MAP: Record<string, ImageSourcePropType> = {
+  'iconImage.webp': require('../assets/iconImage.webp'),
+  'interior-design.webp': require('../assets/interior-design.webp'),
+  'exterior-design.webp': require('../assets/exterior-design.webp'),
+  'garden-design.webp': require('../assets/garden-design.webp'),
+  'replace.webp': require('../assets/replace.webp'),
+  'new-walls.webp': require('../assets/new-walls.webp'),
+  'new-flooring.webp': require('../assets/new-flooring.webp'),
+  'cleanup.webp': require('../assets/cleanup.webp'),
+  'splashScreen.webp': require('../assets/splashScreen.webp'),
+  'Interior (1).webp': require('../assets/Interior (1).webp'),
+  'Interior (2).webp': require('../assets/Interior (2).webp'),
+  'exterior  (1).webp': require('../assets/exterior  (1).webp'),
+  'exterior  (2).webp': require('../assets/exterior  (2).webp'),
+  'Garden (1).webp': require('../assets/Garden (1).webp'),
+  'Garden (2).webp': require('../assets/Garden (2).webp'),
+  'replace (1).webp': require('../assets/replace (1).webp'),
+  'replace (2).webp': require('../assets/replace (2).webp'),
+  'Flooring (1).webp': require('../assets/Flooring (1).webp'),
+  'Flooring (2).webp': require('../assets/Flooring (2).webp'),
+  'interiorslide1.webp': require('../assets/interiorslide1.webp'),
+  'interiorslide2.webp': require('../assets/interiorslide2.webp'),
+  'Exteriorslide1 (1).webp': require('../assets/Exteriorslide1 (1).webp'),
+  'Exteriorslide2.webp': require('../assets/Exteriorslide2.webp'),
+  'Gardenslide1.webp': require('../assets/Gardenslide1.webp'),
+  'Gardenslide2.webp': require('../assets/Gardenslide2.webp'),
+  'flooringslide1.webp': require('../assets/flooringslide1.webp'),
+  'flooringslide2.webp': require('../assets/flooringslide2.webp'),
+  'replaceslide1.webp': require('../assets/replaceslide1.webp'),
+  'replaceslide2.webp': require('../assets/replaceslide2.webp'),
+  'firstonbording.webp': require('../assets/firstonbording.webp'),
+  'firstonbording2.webp': require('../assets/firstonbording2.webp'),
+  'secondonbording1.webp': require('../assets/secondonbording1.webp'),
+  'secondonbording2.webp': require('../assets/secondonbording2.webp'),
+  'thirdonbording1.webp': require('../assets/thirdonbording1.webp'),
+  'thirdonbording2.webp': require('../assets/thirdonbording2.webp'),
+  'onbordingscreen2.webp': require('../assets/onbordingscreen2.webp'),
+  'onbordingscreen3.webp': require('../assets/onbordingscreen3.webp'),
+};
 
 /**
- * Fetches download URLs for specific files in Firebase Storage by their exact paths.
- * Unlike useFirebaseImages (which lists all files in a folder), this hook
- * fetches specific files by name — ideal for known, fixed assets.
+ * Hook to retrieve static local images by path name.
+ * Firebase Storage logic has been stripped out to prevent delinquent billing errors.
  *
- * Returns a record mapping each path to an {uri: string} image source object.
- * Uses in-memory caching so URLs are fetched only once per session.
- *
- * @param paths - Array of storage file paths (e.g. ['iconImage.webp', 'interior-design.webp'])
+ * @param paths - Array of file paths (e.g. ['iconImage.webp', 'interior-design.webp'])
  */
 export const useFirebaseImagePaths = (paths: string[]) => {
-  const cacheKey = paths.join('|');
-  const allCached = paths.length > 0 && paths.every(p => pathCache.has(p));
-
-  const [images, setImages] = useState<Record<string, { uri: string }>>(() => {
-    const initial: Record<string, { uri: string }> = {};
-    paths.forEach(p => {
-      const cached = pathCache.get(p);
-      if (cached) {
-        initial[p] = { uri: cached };
+  const [images, setImages] = useState<Record<string, ImageSourcePropType>>(() => {
+    const map: Record<string, ImageSourcePropType> = {};
+    paths.forEach((p) => {
+      if (LOCAL_IMAGE_MAP[p]) {
+        map[p] = LOCAL_IMAGE_MAP[p];
       }
     });
-    return initial;
+    return map;
   });
-  const [loading, setLoading] = useState(!allCached);
-  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (allCached) {
-      // Populate from cache immediately
-      const cached: Record<string, { uri: string }> = {};
-      paths.forEach(p => {
-        cached[p] = { uri: pathCache.get(p)! };
-      });
-      setImages(cached);
-      setLoading(false);
-      return;
-    }
-
-    let isMounted = true;
-
-    const fetchUrls = async () => {
-      setLoading(true);
-      try {
-        const results = await Promise.all(
-          paths.map(async (path) => {
-            // Use cached URL if available
-            if (pathCache.has(path)) {
-              return { path, url: pathCache.get(path)! };
-            }
-            const storageRef = ref(getStorage(), path);
-            const url = await getDownloadURL(storageRef);
-            pathCache.set(path, url);
-            return { path, url };
-          })
-        );
-
-        if (isMounted) {
-          const urlMap: Record<string, { uri: string }> = {};
-          results.forEach(r => {
-            urlMap[r.path] = { uri: r.url };
-          });
-          setImages(urlMap);
-          setLoading(false);
-        }
-      } catch (err: any) {
-        console.error('Error fetching Firebase image paths:', err);
-        if (isMounted) {
-          setError(err);
-          setLoading(false);
-        }
+    const map: Record<string, ImageSourcePropType> = {};
+    paths.forEach((p) => {
+      if (LOCAL_IMAGE_MAP[p]) {
+        map[p] = LOCAL_IMAGE_MAP[p];
       }
-    };
+    });
+    setImages(map);
+  }, [paths.join('|')]);
 
-    fetchUrls();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [cacheKey]);
-
-  return { images, loading, error };
+  return { images, loading: false, error: null };
 };

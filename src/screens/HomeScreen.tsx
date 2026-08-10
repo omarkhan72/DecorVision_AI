@@ -522,37 +522,37 @@ const HomeScreen = () => {
       id: 1,
       title: 'Interior Design',
       description: 'Transform your interior space',
-      image: homeImages['interior-design.webp'],
+      image: require('../assets/interior-design.webp'),
     },
     {
       id: 2,
       title: 'Exterior Design',
       description: 'Transform your exterior space',
-      image: homeImages['exterior-design.webp'],
+      image: require('../assets/exterior-design.webp'),
     },
     {
       id: 3,
       title: 'Garden Design',
       description: 'Transfer your garden',
-      image: homeImages['garden-design.webp'],
+      image: require('../assets/garden-design.webp'),
     },
     {
       id: 4,
       title: 'Replace',
       description: 'Replace any part of your space',
-      image: homeImages['replace.webp'],
+      image: require('../assets/replace.webp'),
     },
     {
       id: 6,
       title: 'New walls',
       description: 'Change paint wall paper and more',
-      image: homeImages['new-walls.webp'],
+      image: require('../assets/new-walls.webp'),
     },
     {
       id: 7,
       title: 'New Flooring',
       description: 'Chose wood, carpet, tile, and more',
-      image: homeImages['new-flooring.webp'],
+      image: require('../assets/new-flooring.webp'),
     },
     {
       id: 8,
@@ -572,14 +572,10 @@ const HomeScreen = () => {
       {currentRoute === 'Tabs' && (
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            {homeImages['iconImage.webp'] ? (
-              <Image
-                source={homeImages['iconImage.webp']}
-                style={styles.logoIcon}
-              />
-            ) : (
-              <View style={[styles.logoIcon, { backgroundColor: '#E5E7EB' }]} />
-            )}
+            <Image
+              source={require('../assets/iconImage.webp')}
+              style={styles.logoIcon}
+            />
             <Text style={styles.logoText}>
               <Text style={styles.logoTextRegular}>AI </Text>
               <Text style={styles.logoTextPurple}>Visuals</Text>
@@ -985,84 +981,60 @@ const HomeScreen = () => {
                 <View style={styles.card}>
                   {card.title === 'Interior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      {homeImages['Interior (1).webp'] && homeImages['Interior (2).webp'] ? (
-                        <AutoBeforeAfterSlider
-                          beforeImage={homeImages['Interior (1).webp']}
-                          afterImage={homeImages['Interior (2).webp']}
-                          sliderWidth={cardWidth}
-                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                        />
-                      ) : (
-                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
-                      )}
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/Interior (1).webp')}
+                        afterImage={require('../assets/Interior (2).webp')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                      />
                     </View>
                   ) : card.title === 'Exterior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      {homeImages['exterior  (1).webp'] && homeImages['exterior  (2).webp'] ? (
-                        <AutoBeforeAfterSlider
-                          beforeImage={homeImages['exterior  (1).webp']}
-                          afterImage={homeImages['exterior  (2).webp']}
-                          sliderWidth={cardWidth}
-                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                          startFrom="left"
-                        />
-                      ) : (
-                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
-                      )}
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/exterior  (1).webp')}
+                        afterImage={require('../assets/exterior  (2).webp')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                        startFrom="left"
+                      />
                     </View>
                   ) : card.title === 'Garden Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      {homeImages['Garden (1).webp'] && homeImages['Garden (2).webp'] ? (
-                        <AutoBeforeAfterSlider
-                          beforeImage={homeImages['Garden (1).webp']}
-                          afterImage={homeImages['Garden (2).webp']}
-                          sliderWidth={cardWidth}
-                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                        />
-                      ) : (
-                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
-                      )}
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/Garden (1).webp')}
+                        afterImage={require('../assets/Garden (2).webp')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                      />
                     </View>
                   ) : card.title === 'Replace' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      {homeImages['replace (1).webp'] && homeImages['replace (2).webp'] ? (
-                        <AutoBeforeAfterSlider
-                          beforeImage={homeImages['replace (1).webp']}
-                          afterImage={homeImages['replace (2).webp']}
-                          sliderWidth={cardWidth}
-                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                          startFrom="left"
-                        />
-                      ) : (
-                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
-                      )}
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/replace (1).webp')}
+                        afterImage={require('../assets/replace (2).webp')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                        startFrom="left"
+                      />
                     </View>
                   ) : card.title === 'New Flooring' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      {homeImages['Flooring (1).webp'] && homeImages['Flooring (2).webp'] ? (
-                        <AutoBeforeAfterSlider
-                          beforeImage={homeImages['Flooring (1).webp']}
-                          afterImage={homeImages['Flooring (2).webp']}
-                          sliderWidth={cardWidth}
-                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                          startFrom="left"
-                        />
-                      ) : (
-                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
-                      )}
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/Flooring (1).webp')}
+                        afterImage={require('../assets/Flooring (2).webp')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                        startFrom="left"
+                      />
                     </View>
                   ) : card.title === 'New walls' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
-                      {homeImages['interiorslide1.webp'] && homeImages['interiorslide2.webp'] ? (
-                        <AutoBeforeAfterSlider
-                          beforeImage={homeImages['interiorslide1.webp']}
-                          afterImage={homeImages['interiorslide2.webp']}
-                          sliderWidth={cardWidth}
-                          containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                        />
-                      ) : (
-                        <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
-                      )}
+                      <AutoBeforeAfterSlider
+                        beforeImage={require('../assets/interiorslide1.webp')}
+                        afterImage={require('../assets/interiorslide2.webp')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                      />
                     </View>
                   ) : (
                     card.image ? (
