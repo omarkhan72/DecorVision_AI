@@ -51,6 +51,7 @@ import DesignLoadingScreen from './DesignLoadingScreen';
 import StyleDetailScreen from './StyleDetailScreen';
 import ReplaceMaskScreen from './ReplaceMaskScreen';
 import ReplacePromptScreen from './ReplacePromptScreen';
+import BlueprintPromptScreen from './BlueprintPromptScreen';
 import { generateDesignDirectly } from '../services/GeminiDirectService';
 import { Alert } from 'react-native';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
@@ -130,12 +131,13 @@ const HomeScreen = () => {
   const { user, consumeToken } = useAuth();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'Home' | 'Design' | 'History'>('Home');
-  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'ExteriorUpload' | 'GardenUpload' | 'ReplaceUpload' | 'ReplaceMask' | 'ReplacePrompt' | 'NewWallsUpload' | 'NewFlooringUpload' | 'BlueprintUpload' | 'RoomTypeSelection' | 'RoomTypeExterior' | 'RoomTypeGarden' | 'RoomTypeReplace' | 'RoomTypeNewWalls' | 'RoomTypeNewFlooring' | 'InteriorStyleSelection' | 'NewFlooringStyleSelection' | 'NewWallsStyleSelection' | 'DesignLoading' | 'DesignResult' | 'StyleDetail'>('Tabs');
+  const [currentRoute, setCurrentRoute] = useState<'Tabs' | 'Settings' | 'Subscription' | 'Interiors' | 'Exteriors' | 'InteriorUpload' | 'ExteriorUpload' | 'GardenUpload' | 'ReplaceUpload' | 'ReplaceMask' | 'ReplacePrompt' | 'NewWallsUpload' | 'NewFlooringUpload' | 'BlueprintUpload' | 'BlueprintPrompt' | 'RoomTypeSelection' | 'RoomTypeExterior' | 'RoomTypeGarden' | 'RoomTypeReplace' | 'RoomTypeNewWalls' | 'RoomTypeNewFlooring' | 'InteriorStyleSelection' | 'NewFlooringStyleSelection' | 'NewWallsStyleSelection' | 'DesignLoading' | 'DesignResult' | 'StyleDetail'>('Tabs');
   const [selectedStyleImage, setSelectedStyleImage] = useState<any>(null);
   const [selectedRoomName, setSelectedRoomName] = useState<string>('Living Room');
   const [selectedRoomType, setSelectedRoomType] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [userUploadedImage, setUserUploadedImage] = useState<string | null>(null);
+  const [blueprintImageUri, setBlueprintImageUri] = useState<string | null>(null);
   const [maskImageUri, setMaskImageUri] = useState<string | null>(null);
   const [replacePrompt, setReplacePrompt] = useState<string | null>(null);
   const [designType, setDesignType] = useState<'interior' | 'exterior' | 'garden' | 'replace' | 'newwalls' | 'newflooring' | 'blueprint'>('interior');
@@ -295,7 +297,7 @@ const HomeScreen = () => {
   };
 
   // Handle blueprint 3D design generation call
-  const handleBlueprintGenerate = async (imageUri: string) => {
+  const handleBlueprintGenerate = async (imageUri: string, customPrompt?: string) => {
     if (!imageUri) {
       Alert.alert('Error', 'Missing required blueprint image');
       return;
@@ -309,7 +311,7 @@ const HomeScreen = () => {
     setCurrentRoute('DesignLoading');
 
     try {
-      const prompt = `Act as an expert 3D architectural renderer. Convert this 2D architectural floor plan into a photorealistic 3D rendered layout. Strictly maintain the structural integrity, walls, and room placements provided in the blueprint, and render it as a high-quality, fully furnished 3D isometric or top-down perspective.`;
+      const prompt = customPrompt || `Act as an expert 3D architectural renderer. Convert this 2D architectural floor plan into a photorealistic 3D rendered layout. Strictly maintain the structural integrity, walls, and room placements provided in the blueprint, and render it as a high-quality, fully furnished 3D isometric or top-down perspective.`;
 
       console.log('=== Blueprint 3D Generation Request Started ===');
       console.log('Blueprint image:', imageUri);
@@ -561,9 +563,18 @@ const HomeScreen = () => {
         <BlueprintUploadScreen
           onBack={() => setCurrentRoute('Tabs')}
           onContinue={(imageUri) => {
-            handleBlueprintGenerate(imageUri);
+            setBlueprintImageUri(imageUri);
+            setCurrentRoute('BlueprintPrompt');
           }}
           styleImage={selectedStyleImage}
+        />
+      ) : currentRoute === 'BlueprintPrompt' ? (
+        <BlueprintPromptScreen
+          onBack={() => setCurrentRoute('BlueprintUpload')}
+          onGenerate={(prompt) => {
+            handleBlueprintGenerate(blueprintImageUri!, prompt);
+          }}
+          blueprintImageUri={blueprintImageUri!}
         />
       ) : currentRoute === 'RoomTypeNewFlooring' ? (
         <RoomTypeNewFlooringScreen
