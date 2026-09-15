@@ -453,8 +453,8 @@ const HomeScreen = () => {
               style={styles.logoIcon}
             />
             <Text style={styles.logoText}>
-              <Text style={styles.logoTextRegular}>AI </Text>
-              <Text style={styles.logoTextPurple}>Visuals</Text>
+              <Text style={styles.logoTextRegular}>DecorVision </Text>
+              <Text style={styles.logoTextPurple}>AI</Text>
             </Text>
           </View>
           <View style={styles.headerRight}>
@@ -1019,14 +1019,14 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 20,
-    fontWeight: '400',
+    fontWeight: '700',
   },
   logoTextRegular: {
-    fontWeight: '400',
+    fontWeight: '700',
     color: '#1A1A1A',
   },
   logoTextPurple: {
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#8B5CF6',
   },
   headerRight: {

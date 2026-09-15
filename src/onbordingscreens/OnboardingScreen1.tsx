@@ -6,12 +6,17 @@ import {
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AutoBeforeAfterSlider from '../components/AutoBeforeAfterSlider';
 import adjust from '../utils/Adjust';
 import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const HORIZONTAL_GAP = adjust(16);
+const SLIDER_WIDTH = SCREEN_WIDTH - HORIZONTAL_GAP * 2;
 
 const IMAGES = ['firstonbording.webp', 'firstonbording2.webp'];
 
@@ -35,6 +40,8 @@ const OnboardingScreen1: React.FC<Props> = ({ onNext, onSkip }) => {
             <AutoBeforeAfterSlider
               beforeImage={images['firstonbording.webp']}
               afterImage={images['firstonbording2.webp']}
+              sliderWidth={SLIDER_WIDTH}
+              containerStyle={styles.sliderBox}
             />
           ) : (
             <View style={{ flex: 1, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}>
@@ -45,36 +52,31 @@ const OnboardingScreen1: React.FC<Props> = ({ onNext, onSkip }) => {
 
         {/* --- Bottom Content Section --- */}
         <View style={styles.bottomContent}>
-          {/* Title & Next Button Row */}
-          <View style={styles.titleRow}>
-            <View style={styles.titleContainer}>
-              <Text style={styles.titleText}>AI Interior Design</Text>
-              <Text style={styles.titleText}>& Remodeling</Text>
-            </View>
+          {/* Centered Title */}
+          <Text style={styles.centerTitleText} numberOfLines={1} adjustsFontSizeToFit>AI Interior Design</Text>
 
-            <TouchableOpacity
-              style={styles.nextButton}
-              onPress={onNext}
-              activeOpacity={0.8}
-            >
-              <FontAwesome name="arrow-right" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Footer Controls (Skip, Dots) */}
+          {/* Footer Controls (Skip, Dots, Next) */}
           <View style={styles.footerRow}>
-            <TouchableOpacity onPress={onSkip} style={styles.skipBtn}>
+            {/* Skip Button */}
+            <TouchableOpacity onPress={onSkip} style={styles.skipBtn} activeOpacity={0.7}>
               <Text style={styles.skipText}>Skip</Text>
             </TouchableOpacity>
 
+            {/* Center Pagination Dots */}
             <View style={styles.paginationContainer}>
               <View style={[styles.dot, styles.dotActive]} />
               <View style={styles.dot} />
               <View style={styles.dot} />
             </View>
 
-            {/* Spacer to balance layout */}
-            <View style={styles.skipBtn} />
+            {/* Next Button */}
+            <TouchableOpacity
+              style={styles.nextButton}
+              onPress={onNext}
+              activeOpacity={0.85}
+            >
+              <FontAwesome name="arrow-right" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -88,77 +90,76 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   sliderContainer: {
-    flex: 0.75, // Takes up ~75% of screen
+    flex: 0.80,
     width: '100%',
+    paddingHorizontal: HORIZONTAL_GAP,
     position: 'relative',
+  },
+  sliderBox: {
+    flex: 1,
+    borderRadius: adjust(24),
     overflow: 'hidden',
-    borderBottomLeftRadius: adjust(30),
-    borderBottomRightRadius: adjust(30),
   },
   bottomContent: {
-    flex: 0.25,
+    flex: 0.20,
     paddingHorizontal: adjust(24),
-    paddingTop: adjust(24),
+    paddingTop: adjust(12),
+    paddingBottom: adjust(12),
     justifyContent: 'space-between',
   },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: adjust(10),
-  },
-  titleContainer: {
-    flex: 1,
-  },
-  titleText: {
-    fontSize: adjust(28),
+  centerTitleText: {
+    fontSize: adjust(25),
     fontWeight: '800',
-    color: '#000000',
-    lineHeight: adjust(34),
-  },
-  nextButton: {
-    width: adjust(56),
-    height: adjust(56),
-    borderRadius: adjust(28),
-    backgroundColor: '#7C3AED', // Purple
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: adjust(16),
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    color: '#111827',
+    textAlign: 'center',
+    letterSpacing: -0.4,
+    marginTop: adjust(6),
+    marginBottom: adjust(4),
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: adjust(10),
   },
   skipBtn: {
     width: adjust(60),
-    paddingVertical: adjust(10),
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   skipText: {
     fontSize: adjust(16),
     fontWeight: '600',
-    color: '#000000',
+    color: '#6B7280',
   },
   paginationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: adjust(8),
+    gap: adjust(6),
   },
   dot: {
-    width: adjust(8),
-    height: adjust(8),
-    borderRadius: adjust(4),
-    backgroundColor: '#E5E7EB', // Gray
+    width: adjust(6),
+    height: adjust(6),
+    borderRadius: adjust(3),
+    backgroundColor: '#E5E7EB',
   },
   dotActive: {
-    width: adjust(8),
-    backgroundColor: '#7C3AED', // Purple
+    width: adjust(22),
+    height: adjust(6),
+    borderRadius: adjust(3),
+    backgroundColor: '#7C3AED',
+  },
+  nextButton: {
+    width: adjust(54),
+    height: adjust(54),
+    borderRadius: adjust(27),
+    backgroundColor: '#7C3AED',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
   },
 });
 

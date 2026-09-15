@@ -286,7 +286,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const skipSignIn = () => {
     const guestUser: User = {
       uid: 'guest_' + Date.now().toString(),
-      email: 'guest@visualsai.app',
+      email: 'guest@decorvision.ai',
       displayName: 'Guest User',
       photoURL: null,
       isPremium: false,

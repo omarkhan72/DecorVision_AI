@@ -76,7 +76,7 @@ const SignInScreen = () => {
                     />
                 </View>
 
-                <Text style={styles.appName}>Visuals AI</Text>
+                <Text style={styles.appName}>DecorVision AI</Text>
 
                 <View style={styles.textContainer}>
                     <Text style={styles.welcomeText}>Welcome!</Text>
