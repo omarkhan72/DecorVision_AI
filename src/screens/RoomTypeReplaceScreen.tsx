@@ -91,7 +91,7 @@ const RoomTypeReplaceScreen = ({ onBack, onContinue, userImage }: Props) => {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={() => onContinue?.(userImage)}
+          onPress={() => onContinue?.(userImage || null)}
           activeOpacity={0.9}
           disabled={!selectedReplace}>
           <View style={[styles.gradient, !selectedReplace && styles.gradientDisabled]}>

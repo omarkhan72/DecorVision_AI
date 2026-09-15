@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../components/FirebaseImage';
 
 const STYLE_DETAIL_IMAGES = ['interior-design.webp'];
 
@@ -37,7 +37,7 @@ const StyleDetailScreen = ({ onBack, onTryStyle, roomName = 'Living Room', image
         style={styles.scrollView}>
         {/* Main Image Display */}
         <View style={styles.imageContainer}>
-          <Image
+          <FirebaseImage
             source={image || images['interior-design.webp'] || { uri: '' }}
             style={styles.mainImage}
             resizeMode="cover"

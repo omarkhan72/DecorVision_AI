@@ -5,25 +5,22 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
+import { generateDesignDirectly } from '../services/GeminiDirectService';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
 import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../components/FirebaseImage';
 import { convertImageToBase64 } from '../utils/imageUtils';
 import { StyleSelectionSkeleton } from '../components/SkeletonLoader';
 
-// Mock Mode: Set to true to use mock responses instead of real API calls
-const USE_MOCK_API = true;
-
-type Props = { 
-  onBack: () => void; 
-  onContinue?: (imageUri: string | null) => void; 
+type Props = {
+  onBack: () => void;
+  onContinue?: (imageUri: string | null) => void;
   userImage?: string | null;
   roomType?: string | null;
 };
@@ -63,7 +60,7 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
   ];
 
   const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(STYLE_IMAGES);
-  
+
   // Safely map dictionary back to array
   const firebaseImages = STYLE_IMAGES.map(key => firebaseImagesDict[key] || null);
 
@@ -73,59 +70,60 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
   }, []);
 
   const stylesData = [
-    { id: 'modern', name: 'Modern', image: firebaseImages[0] },
-    { id: 'cozy', name: 'Cozy', image: firebaseImages[1] },
-    { id: 'luxury', name: 'Luxury', image: firebaseImages[2] },
-    { id: 'minimalist', name: 'Minimalist', image: firebaseImages[3] },
-    { id: 'scandinavian', name: 'Scandinavian', image: firebaseImages[4] },
-    { id: 'airbnb', name: 'Airbnb', image: firebaseImages[5] },
-    { id: 'midcentury', name: 'Mid Century', image: firebaseImages[6] },
-    { id: 'rustic', name: 'Rustic', image: firebaseImages[7] },
-    { id: 'zen', name: 'Zen', image: firebaseImages[8] },
-    { id: 'tropical', name: 'Tropical', image: firebaseImages[9] },
-    { id: 'coastal', name: 'Coastal', image: firebaseImages[10] },
-    { id: 'vintage', name: 'Vintage', image: firebaseImages[11] },
+    { id: 'hardwood', name: 'Hardwood', image: firebaseImages[0] },
+    { id: 'marble', name: 'Marble', image: firebaseImages[1] },
+    { id: 'ceramic_tile', name: 'Ceramic Tile', image: firebaseImages[2] },
+    { id: 'vinyl', name: 'Vinyl', image: firebaseImages[3] },
+    { id: 'carpet', name: 'Carpet', image: firebaseImages[4] },
+    { id: 'concrete', name: 'Polished Concrete', image: firebaseImages[5] },
+    { id: 'laminate', name: 'Laminate', image: firebaseImages[6] },
+    { id: 'herringbone', name: 'Herringbone', image: firebaseImages[7] },
+    { id: 'terrazzo', name: 'Terrazzo', image: firebaseImages[8] },
+    { id: 'bamboo', name: 'Bamboo', image: firebaseImages[9] },
+    { id: 'slate', name: 'Slate', image: firebaseImages[10] },
+    { id: 'parquet', name: 'Parquet', image: firebaseImages[11] },
   ];
 
-
-  // Map style to flooring material prompt
-  const getFlooringPrompt = (style: string): string => {
-    const stylePrompts: { [key: string]: string } = {
-      'modern': 'modern sleek flooring, such as polished concrete or minimalist tiles',
-      'cozy': 'warm cozy flooring, such as hardwood or soft carpet',
-      'luxury': 'luxurious premium flooring, such as marble or high-end hardwood',
-      'minimalist': 'minimalist clean flooring, such as light wood or simple tiles',
-      'scandinavian': 'scandinavian style light wood flooring',
-      'airbnb': 'stylish and welcoming flooring suitable for a rental property',
-      'midcentury': 'mid-century modern style flooring with retro patterns',
-      'rustic': 'rustic natural flooring, such as reclaimed wood or stone',
-      'zen': 'zen-inspired natural flooring, such as bamboo or light wood',
-      'tropical': 'tropical style flooring with natural textures',
-      'coastal': 'coastal style light flooring, such as whitewashed wood or light tiles',
-      'vintage': 'vintage style classic flooring with traditional patterns',
+  const getFlooringPrompt = (style: string) => {
+    const styleDescriptions: Record<string, string> = {
+      hardwood: 'natural warm hardwood flooring with elegant grain patterns and satin finish',
+      marble: 'luxurious polished white marble flooring with subtle gray veining',
+      ceramic_tile: 'modern large-format ceramic floor tiles with minimal grout lines',
+      vinyl: 'contemporary luxury vinyl plank flooring with realistic wood texture',
+      carpet: 'plush, high-pile neutral-toned wall-to-wall carpeting for maximum comfort',
+      concrete: 'sleek, industrial polished concrete flooring with a subtle reflective gloss',
+      laminate: 'high-durability stylish laminate flooring with modern timber aesthetic',
+      herringbone: 'classic herringbone patterned wood parquet flooring with rich tones',
+      terrazzo: 'trendy terrazzo composite flooring with colorful aggregate flecks',
+      bamboo: 'sustainable, light-toned strand-woven bamboo flooring',
+      slate: 'rustic dark slate stone floor tiles with textured natural cleft finish',
+      parquet: 'traditional geometric wood parquet flooring with intricate layout',
     };
-    return stylePrompts[style] || `${style} style flooring`;
+
+    const desc = styleDescriptions[style.toLowerCase()] || `${style} styled flooring`;
+    return `Replace the flooring in this room with new ${desc}. Maintain the exact walls, ceiling, furniture, lighting, and room architecture. Photorealistic, 8k resolution, architectural interior photography.`;
   };
 
   const handleGenerate = async () => {
     logButtonClick('Generate Button', 'NewFlooringStyleSelectionScreen');
+
+    console.log('=== Generate Button Pressed (Flooring) ===');
+    console.log('Selected style:', selectedStyle);
+    console.log('Room type:', roomType);
+    console.log('Has user image:', !!userImage);
+
     // Log design generation to Analytics
     if (selectedStyle && roomType) {
       await analytics.logDesignGeneration('newflooring', roomType, selectedStyle);
     }
-    console.log('=== Generate Button Pressed (New Flooring) ===');
-    console.log('Selected style:', selectedStyle);
-    console.log('Room type:', roomType);
-    console.log('Design type: newflooring');
-    console.log('Has user image:', !!userImage);
 
-    if (!selectedStyle) {
-      console.warn('Validation failed: Missing style');
-      Alert.alert('Error', 'Please select a style');
+    if (!selectedStyle || !roomType) {
+      console.warn('Validation failed: Missing style or room type');
+      Alert.alert('Error', 'Please select a style and room type');
       return;
     }
 
-    console.log('Starting design generation...');
+    console.log('Starting direct flooring design generation...');
     setIsGenerating(true);
 
     try {
@@ -141,120 +139,33 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
 
       // Generate prompt from style
       const prompt = getFlooringPrompt(selectedStyle);
-      console.log('Generated prompt:', prompt);
+      console.log('Calling GeminiDirectService with prompt:', prompt);
 
-      console.log('Calling Firebase Function: newFlooringWalls');
-      // v2 functions default to us-central1 region
-      const functions = getFunctions(undefined, 'us-central1');
-      const newFlooringWallsFunction = httpsCallable(functions, 'newFlooringWalls');
-      
-      const requestData = {
-        imageBase64: imageBase64 || null,
-        prompt: prompt,
-        targetArea: 'flooring',
-      };
-      
-      console.log('Request payload:', {
-        hasImageBase64: !!requestData.imageBase64,
-        prompt: requestData.prompt,
-        targetArea: requestData.targetArea,
-        imageBase64Length: requestData.imageBase64 ? requestData.imageBase64.length : 0
-      });
+      const responseData = await generateDesignDirectly(imageBase64, prompt);
 
-      let responseData: any;
+      console.log('=== Direct Flooring Generation Response ===');
+      console.log('Success:', responseData?.success);
+      console.log('Has image:', responseData?.hasImage);
 
-      if (USE_MOCK_API) {
-        console.log('⚠️ MOCK MODE: Generating static response...');
-        // Simulate network delay
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
-        
-        // In mock mode, simply return the user's uploaded image directly without base64 conversion
-        // since base64 conversion can cause memory issues on emulators.
-        responseData = {
-          success: true,
-          message: 'Mock design generated successfully',
-          hasImage: !!userImage,
-          designType: requestData.designType,
-          roomType: requestData.roomType,
-          style: requestData.style,
-          prompt: `Generate a ${requestData.style} style ${requestData.roomType} design`,
-          generatedDescription: `This is a mock ${requestData.style} style ${requestData.roomType} design.`,
-          imageDataUri: userImage || undefined,
-          imageMimeType: 'image/jpeg',
-        };
-      } else {
-        // Real API call - uncomment the lines below when USE_MOCK_API is false
-        // const result = await newFlooringWallsFunction(requestData);
-        // responseData = result.data as any;
-        
-        // For now, using mock even when USE_MOCK_API is false (real API is commented out)
-        console.log('⚠️ Real API call commented out. Using mock response...');
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
-        responseData = {
-          success: true,
-          message: 'Mock design generated successfully',
-          hasImage: !!userImage,
-          designType: requestData.designType,
-          roomType: requestData.roomType,
-          style: requestData.style,
-          prompt: `Generate a ${requestData.style} style ${requestData.roomType} design`,
-          generatedDescription: `This is a mock ${requestData.style} style ${requestData.roomType} design.`,
-          imageDataUri: userImage || undefined,
-          imageMimeType: 'image/jpeg',
-        };
-      }
-
-      console.log('=== Flooring Generation Response ===');
-      console.log('Success:', responseData.success);
-      console.log('Message:', responseData.message);
-      console.log('Has image:', responseData.hasImage);
-      console.log('Target area:', responseData.targetArea);
-
-      if (responseData.success && responseData.hasImage) {
-        // Check if we got a generated image
-        let generatedImageUri = null;
-        
-        if (responseData.imageDataUri) {
-          // Use the data URI directly if provided
-          generatedImageUri = responseData.imageDataUri;
-        } else if (responseData.generatedImageBase64) {
-          // Construct data URI from base64 and mime type
-          generatedImageUri = `data:${responseData.imageMimeType || 'image/png'};base64,${responseData.generatedImageBase64}`;
+      if (responseData?.success && (responseData?.imageDataUri || responseData?.imageBase64)) {
+        let generatedImageUri = responseData.imageDataUri;
+        if (!generatedImageUri && responseData.imageBase64) {
+          generatedImageUri = `data:${responseData.imageMimeType || 'image/jpeg'};base64,${responseData.imageBase64}`;
         }
-        
+
         if (generatedImageUri) {
           console.log('Generated image received, length:', generatedImageUri.length);
           console.log('Navigating to result screen with generated image');
-          // Navigate to result screen with generated image
           onContinue?.(generatedImageUri);
         } else {
-          console.log('No image in response, using user image or placeholder');
-          // Fallback to user image or placeholder
-          onContinue?.(userImage || null);
+          throw new Error('No image returned from flooring generation service');
         }
       } else {
-        console.error('Flooring generation failed:', responseData.message);
-        Alert.alert('Error', responseData.message || 'Failed to generate flooring design');
-        setIsGenerating(false);
+        throw new Error(responseData?.message || 'Failed to generate flooring design');
       }
     } catch (error: any) {
-      console.error('=== Error in handleGenerate ===');
-      console.error('Error type:', error?.constructor?.name || 'Unknown');
-      console.error('Error message:', error?.message || 'Unknown error');
-      console.error('Error code:', error?.code || 'N/A');
-      console.error('Error details:', error?.details || 'N/A');
-      console.error('Full error object:', JSON.stringify(error, null, 2));
-      
-      let errorMessage = 'Failed to generate design. Please try again.';
-      
-      if (error?.code === 'unavailable' || error?.code === 'functions/unavailable') {
-        errorMessage = 'The flooring service is currently unavailable. Please make sure:\n\n1. The Firebase function is deployed\n2. You have an active internet connection\n3. Try again in a few moments';
-      } else if (error?.code === 'internal') {
-        errorMessage = 'An internal error occurred. Please make sure:\n\n1. The newFlooringWalls function is deployed\n2. The GEMINI_API_KEY is configured\n3. Try again in a few moments';
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      
+      console.error('=== Error in handleGenerate ===', error?.message || error);
+      let errorMessage = error?.message || 'Failed to generate design. Please try again.';
       Alert.alert('Error', errorMessage);
       setIsGenerating(false);
     }
@@ -302,35 +213,35 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
         {loadingImages ? (
           <StyleSelectionSkeleton count={12} />
         ) : (
-        <View style={styles.stylesGrid}>
-          {stylesData.map((styleItem) => (
-            <TouchableOpacity
-              key={styleItem.id}
-              style={styles.styleCard}
-              onPress={() => {
-                logButtonClick(`Style Selected: ${styleItem.name}`, 'NewFlooringStyleSelectionScreen');
-                setSelectedStyle(styleItem.id);
-              }}
-              activeOpacity={0.8}>
-              <View style={styles.imageContainer}>
-                <Image
-                  source={styleItem.image}
-                  style={styles.styleImage}
-                />
-                {selectedStyle === styleItem.id && (
-                  <View style={styles.selectedRing} />
-                )}
-              </View>
-              <Text
-                style={[
-                  styles.styleName,
-                  selectedStyle === styleItem.id && styles.styleNameSelected,
-                ]}>
-                {styleItem.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+          <View style={styles.stylesGrid}>
+            {stylesData.map((styleItem) => (
+              <TouchableOpacity
+                key={styleItem.id}
+                style={styles.styleCard}
+                onPress={() => {
+                  logButtonClick(`Style Selected: ${styleItem.name}`, 'NewFlooringStyleSelectionScreen');
+                  setSelectedStyle(styleItem.id);
+                }}
+                activeOpacity={0.8}>
+                <View style={styles.imageContainer}>
+                  <FirebaseImage
+                    source={styleItem.image}
+                    style={styles.styleImage}
+                  />
+                  {selectedStyle === styleItem.id && (
+                    <View style={styles.selectedRing} />
+                  )}
+                </View>
+                <Text
+                  style={[
+                    styles.styleName,
+                    selectedStyle === styleItem.id && styles.styleNameSelected,
+                  ]}>
+                  {styleItem.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         )}
       </ScrollView>
 

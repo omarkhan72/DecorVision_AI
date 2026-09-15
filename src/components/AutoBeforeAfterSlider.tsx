@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import {
     View,
     StyleSheet,
-    Image,
     ImageSourcePropType,
     Dimensions,
 } from 'react-native';
+import FirebaseImage from './FirebaseImage';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -70,7 +70,7 @@ const AutoBeforeAfterSlider: React.FC<Props> = ({ beforeImage, afterImage, slide
     return (
         <View style={[styles.container, containerStyle]}>
             {/* Background Image (After / New) - Always Full */}
-            <Image
+            <FirebaseImage
                 source={afterImage}
                 style={[styles.imageFull, { width: sliderWidth }]}
                 resizeMode="cover"
@@ -78,7 +78,7 @@ const AutoBeforeAfterSlider: React.FC<Props> = ({ beforeImage, afterImage, slide
 
             {/* Foreground Image (Before / Old) - Width Animated */}
             <Animated.View style={[styles.foregroundWrapper, foregroundStyle]}>
-                <Image
+                <FirebaseImage
                     source={beforeImage}
                     style={[styles.imageFull, { width: sliderWidth }]}
                     resizeMode="cover"

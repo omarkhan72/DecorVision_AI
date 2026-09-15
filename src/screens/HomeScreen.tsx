@@ -51,15 +51,13 @@ import DesignLoadingScreen from './DesignLoadingScreen';
 import StyleDetailScreen from './StyleDetailScreen';
 import ReplaceMaskScreen from './ReplaceMaskScreen';
 import ReplacePromptScreen from './ReplacePromptScreen';
-import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
+import { generateDesignDirectly } from '../services/GeminiDirectService';
 import { Alert } from 'react-native';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import { convertImageToBase64 } from '../utils/imageUtils';
 import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../components/FirebaseImage';
 import SkeletonItem from '../components/SkeletonLoader';
-
-// Mock Mode: Set to true to use mock responses instead of real API calls
-const USE_MOCK_API = true;
 
 // All root-level image paths in Firebase Storage needed by HomeScreen
 const HOME_IMAGE_PATHS = [
@@ -261,88 +259,19 @@ const HomeScreen = () => {
         }
       }
 
-      console.log('Calling Firebase Function: replace');
-      const functions = getFunctions(undefined, 'us-central1');
-      const replaceFunction = httpsCallable(functions, 'replace');
+      console.log('Calling GeminiDirectService for replace...');
+      const fullReplacePrompt = `Replace the masked object/area in this room with: ${prompt.trim()}. Seamlessly blend it with the surrounding lighting, materials, perspectives, and shadows. Photorealistic, 8k resolution, professional architectural interior photography.`;
 
-      const requestData = {
-        imageBase64: originalImageBase64,
-        prompt: prompt.trim(),
-        maskImageBase64: maskImageBase64 || null,
-      };
+      const responseData = await generateDesignDirectly(originalImageBase64, fullReplacePrompt);
 
-      console.log('Request payload:', {
-        hasImageBase64: !!requestData.imageBase64,
-        hasPrompt: !!requestData.prompt,
-        hasMaskImageBase64: !!requestData.maskImageBase64,
-        imageBase64Length: requestData.imageBase64 ? requestData.imageBase64.length : 0,
-        promptLength: requestData.prompt.length,
-      });
+      console.log('=== Direct Replace Response ===');
+      console.log('Success:', responseData?.success);
+      console.log('Has image:', responseData?.hasImage);
 
-      let responseData: any;
-
-      if (USE_MOCK_API) {
-        console.log('⚠️ MOCK MODE: Generating static response...');
-        // Simulate network delay
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
-
-        // Use the original input image as the "generated" image
-        let mockImageDataUri = null;
-        if (requestData.imageBase64) {
-          // If it's already a data URI, use it directly
-          if (requestData.imageBase64.startsWith('data:')) {
-            mockImageDataUri = requestData.imageBase64;
-          } else {
-            // If it's just base64, construct data URI
-            mockImageDataUri = `data:image/jpeg;base64,${requestData.imageBase64}`;
-          }
-        }
-
-        // Create mock response
-        responseData = {
-          success: true,
-          message: 'Mock replace generated successfully',
-          hasImage: !!mockImageDataUri,
-          imageDataUri: mockImageDataUri,
-          imageMimeType: 'image/jpeg',
-        };
-      } else {
-        // Real API call - uncomment the lines below when USE_MOCK_API is false
-        // const result = await replaceFunction(requestData);
-        // responseData = result.data as any;
-
-        // For now, using mock even when USE_MOCK_API is false (real API is commented out)
-        console.log('⚠️ Real API call commented out. Using mock response...');
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
-        let mockImageDataUri = null;
-        if (requestData.imageBase64) {
-          if (requestData.imageBase64.startsWith('data:')) {
-            mockImageDataUri = requestData.imageBase64;
-          } else {
-            mockImageDataUri = `data:image/jpeg;base64,${requestData.imageBase64}`;
-          }
-        }
-        responseData = {
-          success: true,
-          message: 'Mock replace generated successfully',
-          hasImage: !!mockImageDataUri,
-          imageDataUri: mockImageDataUri,
-          imageMimeType: 'image/jpeg',
-        };
-      }
-
-      console.log('=== Replace Response ===');
-      console.log('Success:', responseData.success);
-      console.log('Message:', responseData.message);
-      console.log('Has image:', responseData.hasImage);
-
-      if (responseData.success && responseData.hasImage) {
-        let generatedImageUri = null;
-
-        if (responseData.imageDataUri) {
-          generatedImageUri = responseData.imageDataUri;
-        } else if (responseData.generatedImageBase64) {
-          generatedImageUri = `data:${responseData.imageMimeType || 'image/png'};base64,${responseData.generatedImageBase64}`;
+      if (responseData?.success && (responseData?.imageDataUri || responseData?.imageBase64)) {
+        let generatedImageUri = responseData.imageDataUri;
+        if (!generatedImageUri && responseData.imageBase64) {
+          generatedImageUri = `data:${responseData.imageMimeType || 'image/jpeg'};base64,${responseData.imageBase64}`;
         }
 
         if (generatedImageUri) {
@@ -350,26 +279,15 @@ const HomeScreen = () => {
           setUserUploadedImage(generatedImageUri);
           setCurrentRoute('DesignResult');
         } else {
-          throw new Error('No image in response');
+          throw new Error('No image returned from replace service');
         }
       } else {
-        throw new Error(responseData.message || 'Replace failed');
+        throw new Error(responseData?.message || 'Object replacement failed');
       }
     } catch (error: any) {
-      console.error('=== Error in handleReplace ===');
-      console.error('Error type:', error?.constructor?.name || 'Unknown');
-      console.error('Error message:', error?.message || 'Unknown error');
-      console.error('Error code:', error?.code || 'N/A');
-
-      let errorMessage = 'Failed to replace object. Please try again.';
-
-      if (error?.code === 'unavailable' || error?.code === 'functions/unavailable') {
-        errorMessage = 'The replace service is currently unavailable. Please make sure:\n\n1. The Firebase function is deployed\n2. You have an active internet connection\n3. Try again in a few moments';
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-
-      Alert.alert('Error', errorMessage);
+      console.error('=== Error in handleReplace ===', error);
+      let errorMessage = error?.message || 'Failed to replace object. Please try again.';
+      Alert.alert('Replacement Error', errorMessage);
       setCurrentRoute('ReplacePrompt');
     } finally {
       setIsReplacing(false);
@@ -403,54 +321,17 @@ const HomeScreen = () => {
         throw new Error('Failed to convert blueprint image to base64');
       }
 
-      console.log('Calling Firebase Function: replace (multimodal dynamic prompt)');
-      const functions = getFunctions(undefined, 'us-central1');
-      const replaceFunction = httpsCallable(functions, 'replace');
+      console.log('Calling GeminiDirectService for blueprint 3D conversion...');
+      const responseData = await generateDesignDirectly(imageBase64, prompt);
 
-      const requestData = {
-        imageBase64: imageBase64,
-        prompt: prompt.trim(),
-        maskImageBase64: null,
-      };
+      console.log('=== Direct Blueprint 3D Response ===');
+      console.log('Success:', responseData?.success);
+      console.log('Has image:', responseData?.hasImage);
 
-      let responseData: any;
-
-      if (USE_MOCK_API) {
-        console.log('⚠️ MOCK MODE: Generating static 3D blueprint response...');
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 2000));
-
-        let mockImageDataUri = null;
-        if (requestData.imageBase64) {
-          if (requestData.imageBase64.startsWith('data:')) {
-            mockImageDataUri = requestData.imageBase64;
-          } else {
-            mockImageDataUri = `data:image/jpeg;base64,${requestData.imageBase64}`;
-          }
-        }
-
-        responseData = {
-          success: true,
-          message: 'Mock 3D render generated successfully',
-          hasImage: !!mockImageDataUri,
-          imageDataUri: mockImageDataUri,
-          imageMimeType: 'image/jpeg',
-        };
-      } else {
-        const result = await replaceFunction(requestData);
-        responseData = result.data as any;
-      }
-
-      console.log('=== Blueprint 3D Generation Response ===');
-      console.log('Success:', responseData.success);
-      console.log('Has image:', responseData.hasImage);
-
-      if (responseData.success && responseData.hasImage) {
-        let generatedImageUri = null;
-
-        if (responseData.imageDataUri) {
-          generatedImageUri = responseData.imageDataUri;
-        } else if (responseData.generatedImageBase64) {
-          generatedImageUri = `data:${responseData.imageMimeType || 'image/png'};base64,${responseData.generatedImageBase64}`;
+      if (responseData?.success && (responseData?.imageDataUri || responseData?.imageBase64)) {
+        let generatedImageUri = responseData.imageDataUri;
+        if (!generatedImageUri && responseData.imageBase64) {
+          generatedImageUri = `data:${responseData.imageMimeType || 'image/jpeg'};base64,${responseData.imageBase64}`;
         }
 
         if (generatedImageUri) {
@@ -461,17 +342,12 @@ const HomeScreen = () => {
           throw new Error('No image in response');
         }
       } else {
-        throw new Error(responseData.message || '3D Design generation failed');
+        throw new Error(responseData?.message || '3D Design generation failed');
       }
     } catch (error: any) {
       console.error('=== Error in handleBlueprintGenerate ===', error);
-      let errorMessage = 'Failed to generate 3D design. Please try again.';
-      if (error?.code === 'unavailable' || error?.code === 'functions/unavailable') {
-        errorMessage = 'The 3D design service is currently unavailable. Please make sure:\n\n1. The Firebase function is deployed\n2. You have an active internet connection\n3. Try again in a few moments';
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      Alert.alert('Error', errorMessage);
+      let errorMessage = error?.message || 'Failed to generate 3D design. Please try again.';
+      Alert.alert('3D Generation Error', errorMessage);
       setCurrentRoute('BlueprintUpload');
     }
   };
@@ -522,37 +398,37 @@ const HomeScreen = () => {
       id: 1,
       title: 'Interior Design',
       description: 'Transform your interior space',
-      image: require('../assets/interior-design.webp'),
+      image: homeImages['interior-design.webp'] || { uri: '' },
     },
     {
       id: 2,
       title: 'Exterior Design',
       description: 'Transform your exterior space',
-      image: require('../assets/exterior-design.webp'),
+      image: homeImages['exterior-design.webp'] || { uri: '' },
     },
     {
       id: 3,
       title: 'Garden Design',
       description: 'Transfer your garden',
-      image: require('../assets/garden-design.webp'),
+      image: homeImages['garden-design.webp'] || { uri: '' },
     },
     {
       id: 4,
       title: 'Replace',
       description: 'Replace any part of your space',
-      image: require('../assets/replace.webp'),
+      image: homeImages['replace.webp'] || { uri: '' },
     },
     {
       id: 6,
       title: 'New walls',
       description: 'Change paint wall paper and more',
-      image: require('../assets/new-walls.webp'),
+      image: homeImages['new-walls.webp'] || { uri: '' },
     },
     {
       id: 7,
       title: 'New Flooring',
       description: 'Chose wood, carpet, tile, and more',
-      image: require('../assets/new-flooring.webp'),
+      image: homeImages['new-flooring.webp'] || { uri: '' },
     },
     {
       id: 8,
@@ -572,8 +448,8 @@ const HomeScreen = () => {
       {currentRoute === 'Tabs' && (
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <Image
-              source={require('../assets/iconImage.webp')}
+            <FirebaseImage
+              source={homeImages['iconImage.webp'] || { uri: '' }}
               style={styles.logoIcon}
             />
             <Text style={styles.logoText}>
@@ -982,8 +858,8 @@ const HomeScreen = () => {
                   {card.title === 'Interior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/Interior (1).webp')}
-                        afterImage={require('../assets/Interior (2).webp')}
+                        beforeImage={homeImages['Interior (1).webp'] || { uri: '' }}
+                        afterImage={homeImages['Interior (2).webp'] || { uri: '' }}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                       />
@@ -991,8 +867,8 @@ const HomeScreen = () => {
                   ) : card.title === 'Exterior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/exterior  (1).webp')}
-                        afterImage={require('../assets/exterior  (2).webp')}
+                        beforeImage={homeImages['exterior  (1).webp'] || { uri: '' }}
+                        afterImage={homeImages['exterior  (2).webp'] || { uri: '' }}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                         startFrom="left"
@@ -1001,8 +877,8 @@ const HomeScreen = () => {
                   ) : card.title === 'Garden Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/Garden (1).webp')}
-                        afterImage={require('../assets/Garden (2).webp')}
+                        beforeImage={homeImages['Garden (1).webp'] || { uri: '' }}
+                        afterImage={homeImages['Garden (2).webp'] || { uri: '' }}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                       />
@@ -1010,8 +886,8 @@ const HomeScreen = () => {
                   ) : card.title === 'Replace' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/replace (1).webp')}
-                        afterImage={require('../assets/replace (2).webp')}
+                        beforeImage={homeImages['replace (1).webp'] || { uri: '' }}
+                        afterImage={homeImages['replace (2).webp'] || { uri: '' }}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                         startFrom="left"
@@ -1020,8 +896,8 @@ const HomeScreen = () => {
                   ) : card.title === 'New Flooring' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/Flooring (1).webp')}
-                        afterImage={require('../assets/Flooring (2).webp')}
+                        beforeImage={homeImages['Flooring (1).webp'] || { uri: '' }}
+                        afterImage={homeImages['Flooring (2).webp'] || { uri: '' }}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                         startFrom="left"
@@ -1030,15 +906,15 @@ const HomeScreen = () => {
                   ) : card.title === 'New walls' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={require('../assets/interiorslide1.webp')}
-                        afterImage={require('../assets/interiorslide2.webp')}
+                        beforeImage={homeImages['interiorslide1.webp'] || { uri: '' }}
+                        afterImage={homeImages['interiorslide2.webp'] || { uri: '' }}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                       />
                     </View>
                   ) : (
                     card.image ? (
-                      <Image source={card.image} style={styles.cardImage} />
+                      <FirebaseImage source={card.image} style={styles.cardImage} />
                     ) : (
                       <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
                     )

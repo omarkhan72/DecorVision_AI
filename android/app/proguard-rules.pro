@@ -29,3 +29,17 @@
 # Keep Firebase Crashlytics
 -keep class com.google.firebase.crashlytics.** { *; }
 -dontwarn com.google.firebase.crashlytics.**
+
+# React Native Core & JavaScript Engine
+-keep class com.facebook.react.** { *; }
+-keep class com.facebook.jni.** { *; }
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes Exceptions
+-dontwarn com.facebook.react.**
+
+# React Native Reanimated & Worklets
+-keep class com.swmansion.reanimated.** { *; }
+-keep class com.swmansion.worklets.** { *; }
+-dontwarn com.swmansion.reanimated.**
+-dontwarn com.swmansion.worklets.**

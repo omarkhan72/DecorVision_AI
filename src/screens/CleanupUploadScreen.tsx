@@ -16,6 +16,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { useFirebaseImages } from '../hooks/useFirebaseImages';
+import FirebaseImage from '../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
@@ -180,7 +181,7 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <View style={styles.gridRow}>
               {sampleImages.map((image, index) => (
                 <View key={index} style={styles.sampleImageContainer}>
-                  <Image source={image} style={styles.sampleImage} />
+                  <FirebaseImage source={image} style={styles.sampleImage} />
                   <View style={styles.sampleOverlay}>
                     <Text style={styles.sampleText}>
                       {styleImage && index === 0 ? 'Your Style' : 'Sample'}

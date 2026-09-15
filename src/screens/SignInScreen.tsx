@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useAuth } from '../contexts/AuthContext';
 import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../components/FirebaseImage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -67,15 +68,12 @@ const SignInScreen = () => {
             <View style={styles.contentContainer}>
                 {/* App Icon/Image */}
                 <View style={styles.iconContainer}>
-                    {iconImage ? (
-                        <Image
-                            source={iconImage}
-                            style={styles.iconImage}
-                            resizeMode="contain"
-                        />
-                    ) : (
-                        <View style={[styles.iconImage, { backgroundColor: '#E0E7FF', borderRadius: 20 }]} />
-                    )}
+                    <FirebaseImage
+                        source={iconImage}
+                        style={styles.iconImage}
+                        resizeMode="contain"
+                        fallbackColor="#E0E7FF"
+                    />
                 </View>
 
                 <Text style={styles.appName}>Visuals AI</Text>

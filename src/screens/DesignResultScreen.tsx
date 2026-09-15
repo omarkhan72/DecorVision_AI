@@ -21,6 +21,7 @@ import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
 import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../components/FirebaseImage';
 
 const IMAGES = ['interior-design.webp'];
 
@@ -205,7 +206,7 @@ const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
         style={styles.scrollView}>
         {/* Main Image Display */}
         <View style={styles.imageContainer}>
-          <Image
+          <FirebaseImage
             source={imageSource}
             style={styles.mainImage}
             resizeMode="cover"

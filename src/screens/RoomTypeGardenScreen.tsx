@@ -91,7 +91,7 @@ const RoomTypeGardenScreen = ({ onBack, onContinue, userImage }: Props) => {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={() => onContinue?.(userImage, selectedGarden)}
+          onPress={() => onContinue?.(userImage || null, selectedGarden)}
           activeOpacity={0.9}
           disabled={!selectedGarden}>
           <View style={[styles.gradient, !selectedGarden && styles.gradientDisabled]}>

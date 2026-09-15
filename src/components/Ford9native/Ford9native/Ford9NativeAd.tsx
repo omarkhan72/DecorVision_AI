@@ -7,8 +7,8 @@ import {
   Image,
   Linking,
 } from 'react-native';
-import adjust from '../../utils/adjust';
-import { useNativeAdContext } from '../../context/NativeAdContext';
+import adjust from '../../../utils/Adjust';
+import { useAuth } from '../../../contexts/AuthContext';
 
 // Global counter to alternate between apps across all instances
 let globalAdCounter = 0;
@@ -49,7 +49,8 @@ const FORD9_APPS: AppInfo[] = [
 ];
 
 const Ford9NativeAd: React.FC<Ford9NativeAdProps> = ({ style }) => {
-  const { isPremiumUser } = useNativeAdContext();
+  const { user } = useAuth();
+  const isPremiumUser = user?.isPremium || false;
   const [selectedApp, setSelectedApp] = useState<AppInfo | null>(null);
   const hasSelectedRef = useRef(false);
 

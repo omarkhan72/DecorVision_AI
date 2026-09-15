@@ -5,21 +5,18 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
+import { generateDesignDirectly, generateDesignPrompt } from '../services/GeminiDirectService';
 import { logScreenView, logButtonClick } from '../utils/crashlytics';
 import * as analytics from '../utils/analytics';
 import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../components/FirebaseImage';
 import { convertImageToBase64 } from '../utils/imageUtils';
 import { StyleSelectionSkeleton } from '../components/SkeletonLoader';
-
-// Mock Mode: Set to true to use mock responses instead of real API calls
-const USE_MOCK_API = true;
 
 type Props = {
   onBack: () => void;
@@ -65,7 +62,7 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
   ];
 
   const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(STYLE_IMAGES);
-  
+
   // Safely map dictionary back to array
   const firebaseImages = STYLE_IMAGES.map(key => firebaseImagesDict[key] || null);
 
@@ -119,12 +116,11 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
     // Only call API for interior, exterior, and garden
     if (designType !== 'interior' && designType !== 'exterior' && designType !== 'garden') {
       console.log('Design type does not require API call, continuing without API');
-      // For other design types, just continue without API call
       onContinue?.(userImage || null);
       return;
     }
 
-    console.log('Starting design generation...');
+    console.log('Starting direct design generation...');
     setIsGenerating(true);
 
     try {
@@ -138,123 +134,34 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
         }
       }
 
-      console.log('Calling Firebase Function: design');
-      // v2 functions default to us-central1 region
-      const functions = getFunctions(undefined, 'us-central1');
-      const designFunction = httpsCallable(functions, 'design');
+      const prompt = generateDesignPrompt(designType, roomType, selectedStyle);
+      console.log('Calling GeminiDirectService with prompt:', prompt);
 
-      const requestData = {
-        designType: designType,
-        roomType: roomType,
-        style: selectedStyle,
-        imageBase64: imageBase64 || null,
-      };
+      const responseData = await generateDesignDirectly(imageBase64, prompt);
 
-      console.log('Request payload:', {
-        designType: requestData.designType,
-        roomType: requestData.roomType,
-        style: requestData.style,
-        hasImageBase64: !!requestData.imageBase64,
-        imageBase64Length: requestData.imageBase64 ? requestData.imageBase64.length : 0
-      });
+      console.log('=== Direct Design Generation Response ===');
+      console.log('Success:', responseData?.success);
+      console.log('Has image:', responseData?.hasImage);
 
-      let responseData: DesignResponse;
-
-      if (USE_MOCK_API) {
-        console.log('⚠️ MOCK MODE: Generating static response...');
-        // Simulate network delay
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
-
-        // In mock mode, simply return the user's uploaded image directly without base64 conversion
-        // since base64 conversion can cause memory issues on emulators.
-        responseData = {
-          success: true,
-          message: 'Mock design generated successfully',
-          hasImage: !!userImage,
-          designType: requestData.designType,
-          roomType: requestData.roomType,
-          style: requestData.style,
-          prompt: `Generate a ${requestData.style} style ${requestData.roomType} design`,
-          generatedDescription: `This is a mock ${requestData.style} style ${requestData.roomType} design.`,
-          imageDataUri: userImage || undefined,
-          imageMimeType: 'image/jpeg',
-        };
-      } else {
-        // Real API call - uncomment the lines below when USE_MOCK_API is false
-        // const result = await designFunction(requestData);
-        // responseData = result.data as DesignResponse;
-
-        // For now, using mock even when USE_MOCK_API is false (real API is commented out)
-        console.log('⚠️ Real API call commented out. Using mock response...');
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 1500));
-        responseData = {
-          success: true,
-          message: 'Mock design generated successfully',
-          hasImage: !!userImage,
-          designType: requestData.designType,
-          roomType: requestData.roomType,
-          style: requestData.style,
-          prompt: `Generate a ${requestData.style} style ${requestData.roomType} design`,
-          generatedDescription: `This is a mock ${requestData.style} style ${requestData.roomType} design.`,
-          imageDataUri: userImage || undefined,
-          imageMimeType: 'image/jpeg',
-        };
-      }
-
-      console.log('=== Design Generation Response ===');
-      console.log('Success:', responseData.success);
-      console.log('Message:', responseData.message);
-      console.log('Has image:', responseData.hasImage);
-      console.log('Design type:', responseData.designType);
-      console.log('Room type:', responseData.roomType);
-      console.log('Style:', responseData.style);
-      console.log('Prompt:', responseData.prompt);
-      console.log('Generated description length:', responseData.generatedDescription?.length || 0);
-
-      if (responseData.success) {
-        // Check if we got a generated image
-        let generatedImageUri = null;
-
-        if (responseData.imageDataUri) {
-          // Use the data URI directly if provided
-          generatedImageUri = responseData.imageDataUri;
-        } else if (responseData.imageBase64) {
-          // Construct data URI from base64 and mime type
-          generatedImageUri = `data:${responseData.imageMimeType || 'image/png'};base64,${responseData.imageBase64}`;
+      if (responseData?.success && (responseData?.imageDataUri || responseData?.imageBase64)) {
+        let generatedImageUri = responseData.imageDataUri;
+        if (!generatedImageUri && responseData.imageBase64) {
+          generatedImageUri = `data:${responseData.imageMimeType || 'image/jpeg'};base64,${responseData.imageBase64}`;
         }
 
         if (generatedImageUri) {
-          console.log('Generated image received, length:', generatedImageUri.length);
-          console.log('Navigating to result screen with generated image');
-          // Navigate to result screen with generated image
+          console.log('Generated image received, navigating to result screen');
           onContinue?.(generatedImageUri);
         } else {
-          console.log('No image in response, using user image or placeholder');
-          // Fallback to user image or placeholder
-          onContinue?.(userImage || null);
+          throw new Error('No image returned from generation service');
         }
       } else {
-        console.error('Design generation failed:', responseData.message);
-        Alert.alert('Error', responseData.message || 'Failed to generate design');
-        setIsGenerating(false);
+        throw new Error(responseData?.message || 'Design generation failed');
       }
     } catch (error: any) {
-      console.error('=== Error in handleGenerate ===');
-      console.error('Error type:', error?.constructor?.name || 'Unknown');
-      console.error('Error message:', error?.message || 'Unknown error');
-      console.error('Error code:', error?.code || 'N/A');
-      console.error('Error details:', error?.details || 'N/A');
-      console.error('Full error object:', JSON.stringify(error, null, 2));
-
-      let errorMessage = 'Failed to generate design. Please try again.';
-
-      if (error?.code === 'unavailable' || error?.code === 'functions/unavailable') {
-        errorMessage = 'The design service is currently unavailable. Please make sure:\n\n1. The Firebase function is deployed\n2. You have an active internet connection\n3. Try again in a few moments';
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-
-      Alert.alert('Error', errorMessage);
+      console.error('=== Error in handleGenerate ===', error?.message || error);
+      let errorMessage = error?.message || 'Failed to generate design. Please try again.';
+      Alert.alert('Generation Error', errorMessage);
       setIsGenerating(false);
     }
   };
@@ -301,38 +208,38 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
         {loadingImages ? (
           <StyleSelectionSkeleton count={12} />
         ) : (
-        <View style={styles.stylesGrid}>
-          {stylesData.map((styleItem) => (
-            <TouchableOpacity
-              key={styleItem.id}
-              style={styles.styleCard}
-              onPress={() => {
-                logButtonClick(`Style Selected: ${styleItem.name}`, 'InteriorStyleSelectionScreen');
-                analytics.logSelectContent('style', styleItem.id, styleItem.name, {
-                  design_type: designType || 'interior',
-                });
-                setSelectedStyle(styleItem.id);
-              }}
-              activeOpacity={0.8}>
-              <View style={styles.imageContainer}>
-                <Image
-                  source={styleItem.image}
-                  style={styles.styleImage}
-                />
-                {selectedStyle === styleItem.id && (
-                  <View style={styles.selectedRing} />
-                )}
-              </View>
-              <Text
-                style={[
-                  styles.styleName,
-                  selectedStyle === styleItem.id && styles.styleNameSelected,
-                ]}>
-                {styleItem.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+          <View style={styles.stylesGrid}>
+            {stylesData.map((styleItem) => (
+              <TouchableOpacity
+                key={styleItem.id}
+                style={styles.styleCard}
+                onPress={() => {
+                  logButtonClick(`Style Selected: ${styleItem.name}`, 'InteriorStyleSelectionScreen');
+                  analytics.logSelectContent('style', styleItem.id, styleItem.name, {
+                    design_type: designType || 'interior',
+                  });
+                  setSelectedStyle(styleItem.id);
+                }}
+                activeOpacity={0.8}>
+                <View style={styles.imageContainer}>
+                  <FirebaseImage
+                    source={styleItem.image}
+                    style={styles.styleImage}
+                  />
+                  {selectedStyle === styleItem.id && (
+                    <View style={styles.selectedRing} />
+                  )}
+                </View>
+                <Text
+                  style={[
+                    styles.styleName,
+                    selectedStyle === styleItem.id && styles.styleNameSelected,
+                  ]}>
+                  {styleItem.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         )}
       </ScrollView>
 

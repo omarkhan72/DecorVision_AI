@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import FirebaseImageBackground from '../components/FirebaseImageBackground';
 
 const IMAGES = ['interior-design.webp', 'exterior-design.webp'];
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,12 +20,12 @@ const SectionHeader = ({ title, onPress }: { title: string; onPress?: () => void
 
 const Card = ({ image, count, label }: { image: any; count?: number; label?: string }) => (
   <View style={styles.cardContainer}>
-    <ImageBackground source={image} style={styles.cardImage} imageStyle={{ borderRadius: 16 }}>
+    <FirebaseImageBackground source={image} style={styles.cardImage} imageStyle={{ borderRadius: 16 }}>
       <View style={styles.overlayGradient}>
         {count && <Text style={styles.countText}>+{count}</Text>}
         {label && <Text style={styles.labelText}>{label}</Text>}
       </View>
-    </ImageBackground>
+    </FirebaseImageBackground>
   </View>
 );
 

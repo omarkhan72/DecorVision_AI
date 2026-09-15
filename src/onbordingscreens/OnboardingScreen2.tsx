@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -36,7 +37,9 @@ const OnboardingScreen2: React.FC<Props> = ({ onNext, onSkip }) => {
               afterImage={images['secondonbording2.webp']}
             />
           ) : (
-            <View style={{ flex: 1, backgroundColor: '#E5E7EB' }} />
+            <View style={{ flex: 1, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}>
+              <ActivityIndicator size="large" color="#7C3AED" />
+            </View>
           )}
 
           {/* Labels Overlay (Absolutely Positioned on Top) */}

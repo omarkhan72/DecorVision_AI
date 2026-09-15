@@ -110,7 +110,7 @@ const RoomTypeSelectionScreen = ({ onBack, onContinue, userImage }: Props) => {
           style={styles.continueButton}
           onPress={() => {
             logButtonClick('Continue Button', 'RoomTypeSelectionScreen');
-            onContinue?.(userImage, selectedRoom);
+            onContinue?.(userImage || null, selectedRoom);
           }}
           activeOpacity={0.9}
           disabled={!selectedRoom}>

@@ -1,8 +1,8 @@
+import RNFS from 'react-native-fs';
+
 /**
  * Shared image utility functions.
- * Centralizes image conversion logic that was previously duplicated
- * across HomeScreen, InteriorStyleSelectionScreen, NewFlooringStyleSelectionScreen,
- * and NewWallsStyleSelectionScreen.
+ * Centralizes image conversion logic.
  */
 
 /**
@@ -11,76 +11,49 @@
  */
 export const convertImageToBase64 = async (uri: string): Promise<string | null> => {
   try {
+    if (!uri) return null;
+
     // If already base64, return as is
     if (uri.startsWith('data:')) {
       return uri;
     }
 
-    // Use XMLHttpRequest for file:// and content:// URIs (works in React Native)
-    if (uri.startsWith('file://') || uri.startsWith('content://')) {
-      return new Promise((resolve) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', uri, true);
-        xhr.responseType = 'blob';
-        xhr.onload = function () {
-          if (xhr.status === 200) {
-            const reader = new FileReader();
-            reader.onloadend = function () {
-              resolve(reader.result as string);
-            };
-            reader.onerror = function () {
-              console.warn('FileReader error, returning URI as-is');
-              resolve(uri);
-            };
-            reader.readAsDataURL(xhr.response);
-          } else {
-            console.warn('XMLHttpRequest failed, returning URI as-is');
-            resolve(uri);
-          }
-        };
-        xhr.onerror = function () {
-          console.warn('XMLHttpRequest error, returning URI as-is');
-          resolve(uri);
-        };
-        xhr.send();
-      });
+    // Handle file:// and content:// with RNFS
+    if (uri.startsWith('file://') || uri.startsWith('content://') || uri.startsWith('/')) {
+      try {
+        const filePath = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
+        const base64 = await RNFS.readFile(filePath, 'base64');
+        if (base64) {
+          return `data:image/jpeg;base64,${base64}`;
+        }
+      } catch (fsErr) {
+        console.warn('RNFS.readFile failed, falling back to fetch/blob:', fsErr);
+      }
     }
 
-    // Use XMLHttpRequest for http/https URIs (works in React Native)
-    if (uri.startsWith('http://') || uri.startsWith('https://')) {
-      return new Promise((resolve) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', uri, true);
-        xhr.responseType = 'blob';
-        xhr.onload = function () {
-          if (xhr.status === 200) {
-            const reader = new FileReader();
-            reader.onloadend = function () {
-              resolve(reader.result as string);
-            };
-            reader.onerror = function () {
-              console.warn('FileReader error, returning URI as-is');
-              resolve(uri);
-            };
-            reader.readAsDataURL(xhr.response);
-          } else {
-            console.warn('XMLHttpRequest failed, returning URI as-is');
-            resolve(uri);
-          }
+    // Fallback: Use fetch & FileReader for http/https or unresolved URIs
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve(reader.result as string);
         };
-        xhr.onerror = function () {
-          console.warn('XMLHttpRequest error, returning URI as-is');
-          resolve(uri);
+        reader.onerror = () => {
+          console.warn('FileReader error');
+          resolve(null);
         };
-        xhr.send();
+        reader.readAsDataURL(blob);
       });
+    } catch (fetchErr) {
+      console.warn('Fetch blob conversion failed:', fetchErr);
     }
 
-    // Fallback: return the URI as-is and let backend handle it
-    console.warn('Unsupported URI format, returning URI as-is');
-    return uri;
+    return null;
   } catch (error: any) {
     console.error('Error converting image to base64:', error);
     return null;
   }
 };
+
