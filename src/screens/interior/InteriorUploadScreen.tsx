@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,15 +10,15 @@ import {
   Platform,
   PermissionsAndroid,
 } from 'react-native';
-import { UploadScreenSkeleton } from '../components/SkeletonLoader';
+import { UploadScreenSkeleton } from '../../components/SkeletonLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../components/FirebaseImage';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 

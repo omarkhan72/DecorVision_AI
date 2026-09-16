@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { getHistory, deleteFromHistory, HistoryItem } from '../utils/historyStorage';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
+import { getHistory, deleteFromHistory, HistoryItem } from '../../utils/historyStorage';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
 
 const HistoryScreen = () => {
   const insets = useSafeAreaInsets();

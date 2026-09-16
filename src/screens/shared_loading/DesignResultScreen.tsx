@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,12 +16,12 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Share from 'react-native-share';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import RNFS from 'react-native-fs';
-import { saveToHistory } from '../utils/historyStorage';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
-import { useAuth } from '../contexts/AuthContext';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../components/FirebaseImage';
+import { saveToHistory } from '../../utils/historyStorage';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
+import { useAuth } from '../../contexts/AuthContext';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../../components/FirebaseImage';
 
 const IMAGES = ['interior-design.webp'];
 

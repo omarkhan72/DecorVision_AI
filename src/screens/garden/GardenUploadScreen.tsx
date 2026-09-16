@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,22 +9,39 @@ import {
   Alert,
   Platform,
   PermissionsAndroid,
-  ActivityIndicator,
 } from 'react-native';
+import { UploadScreenSkeleton } from '../../components/SkeletonLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { useFirebaseImages } from '../hooks/useFirebaseImages';
-import FirebaseImage from '../components/FirebaseImage';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
-const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
+const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
+  const GARDEN_SAMPLE_IMAGES = [
+    'Garden (1).webp',
+    'Garden (2).webp',
+    'Gardenslide1.webp',
+    'Gardenslide2.webp',
+  ];
 
-  const { images: firebaseImages, loading: loadingImages } = useFirebaseImages('Cleanup samples', 4);
+  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(GARDEN_SAMPLE_IMAGES);
+  
+  // Convert dictionary back to an array for rendering
+  const firebaseImages = GARDEN_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
+
+  // Log screen view
+  useEffect(() => {
+    logScreenView('GardenUploadScreen');
+  }, []);
 
   // Use style image if provided, otherwise use fetched firebase images
   const sampleImages = styleImage
@@ -60,16 +77,34 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       return;
     }
     if (response.errorMessage) {
-      Alert.alert('Error', response.errorMessage);
+      if (response.errorMessage.toLowerCase().includes('activity error')) {
+        Alert.alert(
+          'App Reload Required',
+          'The app lost connection to the Android Activity due to Fast Refresh. Please go to your terminal running Metro Bundler and press "r" to reload the app, or fully restart the emulator app.'
+        );
+      } else {
+        Alert.alert('Error', response.errorMessage);
+      }
       return;
     }
     if (response.assets && response.assets[0]) {
-      setSelectedImage(response.assets[0].uri || null);
+      const asset = response.assets[0];
+      if (asset.uri) {
+        setSelectedImage(asset.uri);
+      } else {
+        Alert.alert('Error', 'Selected image has no valid path');
+      }
+    } else {
+      if (!response.didCancel && !response.errorMessage) {
+        Alert.alert('Error', 'Could not retrieve image. Please try again.');
+      }
     }
   };
 
   // Upload photo from gallery
   const handleUploadPhoto = () => {
+    logButtonClick('Upload Photo Button', 'GardenUploadScreen');
+    analytics.logImageUpload('gallery', 'garden');
     launchImageLibrary(
       {
         mediaType: 'photo' as MediaType,
@@ -82,6 +117,8 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Take photo with camera
   const handleTakePhoto = async () => {
+    logButtonClick('Take Photo Button', 'GardenUploadScreen');
+    analytics.logImageUpload('camera', 'garden');
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       Alert.alert('Permission Denied', 'Camera permission is required to take photos');
@@ -102,8 +139,11 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {/* Header */}
       <View style={styles.header}>
 
-        <Text style={styles.headerTitle}>Cleanup Inspiration's</Text>
-        <TouchableOpacity onPress={onBack} style={styles.closeButton}>
+        <Text style={styles.headerTitle}>Garden Inspiration's</Text>
+        <TouchableOpacity onPress={() => {
+          logButtonClick('Close Button', 'GardenUploadScreen');
+          onBack();
+        }} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />
         </TouchableOpacity>
       </View>
@@ -125,7 +165,7 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         </View>
 
         {/* Instruction Text */}
-        <Text style={styles.instructionText}>Upload a photo of the area you want to clean up</Text>
+        <Text style={styles.instructionText}>Upload a photo of your current garden</Text>
 
         {/* Selected Image Preview */}
         {selectedImage ? (
@@ -133,12 +173,18 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <Image source={{ uri: selectedImage }} style={styles.previewImage} />
             <TouchableOpacity
               style={styles.removeButton}
-              onPress={() => setSelectedImage(null)}>
+              onPress={() => {
+                logButtonClick('Remove Image Button', 'GardenUploadScreen');
+                setSelectedImage(null);
+              }}>
               <FontAwesome name="times" size={16} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.changePhotoButton}
-              onPress={() => setSelectedImage(null)}>
+              onPress={() => {
+                logButtonClick('Change Photo Button', 'GardenUploadScreen');
+                setSelectedImage(null);
+              }}>
               <Text style={styles.changePhotoText}>Change Photo</Text>
             </TouchableOpacity>
           </View>
@@ -174,9 +220,7 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
           {loadingImages ? (
-            <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-              <ActivityIndicator size="large" color="#8B5CF6" />
-            </View>
+            <UploadScreenSkeleton count={4} />
           ) : (
             <View style={styles.gridRow}>
               {sampleImages.map((image, index) => (
@@ -198,7 +242,10 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={() => onContinue?.(selectedImage)}
+          onPress={() => {
+            logButtonClick('Continue Button', 'GardenUploadScreen');
+            onContinue?.(selectedImage);
+          }}
           activeOpacity={0.9}
           disabled={!selectedImage}>
           <View style={[styles.gradient, !selectedImage && styles.gradientDisabled]}>
@@ -457,5 +504,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CleanupUploadScreen;
+export default GardenUploadScreen;
 

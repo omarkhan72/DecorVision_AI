@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -14,7 +14,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
 
 const IMAGES = ['interior-design.webp'];
 

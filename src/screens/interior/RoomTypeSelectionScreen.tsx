@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null, roomType?: string | null) => void; userImage?: string | null };
 

@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Linking } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
-import { useAuth } from '../contexts/AuthContext';
-import ConfirmationModal from '../components/ConfirmationModal';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
+import { useAuth } from '../../contexts/AuthContext';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 type Props = { onBack: () => void; onUpgrade: () => void };
 

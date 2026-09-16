@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,35 +10,35 @@ import {
   Platform,
   PermissionsAndroid,
 } from 'react-native';
-import { UploadScreenSkeleton } from '../components/SkeletonLoader';
+import { UploadScreenSkeleton } from '../../components/SkeletonLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../components/FirebaseImage';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
-const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
+const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const FLOORING_SAMPLE_IMAGES = [
-    'Flooring (1).webp',
-    'Flooring (2).webp',
-    'new-flooring.webp',
+  const WALLS_SAMPLE_IMAGES = [
+    'new-walls.webp',
+    'Interior (1).webp',
+    'Interior (2).webp',
     'interiorslide1.webp',
   ];
 
-  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(FLOORING_SAMPLE_IMAGES);
-  const firebaseImages = FLOORING_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
+  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(WALLS_SAMPLE_IMAGES);
+  const firebaseImages = WALLS_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
 
   // Log screen view
   useEffect(() => {
-    logScreenView('NewFlooringUploadScreen');
+    logScreenView('NewWallsUploadScreen');
   }, []);
 
   // Use style image if provided, otherwise use fetched firebase images
@@ -101,6 +101,8 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Upload photo from gallery
   const handleUploadPhoto = () => {
+    logButtonClick('Upload Photo Button', 'NewWallsUploadScreen');
+    analytics.logImageUpload('gallery', 'newwalls');
     launchImageLibrary(
       {
         mediaType: 'photo' as MediaType,
@@ -113,8 +115,8 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Take photo with camera
   const handleTakePhoto = async () => {
-    logButtonClick('Take Photo Button', 'NewFlooringUploadScreen');
-    analytics.logImageUpload('camera', 'newflooring');
+    logButtonClick('Take Photo Button', 'NewWallsUploadScreen');
+    analytics.logImageUpload('camera', 'newwalls');
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       Alert.alert('Permission Denied', 'Camera permission is required to take photos');
@@ -135,9 +137,9 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {/* Header */}
       <View style={styles.header}>
 
-        <Text style={styles.headerTitle}>New Flooring Inspiration's</Text>
+        <Text style={styles.headerTitle}>New Walls Inspiration's</Text>
         <TouchableOpacity onPress={() => {
-          logButtonClick('Close Button', 'NewFlooringUploadScreen');
+          logButtonClick('Close Button', 'NewWallsUploadScreen');
           onBack();
         }} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />
@@ -161,7 +163,7 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         </View>
 
         {/* Instruction Text */}
-        <Text style={styles.instructionText}>Upload a photo of your current flooring</Text>
+        <Text style={styles.instructionText}>Upload a photo of your current walls</Text>
 
         {/* Selected Image Preview */}
         {selectedImage ? (
@@ -170,7 +172,7 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <TouchableOpacity
               style={styles.removeButton}
               onPress={() => {
-                logButtonClick('Remove Image Button', 'NewFlooringUploadScreen');
+                logButtonClick('Remove Image Button', 'NewWallsUploadScreen');
                 setSelectedImage(null);
               }}>
               <FontAwesome name="times" size={16} color="#FFFFFF" />
@@ -178,7 +180,7 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <TouchableOpacity
               style={styles.changePhotoButton}
               onPress={() => {
-                logButtonClick('Change Photo Button', 'NewFlooringUploadScreen');
+                logButtonClick('Change Photo Button', 'NewWallsUploadScreen');
                 setSelectedImage(null);
               }}>
               <Text style={styles.changePhotoText}>Change Photo</Text>
@@ -239,7 +241,7 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         <TouchableOpacity
           style={styles.continueButton}
           onPress={() => {
-            logButtonClick('Continue Button', 'NewFlooringUploadScreen');
+            logButtonClick('Continue Button', 'NewWallsUploadScreen');
             onContinue?.(selectedImage);
           }}
           activeOpacity={0.9}
@@ -500,5 +502,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NewFlooringUploadScreen;
+export default NewWallsUploadScreen;
 

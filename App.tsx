@@ -16,11 +16,11 @@ import analytics from '@react-native-firebase/analytics';
 import messaging from '@react-native-firebase/messaging';
 import usePushNotification from './src/hooks/usePushNotification';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
-import HomeScreen from './src/screens/HomeScreen';
+import HomeScreen from './src/screens/home/HomeScreen';
 import OnboardingFlow from './src/onbordingscreens/OnboardingFlow';
 import auth from '@react-native-firebase/auth';
-import SignInScreen from './src/screens/SignInScreen';
-import PaywallScreen from './src/screens/PaywallScreen';
+import SignInScreen from './src/screens/onboarding/SignInScreen';
+import PaywallScreen from './src/screens/home/PaywallScreen';
 
 const ONBOARDING_COMPLETED_KEY = '@onboarding_completed';
 

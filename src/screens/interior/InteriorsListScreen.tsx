@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
 
 type Props = { onBack: () => void; onImagePress?: (image: any, roomName: string) => void };
 

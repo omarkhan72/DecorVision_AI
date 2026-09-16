@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, Dimensions } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
 
 const SUBSCRIPTION_IMAGES = ['interior-design.webp'];
 

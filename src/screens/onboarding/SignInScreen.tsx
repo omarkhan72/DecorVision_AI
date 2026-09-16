@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useAuth } from '../contexts/AuthContext';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../components/FirebaseImage';
+import { useAuth } from '../../contexts/AuthContext';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../../components/FirebaseImage';
 
 const { width, height } = Dimensions.get('window');
 

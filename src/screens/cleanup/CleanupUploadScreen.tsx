@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,37 +9,22 @@ import {
   Alert,
   Platform,
   PermissionsAndroid,
+  ActivityIndicator,
 } from 'react-native';
-import { UploadScreenSkeleton } from '../components/SkeletonLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../components/FirebaseImage';
+import { useFirebaseImages } from '../../hooks/useFirebaseImages';
+import FirebaseImage from '../../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
-const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
+const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const WALLS_SAMPLE_IMAGES = [
-    'new-walls.webp',
-    'Interior (1).webp',
-    'Interior (2).webp',
-    'interiorslide1.webp',
-  ];
-
-  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(WALLS_SAMPLE_IMAGES);
-  const firebaseImages = WALLS_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
-
-  // Log screen view
-  useEffect(() => {
-    logScreenView('NewWallsUploadScreen');
-  }, []);
+  const { images: firebaseImages, loading: loadingImages } = useFirebaseImages('Cleanup samples', 4);
 
   // Use style image if provided, otherwise use fetched firebase images
   const sampleImages = styleImage
@@ -75,34 +60,16 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       return;
     }
     if (response.errorMessage) {
-      if (response.errorMessage.toLowerCase().includes('activity error')) {
-        Alert.alert(
-          'App Reload Required',
-          'The app lost connection to the Android Activity due to Fast Refresh. Please go to your terminal running Metro Bundler and press "r" to reload the app, or fully restart the emulator app.'
-        );
-      } else {
-        Alert.alert('Error', response.errorMessage);
-      }
+      Alert.alert('Error', response.errorMessage);
       return;
     }
     if (response.assets && response.assets[0]) {
-      const asset = response.assets[0];
-      if (asset.uri) {
-        setSelectedImage(asset.uri);
-      } else {
-        Alert.alert('Error', 'Selected image has no valid path');
-      }
-    } else {
-      if (!response.didCancel && !response.errorMessage) {
-        Alert.alert('Error', 'Could not retrieve image. Please try again.');
-      }
+      setSelectedImage(response.assets[0].uri || null);
     }
   };
 
   // Upload photo from gallery
   const handleUploadPhoto = () => {
-    logButtonClick('Upload Photo Button', 'NewWallsUploadScreen');
-    analytics.logImageUpload('gallery', 'newwalls');
     launchImageLibrary(
       {
         mediaType: 'photo' as MediaType,
@@ -115,8 +82,6 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Take photo with camera
   const handleTakePhoto = async () => {
-    logButtonClick('Take Photo Button', 'NewWallsUploadScreen');
-    analytics.logImageUpload('camera', 'newwalls');
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       Alert.alert('Permission Denied', 'Camera permission is required to take photos');
@@ -137,11 +102,8 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {/* Header */}
       <View style={styles.header}>
 
-        <Text style={styles.headerTitle}>New Walls Inspiration's</Text>
-        <TouchableOpacity onPress={() => {
-          logButtonClick('Close Button', 'NewWallsUploadScreen');
-          onBack();
-        }} style={styles.closeButton}>
+        <Text style={styles.headerTitle}>Cleanup Inspiration's</Text>
+        <TouchableOpacity onPress={onBack} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />
         </TouchableOpacity>
       </View>
@@ -163,7 +125,7 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         </View>
 
         {/* Instruction Text */}
-        <Text style={styles.instructionText}>Upload a photo of your current walls</Text>
+        <Text style={styles.instructionText}>Upload a photo of the area you want to clean up</Text>
 
         {/* Selected Image Preview */}
         {selectedImage ? (
@@ -171,18 +133,12 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <Image source={{ uri: selectedImage }} style={styles.previewImage} />
             <TouchableOpacity
               style={styles.removeButton}
-              onPress={() => {
-                logButtonClick('Remove Image Button', 'NewWallsUploadScreen');
-                setSelectedImage(null);
-              }}>
+              onPress={() => setSelectedImage(null)}>
               <FontAwesome name="times" size={16} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.changePhotoButton}
-              onPress={() => {
-                logButtonClick('Change Photo Button', 'NewWallsUploadScreen');
-                setSelectedImage(null);
-              }}>
+              onPress={() => setSelectedImage(null)}>
               <Text style={styles.changePhotoText}>Change Photo</Text>
             </TouchableOpacity>
           </View>
@@ -218,7 +174,9 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
           {loadingImages ? (
-            <UploadScreenSkeleton count={4} />
+            <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#8B5CF6" />
+            </View>
           ) : (
             <View style={styles.gridRow}>
               {sampleImages.map((image, index) => (
@@ -240,10 +198,7 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={() => {
-            logButtonClick('Continue Button', 'NewWallsUploadScreen');
-            onContinue?.(selectedImage);
-          }}
+          onPress={() => onContinue?.(selectedImage)}
           activeOpacity={0.9}
           disabled={!selectedImage}>
           <View style={[styles.gradient, !selectedImage && styles.gradientDisabled]}>
@@ -502,5 +457,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NewWallsUploadScreen;
+export default CleanupUploadScreen;
 

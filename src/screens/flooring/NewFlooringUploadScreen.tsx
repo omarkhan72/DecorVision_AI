@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,36 +9,36 @@ import {
   Alert,
   Platform,
   PermissionsAndroid,
-  ActivityIndicator,
 } from 'react-native';
+import { UploadScreenSkeleton } from '../../components/SkeletonLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../components/FirebaseImage';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
-const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
+const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const REPLACE_SAMPLE_IMAGES = [
-    'replace (1).webp',
-    'replace (2).webp',
-    'replace.webp',
-    'cleanup.webp',
+  const FLOORING_SAMPLE_IMAGES = [
+    'Flooring (1).webp',
+    'Flooring (2).webp',
+    'new-flooring.webp',
+    'interiorslide1.webp',
   ];
 
-  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(REPLACE_SAMPLE_IMAGES);
-  const firebaseImages = REPLACE_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
+  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(FLOORING_SAMPLE_IMAGES);
+  const firebaseImages = FLOORING_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
 
   // Log screen view
   useEffect(() => {
-    logScreenView('ReplaceUploadScreen');
+    logScreenView('NewFlooringUploadScreen');
   }, []);
 
   // Use style image if provided, otherwise use fetched firebase images
@@ -101,8 +101,6 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Upload photo from gallery
   const handleUploadPhoto = () => {
-    logButtonClick('Upload Photo Button', 'ReplaceUploadScreen');
-    analytics.logImageUpload('gallery', 'replace');
     launchImageLibrary(
       {
         mediaType: 'photo' as MediaType,
@@ -115,8 +113,8 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Take photo with camera
   const handleTakePhoto = async () => {
-    logButtonClick('Take Photo Button', 'ReplaceUploadScreen');
-    analytics.logImageUpload('camera', 'replace');
+    logButtonClick('Take Photo Button', 'NewFlooringUploadScreen');
+    analytics.logImageUpload('camera', 'newflooring');
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       Alert.alert('Permission Denied', 'Camera permission is required to take photos');
@@ -137,8 +135,11 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {/* Header */}
       <View style={styles.header}>
 
-        <Text style={styles.headerTitle}>Replace Inspiration's</Text>
-        <TouchableOpacity onPress={onBack} style={styles.closeButton}>
+        <Text style={styles.headerTitle}>New Flooring Inspiration's</Text>
+        <TouchableOpacity onPress={() => {
+          logButtonClick('Close Button', 'NewFlooringUploadScreen');
+          onBack();
+        }} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />
         </TouchableOpacity>
       </View>
@@ -160,7 +161,7 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         </View>
 
         {/* Instruction Text */}
-        <Text style={styles.instructionText}>Upload a photo of the area you want to replace</Text>
+        <Text style={styles.instructionText}>Upload a photo of your current flooring</Text>
 
         {/* Selected Image Preview */}
         {selectedImage ? (
@@ -169,7 +170,7 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <TouchableOpacity
               style={styles.removeButton}
               onPress={() => {
-                logButtonClick('Remove Image Button', 'ReplaceUploadScreen');
+                logButtonClick('Remove Image Button', 'NewFlooringUploadScreen');
                 setSelectedImage(null);
               }}>
               <FontAwesome name="times" size={16} color="#FFFFFF" />
@@ -177,7 +178,7 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <TouchableOpacity
               style={styles.changePhotoButton}
               onPress={() => {
-                logButtonClick('Change Photo Button', 'ReplaceUploadScreen');
+                logButtonClick('Change Photo Button', 'NewFlooringUploadScreen');
                 setSelectedImage(null);
               }}>
               <Text style={styles.changePhotoText}>Change Photo</Text>
@@ -215,9 +216,7 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
           {loadingImages ? (
-            <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-              <ActivityIndicator size="large" color="#8B5CF6" />
-            </View>
+            <UploadScreenSkeleton count={4} />
           ) : (
             <View style={styles.gridRow}>
               {sampleImages.map((image, index) => (
@@ -240,7 +239,7 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         <TouchableOpacity
           style={styles.continueButton}
           onPress={() => {
-            logButtonClick('Continue Button', 'ReplaceUploadScreen');
+            logButtonClick('Continue Button', 'NewFlooringUploadScreen');
             onContinue?.(selectedImage);
           }}
           activeOpacity={0.9}
@@ -501,5 +500,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReplaceUploadScreen;
+export default NewFlooringUploadScreen;
 

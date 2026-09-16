@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,37 +10,35 @@ import {
   Platform,
   PermissionsAndroid,
 } from 'react-native';
-import { UploadScreenSkeleton } from '../components/SkeletonLoader';
+import { UploadScreenSkeleton } from '../../components/SkeletonLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../components/FirebaseImage';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
-const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
+const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  
-  const GARDEN_SAMPLE_IMAGES = [
-    'Garden (1).webp',
-    'Garden (2).webp',
-    'Gardenslide1.webp',
-    'Gardenslide2.webp',
+
+  const EXTERIOR_SAMPLE_IMAGES = [
+    'exterior  (1).webp',
+    'exterior  (2).webp',
+    'Exteriorslide1 (1).webp',
+    'Exteriorslide2.webp',
   ];
 
-  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(GARDEN_SAMPLE_IMAGES);
-  
-  // Convert dictionary back to an array for rendering
-  const firebaseImages = GARDEN_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
+  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(EXTERIOR_SAMPLE_IMAGES);
+  const firebaseImages = EXTERIOR_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
 
   // Log screen view
   useEffect(() => {
-    logScreenView('GardenUploadScreen');
+    logScreenView('ExteriorUploadScreen');
   }, []);
 
   // Use style image if provided, otherwise use fetched firebase images
@@ -103,8 +101,8 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Upload photo from gallery
   const handleUploadPhoto = () => {
-    logButtonClick('Upload Photo Button', 'GardenUploadScreen');
-    analytics.logImageUpload('gallery', 'garden');
+    logButtonClick('Upload Photo Button', 'ExteriorUploadScreen');
+    analytics.logImageUpload('gallery', 'exterior');
     launchImageLibrary(
       {
         mediaType: 'photo' as MediaType,
@@ -117,8 +115,8 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Take photo with camera
   const handleTakePhoto = async () => {
-    logButtonClick('Take Photo Button', 'GardenUploadScreen');
-    analytics.logImageUpload('camera', 'garden');
+    logButtonClick('Take Photo Button', 'ExteriorUploadScreen');
+    analytics.logImageUpload('camera', 'exterior');
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       Alert.alert('Permission Denied', 'Camera permission is required to take photos');
@@ -139,9 +137,9 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {/* Header */}
       <View style={styles.header}>
 
-        <Text style={styles.headerTitle}>Garden Inspiration's</Text>
+        <Text style={styles.headerTitle}>Exterior Inspiration's</Text>
         <TouchableOpacity onPress={() => {
-          logButtonClick('Close Button', 'GardenUploadScreen');
+          logButtonClick('Close Button', 'ExteriorUploadScreen');
           onBack();
         }} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />
@@ -165,7 +163,7 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         </View>
 
         {/* Instruction Text */}
-        <Text style={styles.instructionText}>Upload a photo of your current garden</Text>
+        <Text style={styles.instructionText}>Upload a photo of your current exterior</Text>
 
         {/* Selected Image Preview */}
         {selectedImage ? (
@@ -174,7 +172,7 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <TouchableOpacity
               style={styles.removeButton}
               onPress={() => {
-                logButtonClick('Remove Image Button', 'GardenUploadScreen');
+                logButtonClick('Remove Image Button', 'ExteriorUploadScreen');
                 setSelectedImage(null);
               }}>
               <FontAwesome name="times" size={16} color="#FFFFFF" />
@@ -182,7 +180,7 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <TouchableOpacity
               style={styles.changePhotoButton}
               onPress={() => {
-                logButtonClick('Change Photo Button', 'GardenUploadScreen');
+                logButtonClick('Change Photo Button', 'ExteriorUploadScreen');
                 setSelectedImage(null);
               }}>
               <Text style={styles.changePhotoText}>Change Photo</Text>
@@ -243,7 +241,7 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         <TouchableOpacity
           style={styles.continueButton}
           onPress={() => {
-            logButtonClick('Continue Button', 'GardenUploadScreen');
+            logButtonClick('Continue Button', 'ExteriorUploadScreen');
             onContinue?.(selectedImage);
           }}
           activeOpacity={0.9}
@@ -504,5 +502,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GardenUploadScreen;
+export default ExteriorUploadScreen;
 

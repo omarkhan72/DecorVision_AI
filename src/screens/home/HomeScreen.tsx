@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   View,
   Text,
@@ -23,42 +23,42 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import AutoBeforeAfterSlider from '../components/AutoBeforeAfterSlider';
-import DesignScreen from './DesignScreen';
+import AutoBeforeAfterSlider from '../../components/AutoBeforeAfterSlider';
+import DesignScreen from '../shared_loading/DesignScreen';
 import HistoryScreen from './HistoryScreen';
 import SettingsScreen from './SettingsScreen';
 import SubscriptionScreen from './SubscriptionScreen';
-import InteriorsListScreen from './InteriorsListScreen';
-import ExteriorsListScreen from './ExteriorsListScreen';
-import InteriorUploadScreen from './InteriorUploadScreen';
-import ExteriorUploadScreen from './ExteriorUploadScreen';
-import GardenUploadScreen from './GardenUploadScreen';
-import ReplaceUploadScreen from './ReplaceUploadScreen';
-import NewWallsUploadScreen from './NewWallsUploadScreen';
-import NewFlooringUploadScreen from './NewFlooringUploadScreen';
-import BlueprintUploadScreen from './BlueprintUploadScreen';
-import RoomTypeSelectionScreen from './RoomTypeSelectionScreen';
-import RoomTypeExteriorScreen from './RoomTypeExteriorScreen';
-import RoomTypeGardenScreen from './RoomTypeGardenScreen';
-import RoomTypeReplaceScreen from './RoomTypeReplaceScreen';
-import RoomTypeNewWallsScreen from './RoomTypeNewWallsScreen';
-import RoomTypeNewFlooringScreen from './RoomTypeNewFlooringScreen';
-import InteriorStyleSelectionScreen from './InteriorStyleSelectionScreen';
-import NewFlooringStyleSelectionScreen from './NewFlooringStyleSelectionScreen';
-import NewWallsStyleSelectionScreen from './NewWallsStyleSelectionScreen';
-import DesignResultScreen from './DesignResultScreen';
-import DesignLoadingScreen from './DesignLoadingScreen';
-import StyleDetailScreen from './StyleDetailScreen';
-import ReplaceMaskScreen from './ReplaceMaskScreen';
-import ReplacePromptScreen from './ReplacePromptScreen';
-import BlueprintPromptScreen from './BlueprintPromptScreen';
-import { generateDesignDirectly } from '../services/GeminiDirectService';
+import InteriorsListScreen from '../interior/InteriorsListScreen';
+import ExteriorsListScreen from '../exterior/ExteriorsListScreen';
+import InteriorUploadScreen from '../interior/InteriorUploadScreen';
+import ExteriorUploadScreen from '../exterior/ExteriorUploadScreen';
+import GardenUploadScreen from '../garden/GardenUploadScreen';
+import ReplaceUploadScreen from '../object_replace/ReplaceUploadScreen';
+import NewWallsUploadScreen from '../walls/NewWallsUploadScreen';
+import NewFlooringUploadScreen from '../flooring/NewFlooringUploadScreen';
+import BlueprintUploadScreen from '../blueprint/BlueprintUploadScreen';
+import RoomTypeSelectionScreen from '../interior/RoomTypeSelectionScreen';
+import RoomTypeExteriorScreen from '../exterior/RoomTypeExteriorScreen';
+import RoomTypeGardenScreen from '../garden/RoomTypeGardenScreen';
+import RoomTypeReplaceScreen from '../object_replace/RoomTypeReplaceScreen';
+import RoomTypeNewWallsScreen from '../walls/RoomTypeNewWallsScreen';
+import RoomTypeNewFlooringScreen from '../flooring/RoomTypeNewFlooringScreen';
+import InteriorStyleSelectionScreen from '../interior/InteriorStyleSelectionScreen';
+import NewFlooringStyleSelectionScreen from '../flooring/NewFlooringStyleSelectionScreen';
+import NewWallsStyleSelectionScreen from '../walls/NewWallsStyleSelectionScreen';
+import DesignResultScreen from '../shared_loading/DesignResultScreen';
+import DesignLoadingScreen from '../shared_loading/DesignLoadingScreen';
+import StyleDetailScreen from '../interior/StyleDetailScreen';
+import ReplaceMaskScreen from '../object_replace/ReplaceMaskScreen';
+import ReplacePromptScreen from '../object_replace/ReplacePromptScreen';
+import BlueprintPromptScreen from '../blueprint/BlueprintPromptScreen';
+import { generateDesignDirectly } from '../../services/GeminiDirectService';
 import { Alert } from 'react-native';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import { convertImageToBase64 } from '../utils/imageUtils';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../components/FirebaseImage';
-import SkeletonItem from '../components/SkeletonLoader';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import { convertImageToBase64 } from '../../utils/imageUtils';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../../components/FirebaseImage';
+import SkeletonItem from '../../components/SkeletonLoader';
 
 // All root-level image paths in Firebase Storage needed by HomeScreen
 const HOME_IMAGE_PATHS = [
@@ -92,8 +92,8 @@ const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
   </View>
 );
 
-import PaywallBottomSheet from '../components/PaywallBottomSheet';
-import MyInterstitialAd from '../components/MyInterstitialAd/MyInterstitialAd';
+import PaywallBottomSheet from '../../components/PaywallBottomSheet';
+import MyInterstitialAd from '../../components/MyInterstitialAd/MyInterstitialAd';
 
 // Extracted BouncyCard as a proper top-level component.
 // Previously defined inside useMemo which caused hooks to be called inside a factory function — an anti-pattern.
@@ -161,7 +161,7 @@ const HomeScreen = () => {
   }, []);
 
   // Convert image URI to base64 helper function
-  // Uses shared utility from ../utils/imageUtils
+  // Uses shared utility from ../../utils/imageUtils
 
   // Helper to check and consume tokens
   const checkAndConsumeToken = async (): Promise<boolean> => {
@@ -450,9 +450,10 @@ const HomeScreen = () => {
       {currentRoute === 'Tabs' && (
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <FirebaseImage
-              source={homeImages['iconImage.webp'] || { uri: '' }}
+            <Image
+              source={homeImages['iconImage.webp']?.uri ? homeImages['iconImage.webp'] : require('../../assets/iconImage.webp')}
               style={styles.logoIcon}
+              resizeMode="contain"
             />
             <Text style={styles.logoText}>
               <Text style={styles.logoTextRegular}>DecorVision </Text>

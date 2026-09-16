@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,36 +9,36 @@ import {
   Alert,
   Platform,
   PermissionsAndroid,
+  ActivityIndicator,
 } from 'react-native';
-import { UploadScreenSkeleton } from '../components/SkeletonLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../components/FirebaseImage';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
 
-const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
+const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const EXTERIOR_SAMPLE_IMAGES = [
-    'exterior  (1).webp',
-    'exterior  (2).webp',
-    'Exteriorslide1 (1).webp',
-    'Exteriorslide2.webp',
+  const REPLACE_SAMPLE_IMAGES = [
+    'replace (1).webp',
+    'replace (2).webp',
+    'replace.webp',
+    'cleanup.webp',
   ];
 
-  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(EXTERIOR_SAMPLE_IMAGES);
-  const firebaseImages = EXTERIOR_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
+  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(REPLACE_SAMPLE_IMAGES);
+  const firebaseImages = REPLACE_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
 
   // Log screen view
   useEffect(() => {
-    logScreenView('ExteriorUploadScreen');
+    logScreenView('ReplaceUploadScreen');
   }, []);
 
   // Use style image if provided, otherwise use fetched firebase images
@@ -101,8 +101,8 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Upload photo from gallery
   const handleUploadPhoto = () => {
-    logButtonClick('Upload Photo Button', 'ExteriorUploadScreen');
-    analytics.logImageUpload('gallery', 'exterior');
+    logButtonClick('Upload Photo Button', 'ReplaceUploadScreen');
+    analytics.logImageUpload('gallery', 'replace');
     launchImageLibrary(
       {
         mediaType: 'photo' as MediaType,
@@ -115,8 +115,8 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Take photo with camera
   const handleTakePhoto = async () => {
-    logButtonClick('Take Photo Button', 'ExteriorUploadScreen');
-    analytics.logImageUpload('camera', 'exterior');
+    logButtonClick('Take Photo Button', 'ReplaceUploadScreen');
+    analytics.logImageUpload('camera', 'replace');
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       Alert.alert('Permission Denied', 'Camera permission is required to take photos');
@@ -137,11 +137,8 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {/* Header */}
       <View style={styles.header}>
 
-        <Text style={styles.headerTitle}>Exterior Inspiration's</Text>
-        <TouchableOpacity onPress={() => {
-          logButtonClick('Close Button', 'ExteriorUploadScreen');
-          onBack();
-        }} style={styles.closeButton}>
+        <Text style={styles.headerTitle}>Replace Inspiration's</Text>
+        <TouchableOpacity onPress={onBack} style={styles.closeButton}>
           <FontAwesome name="times" size={20} color="#000000" />
         </TouchableOpacity>
       </View>
@@ -163,7 +160,7 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         </View>
 
         {/* Instruction Text */}
-        <Text style={styles.instructionText}>Upload a photo of your current exterior</Text>
+        <Text style={styles.instructionText}>Upload a photo of the area you want to replace</Text>
 
         {/* Selected Image Preview */}
         {selectedImage ? (
@@ -172,7 +169,7 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <TouchableOpacity
               style={styles.removeButton}
               onPress={() => {
-                logButtonClick('Remove Image Button', 'ExteriorUploadScreen');
+                logButtonClick('Remove Image Button', 'ReplaceUploadScreen');
                 setSelectedImage(null);
               }}>
               <FontAwesome name="times" size={16} color="#FFFFFF" />
@@ -180,7 +177,7 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
             <TouchableOpacity
               style={styles.changePhotoButton}
               onPress={() => {
-                logButtonClick('Change Photo Button', 'ExteriorUploadScreen');
+                logButtonClick('Change Photo Button', 'ReplaceUploadScreen');
                 setSelectedImage(null);
               }}>
               <Text style={styles.changePhotoText}>Change Photo</Text>
@@ -218,7 +215,9 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
           {loadingImages ? (
-            <UploadScreenSkeleton count={4} />
+            <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#8B5CF6" />
+            </View>
           ) : (
             <View style={styles.gridRow}>
               {sampleImages.map((image, index) => (
@@ -241,7 +240,7 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
         <TouchableOpacity
           style={styles.continueButton}
           onPress={() => {
-            logButtonClick('Continue Button', 'ExteriorUploadScreen');
+            logButtonClick('Continue Button', 'ReplaceUploadScreen');
             onContinue?.(selectedImage);
           }}
           activeOpacity={0.9}
@@ -502,5 +501,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ExteriorUploadScreen;
+export default ReplaceUploadScreen;
 

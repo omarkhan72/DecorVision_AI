@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,13 +10,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { generateDesignDirectly, generateDesignPrompt } from '../services/GeminiDirectService';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../components/FirebaseImage';
-import { convertImageToBase64 } from '../utils/imageUtils';
-import { StyleSelectionSkeleton } from '../components/SkeletonLoader';
+import { generateDesignDirectly, generateDesignPrompt } from '../../services/GeminiDirectService';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
+import FirebaseImage from '../../components/FirebaseImage';
+import { convertImageToBase64 } from '../../utils/imageUtils';
+import { StyleSelectionSkeleton } from '../../components/SkeletonLoader';
 
 type Props = {
   onBack: () => void;

@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
-import FirebaseImageBackground from '../components/FirebaseImageBackground';
+import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
+import FirebaseImageBackground from '../../components/FirebaseImageBackground';
 
 const IMAGES = ['interior-design.webp', 'exterior-design.webp'];
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { logScreenView, logButtonClick } from '../utils/crashlytics';
-import * as analytics from '../utils/analytics';
+import { logScreenView, logButtonClick } from '../../utils/crashlytics';
+import * as analytics from '../../utils/analytics';
 
 const SectionHeader = ({ title, onPress }: { title: string; onPress?: () => void }) => (
   <View style={styles.sectionHeader}>
