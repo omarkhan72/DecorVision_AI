@@ -81,6 +81,8 @@ const HOME_IMAGE_PATHS = [
   'Flooring (2).webp',
   'interiorslide1.webp',
   'interiorslide2.webp',
+  'blueprintslide1.webp',
+  'blueprintslide2.webp',
 ];
 
 // Custom Fence Icon Component (Three Vertical Bars)
@@ -436,7 +438,7 @@ const HomeScreen = () => {
       id: 8,
       title: '3D Design Maker',
       description: 'Create 3D models and designs',
-      image: { uri: 'https://plus.unsplash.com/premium_photo-1747771129197-010a72fe735b?q=80&w=484&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+      image: homeImages['blueprintslide2.webp'] || require('../../assets/blueprintslide2.webp'),
     },
   ];
 
@@ -922,6 +924,16 @@ const HomeScreen = () => {
                         afterImage={homeImages['interiorslide2.webp'] || { uri: '' }}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                      />
+                    </View>
+                  ) : card.title === '3D Design Maker' ? (
+                    <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
+                      <AutoBeforeAfterSlider
+                        beforeImage={homeImages['blueprintslide1.webp']?.uri ? homeImages['blueprintslide1.webp'] : require('../../assets/blueprintslide1.webp')}
+                        afterImage={homeImages['blueprintslide2.webp']?.uri ? homeImages['blueprintslide2.webp'] : require('../../assets/blueprintslide2.webp')}
+                        sliderWidth={cardWidth}
+                        containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                        startFrom="left"
                       />
                     </View>
                   ) : (
