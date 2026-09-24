@@ -12,13 +12,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AutoBeforeAfterSlider from '../components/AutoBeforeAfterSlider';
 import adjust from '../utils/Adjust';
-import { useFirebaseImagePaths } from '../hooks/useFirebaseImagePaths';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HORIZONTAL_GAP = adjust(16);
 const SLIDER_WIDTH = SCREEN_WIDTH - HORIZONTAL_GAP * 2;
 
-const IMAGES = ['thirdonbording1.webp', 'thirdonbording2.webp'];
+const BEFORE_IMAGE = require('../assets/thirdonbording1.webp');
+const AFTER_IMAGE = require('../assets/thirdonbording2.webp');
 
 type Props = {
   onNext: () => void;
@@ -27,7 +27,6 @@ type Props = {
 
 const OnboardingScreen3: React.FC<Props> = ({ onNext, onSkip }) => {
   const insets = useSafeAreaInsets();
-  const { images } = useFirebaseImagePaths(IMAGES);
 
   return (
     <View style={styles.container}>
@@ -36,18 +35,12 @@ const OnboardingScreen3: React.FC<Props> = ({ onNext, onSkip }) => {
 
         {/* --- Comparison Slider Section --- */}
         <View style={styles.sliderContainer}>
-          {images['thirdonbording1.webp'] && images['thirdonbording2.webp'] ? (
-            <AutoBeforeAfterSlider
-              beforeImage={images['thirdonbording1.webp']}
-              afterImage={images['thirdonbording2.webp']}
-              sliderWidth={SLIDER_WIDTH}
-              containerStyle={styles.sliderBox}
-            />
-          ) : (
-            <View style={{ flex: 1, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}>
-              <ActivityIndicator size="large" color="#7C3AED" />
-            </View>
-          )}
+          <AutoBeforeAfterSlider
+            beforeImage={BEFORE_IMAGE}
+            afterImage={AFTER_IMAGE}
+            sliderWidth={SLIDER_WIDTH}
+            containerStyle={styles.sliderBox}
+          />
         </View>
 
         {/* --- Bottom Content Section --- */}

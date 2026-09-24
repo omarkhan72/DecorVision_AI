@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,16 +7,14 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { generateDesignDirectly } from '../../services/GeminiDirectService';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import * as analytics from '../../utils/analytics';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../../components/FirebaseImage';
 import { convertImageToBase64 } from '../../utils/imageUtils';
-import { StyleSelectionSkeleton } from '../../components/SkeletonLoader';
 
 type Props = {
   onBack: () => void;
@@ -44,44 +42,19 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const STYLE_IMAGES = [
-    'Interior (1).webp',
-    'Interior (2).webp',
-    'interiorslide1.webp',
-    'interiorslide2.webp',
-    'interior-design.webp',
-    'Garden (1).webp',
-    'Garden (2).webp',
-    'Gardenslide1.webp',
-    'Gardenslide2.webp',
-    'garden-design.webp',
-    'exterior-design.webp',
-    'new-walls.webp'
-  ];
-
-  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(STYLE_IMAGES);
-
-  // Safely map dictionary back to array
-  const firebaseImages = STYLE_IMAGES.map(key => firebaseImagesDict[key] || null);
-
-  // Log screen view
-  useEffect(() => {
-    logScreenView('NewFlooringStyleSelectionScreen');
-  }, []);
-
   const stylesData = [
-    { id: 'hardwood', name: 'Hardwood', image: firebaseImages[0] },
-    { id: 'marble', name: 'Marble', image: firebaseImages[1] },
-    { id: 'ceramic_tile', name: 'Ceramic Tile', image: firebaseImages[2] },
-    { id: 'vinyl', name: 'Vinyl', image: firebaseImages[3] },
-    { id: 'carpet', name: 'Carpet', image: firebaseImages[4] },
-    { id: 'concrete', name: 'Polished Concrete', image: firebaseImages[5] },
-    { id: 'laminate', name: 'Laminate', image: firebaseImages[6] },
-    { id: 'herringbone', name: 'Herringbone', image: firebaseImages[7] },
-    { id: 'terrazzo', name: 'Terrazzo', image: firebaseImages[8] },
-    { id: 'bamboo', name: 'Bamboo', image: firebaseImages[9] },
-    { id: 'slate', name: 'Slate', image: firebaseImages[10] },
-    { id: 'parquet', name: 'Parquet', image: firebaseImages[11] },
+    { id: 'hardwood', name: 'Hardwood', image: require('../../assets/Interior (1).webp') },
+    { id: 'marble', name: 'Marble', image: require('../../assets/Interior (2).webp') },
+    { id: 'ceramic_tile', name: 'Ceramic Tile', image: require('../../assets/interiorslide1.webp') },
+    { id: 'vinyl', name: 'Vinyl', image: require('../../assets/interiorslide2.webp') },
+    { id: 'carpet', name: 'Carpet', image: require('../../assets/interior-design.webp') },
+    { id: 'concrete', name: 'Polished Concrete', image: require('../../assets/Garden (1).webp') },
+    { id: 'laminate', name: 'Laminate', image: require('../../assets/Garden (2).webp') },
+    { id: 'herringbone', name: 'Herringbone', image: require('../../assets/Gardenslide1.webp') },
+    { id: 'terrazzo', name: 'Terrazzo', image: require('../../assets/Gardenslide2.webp') },
+    { id: 'bamboo', name: 'Bamboo', image: require('../../assets/garden-design.webp') },
+    { id: 'slate', name: 'Slate', image: require('../../assets/exterior-design.webp') },
+    { id: 'parquet', name: 'Parquet', image: require('../../assets/new-walls.webp') },
   ];
 
   const getFlooringPrompt = (style: string) => {
@@ -210,10 +183,7 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
         <Text style={styles.sectionTitle}>Select A Style</Text>
 
         {/* Style Grid */}
-        {loadingImages ? (
-          <StyleSelectionSkeleton count={12} />
-        ) : (
-          <View style={styles.stylesGrid}>
+        <View style={styles.stylesGrid}>
             {stylesData.map((styleItem) => (
               <TouchableOpacity
                 key={styleItem.id}
@@ -224,7 +194,7 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
                 }}
                 activeOpacity={0.8}>
                 <View style={styles.imageContainer}>
-                  <FirebaseImage
+                  <Image
                     source={styleItem.image}
                     style={styles.styleImage}
                   />
@@ -242,8 +212,7 @@ const NewFlooringStyleSelectionScreen = ({ onBack, onContinue, userImage, roomTy
               </TouchableOpacity>
             ))}
           </View>
-        )}
-      </ScrollView>
+        </ScrollView>
 
       {/* Generate Now Button */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>

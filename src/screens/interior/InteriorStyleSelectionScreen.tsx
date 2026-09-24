@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,16 +7,14 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { generateDesignDirectly, generateDesignPrompt } from '../../services/GeminiDirectService';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import * as analytics from '../../utils/analytics';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../../components/FirebaseImage';
 import { convertImageToBase64 } from '../../utils/imageUtils';
-import { StyleSelectionSkeleton } from '../../components/SkeletonLoader';
 
 type Props = {
   onBack: () => void;
@@ -46,44 +44,19 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const STYLE_IMAGES = [
-    'Interior (1).webp',
-    'Interior (2).webp',
-    'interiorslide1.webp',
-    'interiorslide2.webp',
-    'interior-design.webp',
-    'Garden (1).webp',
-    'Garden (2).webp',
-    'Gardenslide1.webp',
-    'Gardenslide2.webp',
-    'garden-design.webp',
-    'exterior-design.webp',
-    'new-walls.webp'
-  ];
-
-  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(STYLE_IMAGES);
-
-  // Safely map dictionary back to array
-  const firebaseImages = STYLE_IMAGES.map(key => firebaseImagesDict[key] || null);
-
-  // Log screen view
-  useEffect(() => {
-    logScreenView('InteriorStyleSelectionScreen');
-  }, []);
-
   const stylesData = [
-    { id: 'modern', name: 'Modern', image: firebaseImages[0] },
-    { id: 'cozy', name: 'Cozy', image: firebaseImages[1] },
-    { id: 'luxury', name: 'Luxury', image: firebaseImages[2] },
-    { id: 'minimalist', name: 'Minimalist', image: firebaseImages[3] },
-    { id: 'scandinavian', name: 'Scandinavian', image: firebaseImages[4] },
-    { id: 'airbnb', name: 'Airbnb', image: firebaseImages[5] },
-    { id: 'midcentury', name: 'Mid Century', image: firebaseImages[6] },
-    { id: 'rustic', name: 'Rustic', image: firebaseImages[7] },
-    { id: 'zen', name: 'Zen', image: firebaseImages[8] },
-    { id: 'tropical', name: 'Tropical', image: firebaseImages[9] },
-    { id: 'coastal', name: 'Coastal', image: firebaseImages[10] },
-    { id: 'vintage', name: 'Vintage', image: firebaseImages[11] },
+    { id: 'modern', name: 'Modern', image: require('../../assets/Interior (1).webp') },
+    { id: 'cozy', name: 'Cozy', image: require('../../assets/Interior (2).webp') },
+    { id: 'luxury', name: 'Luxury', image: require('../../assets/interiorslide1.webp') },
+    { id: 'minimalist', name: 'Minimalist', image: require('../../assets/interiorslide2.webp') },
+    { id: 'scandinavian', name: 'Scandinavian', image: require('../../assets/interior-design.webp') },
+    { id: 'airbnb', name: 'Airbnb', image: require('../../assets/Garden (1).webp') },
+    { id: 'midcentury', name: 'Mid Century', image: require('../../assets/Garden (2).webp') },
+    { id: 'rustic', name: 'Rustic', image: require('../../assets/Gardenslide1.webp') },
+    { id: 'zen', name: 'Zen', image: require('../../assets/Gardenslide2.webp') },
+    { id: 'tropical', name: 'Tropical', image: require('../../assets/garden-design.webp') },
+    { id: 'coastal', name: 'Coastal', image: require('../../assets/exterior-design.webp') },
+    { id: 'vintage', name: 'Vintage', image: require('../../assets/new-walls.webp') },
   ];
 
 
@@ -205,10 +178,7 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
         <Text style={styles.sectionTitle}>Select A Style</Text>
 
         {/* Style Grid */}
-        {loadingImages ? (
-          <StyleSelectionSkeleton count={12} />
-        ) : (
-          <View style={styles.stylesGrid}>
+        <View style={styles.stylesGrid}>
             {stylesData.map((styleItem) => (
               <TouchableOpacity
                 key={styleItem.id}
@@ -222,7 +192,7 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
                 }}
                 activeOpacity={0.8}>
                 <View style={styles.imageContainer}>
-                  <FirebaseImage
+                  <Image
                     source={styleItem.image}
                     style={styles.styleImage}
                   />
@@ -240,8 +210,7 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
               </TouchableOpacity>
             ))}
           </View>
-        )}
-      </ScrollView>
+        </ScrollView>
 
       {/* Generate Now Button */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>

@@ -1,7 +1,6 @@
-﻿import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
 
 type Props = { onBack: () => void; onImagePress?: (image: any, roomName: string) => void };
 
@@ -26,40 +25,27 @@ const Section = ({ title, images, onImagePress }: { title: string; images: any[]
   </View>
 );
 
+const LOCAL_EXTERIOR_IMAGES = [
+  require('../../assets/exterior  (1).webp'),
+  require('../../assets/exterior  (2).webp'),
+  require('../../assets/Exteriorslide1 (1).webp'),
+  require('../../assets/Exteriorslide2.webp'),
+  require('../../assets/exterior-design.webp'),
+  require('../../assets/Garden (1).webp'),
+  require('../../assets/Garden (2).webp'),
+  require('../../assets/Gardenslide1.webp'),
+  require('../../assets/Gardenslide2.webp'),
+  require('../../assets/garden-design.webp'),
+  require('../../assets/Interior (1).webp'),
+  require('../../assets/Interior (2).webp'),
+  require('../../assets/interior-design.webp'),
+  require('../../assets/new-walls.webp'),
+  require('../../assets/new-flooring.webp')
+];
+
 const ExteriorsListScreen = ({ onBack, onImagePress }: Props) => {
-  const EXTERIOR_IMAGES = [
-    'exterior  (1).webp',
-    'exterior  (2).webp',
-    'Exteriorslide1 (1).webp',
-    'Exteriorslide2.webp',
-    'exterior-design.webp',
-    'Garden (1).webp',
-    'Garden (2).webp',
-    'Gardenslide1.webp',
-    'Gardenslide2.webp',
-    'garden-design.webp',
-    'Interior (1).webp',
-    'Interior (2).webp',
-    'interior-design.webp',
-    'new-walls.webp',
-    'new-flooring.webp'
-  ];
-
-  const { images: firebaseImagesDict, loading } = useFirebaseImagePaths(EXTERIOR_IMAGES);
-  
-  // Safely map dictionary back to array
-  const firebaseImages = EXTERIOR_IMAGES.map(key => firebaseImagesDict[key] || null).filter(Boolean);
-
-  if (loading) {
-    return (
-      <View style={[styles.container, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
-      </View>
-    );
-  }
-
   const getImagesForSection = (startIndex: number) => {
-    return firebaseImages.slice(startIndex, startIndex + 3);
+    return LOCAL_EXTERIOR_IMAGES.slice(startIndex, startIndex + 3);
   };
 
   return (

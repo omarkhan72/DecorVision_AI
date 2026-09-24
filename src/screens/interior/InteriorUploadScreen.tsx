@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,34 +17,29 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import * as analytics from '../../utils/analytics';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
+
+const LOCAL_INTERIOR_SAMPLES = [
+  require('../../assets/Interior (1).webp'),
+  require('../../assets/Interior (2).webp'),
+  require('../../assets/interiorslide1.webp'),
+  require('../../assets/interiorslide2.webp'),
+];
 
 const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-  const INTERIOR_SAMPLE_IMAGES = [
-    'Interior (1).webp',
-    'Interior (2).webp',
-    'interiorslide1.webp',
-    'interiorslide2.webp',
-  ];
-
-  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(INTERIOR_SAMPLE_IMAGES);
-  const firebaseImages = INTERIOR_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
 
   // Log screen view
   useEffect(() => {
     logScreenView('InteriorUploadScreen');
   }, []);
 
-  // Use style image if provided, otherwise use fetched firebase images
+  // Use style image if provided, otherwise use sample images
   const sampleImages = styleImage
-    ? [styleImage, ...firebaseImages.slice(0, 3)]
-    : firebaseImages;
+    ? [styleImage, ...LOCAL_INTERIOR_SAMPLES.slice(0, 3)]
+    : LOCAL_INTERIOR_SAMPLES;
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -249,22 +244,18 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
-          {loadingImages ? (
-            <UploadScreenSkeleton count={4} />
-          ) : (
-            <View style={styles.gridRow}>
-              {sampleImages.map((image, index) => (
-                <View key={index} style={styles.sampleImageContainer}>
-                  <FirebaseImage source={image} style={styles.sampleImage} />
-                  <View style={styles.sampleOverlay}>
-                    <Text style={styles.sampleText}>
-                      {styleImage && index === 0 ? 'Your Style' : 'Sample'}
-                    </Text>
-                  </View>
+          <View style={styles.gridRow}>
+            {sampleImages.map((image, index) => (
+              <View key={index} style={styles.sampleImageContainer}>
+                <Image source={image} style={styles.sampleImage} />
+                <View style={styles.sampleOverlay}>
+                  <Text style={styles.sampleText}>
+                    {styleImage && index === 0 ? 'Your Style' : 'Sample'}
+                  </Text>
                 </View>
-              ))}
-            </View>
-          )}
+              </View>
+            ))}
+          </View>
         </View>
       </ScrollView>
 

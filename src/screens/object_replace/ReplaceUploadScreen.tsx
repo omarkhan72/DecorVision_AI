@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,34 +17,29 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import * as analytics from '../../utils/analytics';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
+
+const LOCAL_REPLACE_SAMPLES = [
+  require('../../assets/replace (1).webp'),
+  require('../../assets/replace (2).webp'),
+  require('../../assets/replace.webp'),
+  require('../../assets/cleanup.webp'),
+];
 
 const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-  const REPLACE_SAMPLE_IMAGES = [
-    'replace (1).webp',
-    'replace (2).webp',
-    'replace.webp',
-    'cleanup.webp',
-  ];
-
-  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(REPLACE_SAMPLE_IMAGES);
-  const firebaseImages = REPLACE_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
 
   // Log screen view
   useEffect(() => {
     logScreenView('ReplaceUploadScreen');
   }, []);
 
-  // Use style image if provided, otherwise use fetched firebase images
+  // Use style image if provided, otherwise use sample images
   const sampleImages = styleImage
-    ? [styleImage, ...firebaseImages.slice(0, 3)]
-    : firebaseImages;
+    ? [styleImage, ...LOCAL_REPLACE_SAMPLES.slice(0, 3)]
+    : LOCAL_REPLACE_SAMPLES;
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -214,24 +209,18 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
-          {loadingImages ? (
-            <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-              <ActivityIndicator size="large" color="#8B5CF6" />
-            </View>
-          ) : (
-            <View style={styles.gridRow}>
-              {sampleImages.map((image, index) => (
-                <View key={index} style={styles.sampleImageContainer}>
-                  <FirebaseImage source={image} style={styles.sampleImage} />
-                  <View style={styles.sampleOverlay}>
-                    <Text style={styles.sampleText}>
-                      {styleImage && index === 0 ? 'Your Style' : 'Sample'}
-                    </Text>
-                  </View>
+          <View style={styles.gridRow}>
+            {sampleImages.map((image, index) => (
+              <View key={index} style={styles.sampleImageContainer}>
+                <Image source={image} style={styles.sampleImage} />
+                <View style={styles.sampleOverlay}>
+                  <Text style={styles.sampleText}>
+                    {styleImage && index === 0 ? 'Your Style' : 'Sample'}
+                  </Text>
                 </View>
-              ))}
-            </View>
-          )}
+              </View>
+            ))}
+          </View>
         </View>
       </ScrollView>
 

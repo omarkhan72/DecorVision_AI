@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,34 +17,29 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import * as analytics from '../../utils/analytics';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
+
+const LOCAL_FLOORING_SAMPLES = [
+  require('../../assets/Flooring (1).webp'),
+  require('../../assets/Flooring (2).webp'),
+  require('../../assets/new-flooring.webp'),
+  require('../../assets/interiorslide1.webp'),
+];
 
 const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-  const FLOORING_SAMPLE_IMAGES = [
-    'Flooring (1).webp',
-    'Flooring (2).webp',
-    'new-flooring.webp',
-    'interiorslide1.webp',
-  ];
-
-  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(FLOORING_SAMPLE_IMAGES);
-  const firebaseImages = FLOORING_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
 
   // Log screen view
   useEffect(() => {
     logScreenView('NewFlooringUploadScreen');
   }, []);
 
-  // Use style image if provided, otherwise use fetched firebase images
+  // Use style image if provided, otherwise use sample images
   const sampleImages = styleImage
-    ? [styleImage, ...firebaseImages.slice(0, 3)]
-    : firebaseImages;
+    ? [styleImage, ...LOCAL_FLOORING_SAMPLES.slice(0, 3)]
+    : LOCAL_FLOORING_SAMPLES;
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -215,22 +210,18 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
-          {loadingImages ? (
-            <UploadScreenSkeleton count={4} />
-          ) : (
-            <View style={styles.gridRow}>
-              {sampleImages.map((image, index) => (
-                <View key={index} style={styles.sampleImageContainer}>
-                  <FirebaseImage source={image} style={styles.sampleImage} />
-                  <View style={styles.sampleOverlay}>
-                    <Text style={styles.sampleText}>
-                      {styleImage && index === 0 ? 'Your Style' : 'Sample'}
-                    </Text>
-                  </View>
+          <View style={styles.gridRow}>
+            {sampleImages.map((image, index) => (
+              <View key={index} style={styles.sampleImageContainer}>
+                <Image source={image} style={styles.sampleImage} />
+                <View style={styles.sampleOverlay}>
+                  <Text style={styles.sampleText}>
+                    {styleImage && index === 0 ? 'Your Style' : 'Sample'}
+                  </Text>
                 </View>
-              ))}
-            </View>
-          )}
+              </View>
+            ))}
+          </View>
         </View>
       </ScrollView>
 

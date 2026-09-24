@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -14,9 +14,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
-
-const IMAGES = ['interior-design.webp'];
+const DEFAULT_BG_IMAGE = require('../../assets/interior-design.webp');
 
 type Props = {
   onComplete?: () => void;
@@ -26,12 +24,11 @@ type Props = {
 const DesignLoadingScreen = ({ onComplete, userImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [topSectionHeight, setTopSectionHeight] = useState(0);
-  const { images } = useFirebaseImagePaths(IMAGES);
 
   // Use the user's uploaded image or fallback to default
   const backgroundImage = userImage 
     ? { uri: userImage }
-    : images['interior-design.webp'] || { uri: '' };
+    : DEFAULT_BG_IMAGE;
 
   // Animation value for scanning line (0 to topSectionHeight)
   const scanLinePosition = useSharedValue(0);

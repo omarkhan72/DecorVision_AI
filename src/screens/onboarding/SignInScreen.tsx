@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -13,19 +13,15 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useAuth } from '../../contexts/AuthContext';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../../components/FirebaseImage';
 
 const { width, height } = Dimensions.get('window');
 
-const SIGN_IN_IMAGES = ['iconImage.webp'];
+const ICON_IMAGE = require('../../assets/iconImage.webp');
 
 const SignInScreen = () => {
     const insets = useSafeAreaInsets();
     const { signInWithGoogle, skipSignIn } = useAuth();
     const [isSigningIn, setIsSigningIn] = useState(false);
-    const { images } = useFirebaseImagePaths(SIGN_IN_IMAGES);
-    const iconImage = images['iconImage.webp'];
 
     const handleGoogleSignIn = async () => {
         try {
@@ -68,11 +64,10 @@ const SignInScreen = () => {
             <View style={styles.contentContainer}>
                 {/* App Icon/Image */}
                 <View style={styles.iconContainer}>
-                    <FirebaseImage
-                        source={iconImage}
+                    <Image
+                        source={ICON_IMAGE}
                         style={styles.iconImage}
                         resizeMode="contain"
-                        fallbackColor="#E0E7FF"
                     />
                 </View>
 

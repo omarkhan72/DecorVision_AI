@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,36 +17,29 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import * as analytics from '../../utils/analytics';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../../components/FirebaseImage';
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
+
+const LOCAL_GARDEN_SAMPLES = [
+  require('../../assets/Garden (1).webp'),
+  require('../../assets/Garden (2).webp'),
+  require('../../assets/Gardenslide1.webp'),
+  require('../../assets/Gardenslide2.webp'),
+];
 
 const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  
-  const GARDEN_SAMPLE_IMAGES = [
-    'Garden (1).webp',
-    'Garden (2).webp',
-    'Gardenslide1.webp',
-    'Gardenslide2.webp',
-  ];
-
-  const { images: firebaseImagesDict, loading: loadingImages } = useFirebaseImagePaths(GARDEN_SAMPLE_IMAGES);
-  
-  // Convert dictionary back to an array for rendering
-  const firebaseImages = GARDEN_SAMPLE_IMAGES.map(key => firebaseImagesDict[key]).filter(Boolean);
 
   // Log screen view
   useEffect(() => {
     logScreenView('GardenUploadScreen');
   }, []);
 
-  // Use style image if provided, otherwise use fetched firebase images
+  // Use style image if provided, otherwise use sample images
   const sampleImages = styleImage
-    ? [styleImage, ...firebaseImages.slice(0, 3)]
-    : firebaseImages;
+    ? [styleImage, ...LOCAL_GARDEN_SAMPLES.slice(0, 3)]
+    : LOCAL_GARDEN_SAMPLES;
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -219,22 +212,18 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
-          {loadingImages ? (
-            <UploadScreenSkeleton count={4} />
-          ) : (
-            <View style={styles.gridRow}>
-              {sampleImages.map((image, index) => (
-                <View key={index} style={styles.sampleImageContainer}>
-                  <FirebaseImage source={image} style={styles.sampleImage} />
-                  <View style={styles.sampleOverlay}>
-                    <Text style={styles.sampleText}>
-                      {styleImage && index === 0 ? 'Your Style' : 'Sample'}
-                    </Text>
-                  </View>
+          <View style={styles.gridRow}>
+            {sampleImages.map((image, index) => (
+              <View key={index} style={styles.sampleImageContainer}>
+                <Image source={image} style={styles.sampleImage} />
+                <View style={styles.sampleOverlay}>
+                  <Text style={styles.sampleText}>
+                    {styleImage && index === 0 ? 'Your Style' : 'Sample'}
+                  </Text>
                 </View>
-              ))}
-            </View>
-          )}
+              </View>
+            ))}
+          </View>
         </View>
       </ScrollView>
 

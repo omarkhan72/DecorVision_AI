@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,21 +15,25 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { useFirebaseImages } from '../../hooks/useFirebaseImages';
-import FirebaseImage from '../../components/FirebaseImage';
+
 
 type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => void; styleImage?: any };
+
+const LOCAL_CLEANUP_SAMPLES = [
+  require('../../assets/cleanup.webp'),
+  require('../../assets/replace (1).webp'),
+  require('../../assets/replace (2).webp'),
+  require('../../assets/replace.webp'),
+];
 
 const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const { images: firebaseImages, loading: loadingImages } = useFirebaseImages('Cleanup samples', 4);
-
-  // Use style image if provided, otherwise use fetched firebase images
+  // Use style image if provided, otherwise use sample images
   const sampleImages = styleImage
-    ? [styleImage, ...firebaseImages.slice(0, 3)]
-    : firebaseImages;
+    ? [styleImage, ...LOCAL_CLEANUP_SAMPLES.slice(0, 3)]
+    : LOCAL_CLEANUP_SAMPLES;
 
   // Request camera permissions for Android
   const requestCameraPermission = async () => {
@@ -173,24 +177,18 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
         {/* Sample Images Grid */}
         <View style={styles.samplesContainer}>
-          {loadingImages ? (
-            <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-              <ActivityIndicator size="large" color="#8B5CF6" />
-            </View>
-          ) : (
-            <View style={styles.gridRow}>
-              {sampleImages.map((image, index) => (
-                <View key={index} style={styles.sampleImageContainer}>
-                  <FirebaseImage source={image} style={styles.sampleImage} />
-                  <View style={styles.sampleOverlay}>
-                    <Text style={styles.sampleText}>
-                      {styleImage && index === 0 ? 'Your Style' : 'Sample'}
-                    </Text>
-                  </View>
+          <View style={styles.gridRow}>
+            {sampleImages.map((image, index) => (
+              <View key={index} style={styles.sampleImageContainer}>
+                <Image source={image} style={styles.sampleImage} />
+                <View style={styles.sampleOverlay}>
+                  <Text style={styles.sampleText}>
+                    {styleImage && index === 0 ? 'Your Style' : 'Sample'}
+                  </Text>
                 </View>
-              ))}
-            </View>
-          )}
+              </View>
+            ))}
+          </View>
         </View>
       </ScrollView>
 

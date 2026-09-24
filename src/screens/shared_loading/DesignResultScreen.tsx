@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,22 +20,20 @@ import { saveToHistory } from '../../utils/historyStorage';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import * as analytics from '../../utils/analytics';
 import { useAuth } from '../../contexts/AuthContext';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
 import FirebaseImage from '../../components/FirebaseImage';
 
-const IMAGES = ['interior-design.webp'];
+const DEFAULT_RESULT_IMAGE = require('../../assets/interior-design.webp');
 
 type Props = { onBack: () => void; onRegenerate?: () => void; userImage?: string | null };
 
 const DesignResultScreen = ({ onBack, onRegenerate, userImage }: Props) => {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { images } = useFirebaseImagePaths(IMAGES);
   
   // Use the user's uploaded image or fallback to default
   const imageSource = userImage
     ? { uri: userImage }
-    : images['interior-design.webp'] || { uri: '' };
+    : DEFAULT_RESULT_IMAGE;
 
   // Log screen view and save to history when screen loads
   useEffect(() => {

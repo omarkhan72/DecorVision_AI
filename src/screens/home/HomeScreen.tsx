@@ -56,34 +56,30 @@ import { generateDesignDirectly } from '../../services/GeminiDirectService';
 import { Alert } from 'react-native';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import { convertImageToBase64 } from '../../utils/imageUtils';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
-import FirebaseImage from '../../components/FirebaseImage';
-import SkeletonItem from '../../components/SkeletonLoader';
 
-// All root-level image paths in Firebase Storage needed by HomeScreen
-const HOME_IMAGE_PATHS = [
-  'iconImage.webp',
-  'interior-design.webp',
-  'exterior-design.webp',
-  'garden-design.webp',
-  'replace.webp',
-  'new-walls.webp',
-  'new-flooring.webp',
-  'Interior (1).webp',
-  'Interior (2).webp',
-  'exterior  (1).webp',
-  'exterior  (2).webp',
-  'Garden (1).webp',
-  'Garden (2).webp',
-  'replace (1).webp',
-  'replace (2).webp',
-  'Flooring (1).webp',
-  'Flooring (2).webp',
-  'interiorslide1.webp',
-  'interiorslide2.webp',
-  'blueprintslide1.webp',
-  'blueprintslide2.webp',
-];
+const LOCAL_ASSETS = {
+  iconImage: require('../../assets/iconImage.webp'),
+  interiorDesign: require('../../assets/interior-design.webp'),
+  exteriorDesign: require('../../assets/exterior-design.webp'),
+  gardenDesign: require('../../assets/garden-design.webp'),
+  replace: require('../../assets/replace.webp'),
+  newWalls: require('../../assets/new-walls.webp'),
+  newFlooring: require('../../assets/new-flooring.webp'),
+  interior1: require('../../assets/Interior (1).webp'),
+  interior2: require('../../assets/Interior (2).webp'),
+  exterior1: require('../../assets/exterior  (1).webp'),
+  exterior2: require('../../assets/exterior  (2).webp'),
+  garden1: require('../../assets/Garden (1).webp'),
+  garden2: require('../../assets/Garden (2).webp'),
+  replace1: require('../../assets/replace (1).webp'),
+  replace2: require('../../assets/replace (2).webp'),
+  flooring1: require('../../assets/Flooring (1).webp'),
+  flooring2: require('../../assets/Flooring (2).webp'),
+  interiorSlide1: require('../../assets/interiorslide1.webp'),
+  interiorSlide2: require('../../assets/interiorslide2.webp'),
+  blueprintSlide1: require('../../assets/blueprintslide1.webp'),
+  blueprintSlide2: require('../../assets/blueprintslide2.webp'),
+};
 
 // Custom Fence Icon Component (Three Vertical Bars)
 const FenceIcon = ({ size = 24, color = '#FFFFFF' }) => (
@@ -148,8 +144,7 @@ const HomeScreen = () => {
 
   const [isAdVisible, setIsAdVisible] = useState(false);
 
-  // Fetch images from Firebase Storage
-  const { images: homeImages } = useFirebaseImagePaths(HOME_IMAGE_PATHS);
+
 
   // To store the pending resolve function when user opens paywall
   // This allows us to "resume" the action after they successfully interact with the paywall
@@ -402,43 +397,43 @@ const HomeScreen = () => {
       id: 1,
       title: 'Interior Design',
       description: 'Transform your interior space',
-      image: homeImages['interior-design.webp'] || { uri: '' },
+      image: LOCAL_ASSETS.interiorDesign,
     },
     {
       id: 2,
       title: 'Exterior Design',
       description: 'Transform your exterior space',
-      image: homeImages['exterior-design.webp'] || { uri: '' },
+      image: LOCAL_ASSETS.exteriorDesign,
     },
     {
       id: 3,
       title: 'Garden Design',
       description: 'Transfer your garden',
-      image: homeImages['garden-design.webp'] || { uri: '' },
+      image: LOCAL_ASSETS.gardenDesign,
     },
     {
       id: 4,
       title: 'Replace',
       description: 'Replace any part of your space',
-      image: homeImages['replace.webp'] || { uri: '' },
+      image: LOCAL_ASSETS.replace,
     },
     {
       id: 6,
       title: 'New walls',
       description: 'Change paint wall paper and more',
-      image: homeImages['new-walls.webp'] || { uri: '' },
+      image: LOCAL_ASSETS.newWalls,
     },
     {
       id: 7,
       title: 'New Flooring',
       description: 'Chose wood, carpet, tile, and more',
-      image: homeImages['new-flooring.webp'] || { uri: '' },
+      image: LOCAL_ASSETS.newFlooring,
     },
     {
       id: 8,
       title: '3D Design Maker',
       description: 'Create 3D models and designs',
-      image: homeImages['blueprintslide2.webp'] || require('../../assets/blueprintslide2.webp'),
+      image: LOCAL_ASSETS.blueprintSlide2,
     },
   ];
 
@@ -453,7 +448,7 @@ const HomeScreen = () => {
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Image
-              source={homeImages['iconImage.webp']?.uri ? homeImages['iconImage.webp'] : require('../../assets/iconImage.webp')}
+              source={LOCAL_ASSETS.iconImage}
               style={styles.logoIcon}
               resizeMode="contain"
             />
@@ -872,8 +867,8 @@ const HomeScreen = () => {
                   {card.title === 'Interior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={homeImages['Interior (1).webp'] || { uri: '' }}
-                        afterImage={homeImages['Interior (2).webp'] || { uri: '' }}
+                        beforeImage={LOCAL_ASSETS.interior1}
+                        afterImage={LOCAL_ASSETS.interior2}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                       />
@@ -881,8 +876,8 @@ const HomeScreen = () => {
                   ) : card.title === 'Exterior Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={homeImages['exterior  (1).webp'] || { uri: '' }}
-                        afterImage={homeImages['exterior  (2).webp'] || { uri: '' }}
+                        beforeImage={LOCAL_ASSETS.exterior1}
+                        afterImage={LOCAL_ASSETS.exterior2}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                         startFrom="left"
@@ -891,8 +886,8 @@ const HomeScreen = () => {
                   ) : card.title === 'Garden Design' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={homeImages['Garden (1).webp'] || { uri: '' }}
-                        afterImage={homeImages['Garden (2).webp'] || { uri: '' }}
+                        beforeImage={LOCAL_ASSETS.garden1}
+                        afterImage={LOCAL_ASSETS.garden2}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                       />
@@ -900,8 +895,8 @@ const HomeScreen = () => {
                   ) : card.title === 'Replace' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={homeImages['replace (1).webp'] || { uri: '' }}
-                        afterImage={homeImages['replace (2).webp'] || { uri: '' }}
+                        beforeImage={LOCAL_ASSETS.replace1}
+                        afterImage={LOCAL_ASSETS.replace2}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                         startFrom="left"
@@ -910,8 +905,8 @@ const HomeScreen = () => {
                   ) : card.title === 'New Flooring' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={homeImages['Flooring (1).webp'] || { uri: '' }}
-                        afterImage={homeImages['Flooring (2).webp'] || { uri: '' }}
+                        beforeImage={LOCAL_ASSETS.flooring1}
+                        afterImage={LOCAL_ASSETS.flooring2}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                         startFrom="left"
@@ -920,8 +915,8 @@ const HomeScreen = () => {
                   ) : card.title === 'New walls' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={homeImages['interiorslide1.webp'] || { uri: '' }}
-                        afterImage={homeImages['interiorslide2.webp'] || { uri: '' }}
+                        beforeImage={LOCAL_ASSETS.interiorSlide1}
+                        afterImage={LOCAL_ASSETS.interiorSlide2}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                       />
@@ -929,19 +924,15 @@ const HomeScreen = () => {
                   ) : card.title === '3D Design Maker' ? (
                     <View style={{ width: cardWidth, height: 200, overflow: 'hidden' }}>
                       <AutoBeforeAfterSlider
-                        beforeImage={homeImages['blueprintslide1.webp']?.uri ? homeImages['blueprintslide1.webp'] : require('../../assets/blueprintslide1.webp')}
-                        afterImage={homeImages['blueprintslide2.webp']?.uri ? homeImages['blueprintslide2.webp'] : require('../../assets/blueprintslide2.webp')}
+                        beforeImage={LOCAL_ASSETS.blueprintSlide1}
+                        afterImage={LOCAL_ASSETS.blueprintSlide2}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
                         startFrom="left"
                       />
                     </View>
                   ) : (
-                    card.image ? (
-                      <FirebaseImage source={card.image} style={styles.cardImage} />
-                    ) : (
-                      <SkeletonItem width={cardWidth} height={200} borderRadius={0} />
-                    )
+                    <Image source={card.image} style={styles.cardImage} />
                   )}
                   <View style={styles.cardContent}>
                     <View style={styles.cardTextContainer}>

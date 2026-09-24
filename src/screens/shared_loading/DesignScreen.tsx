@@ -1,10 +1,10 @@
-﻿import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useFirebaseImagePaths } from '../../hooks/useFirebaseImagePaths';
-import FirebaseImageBackground from '../../components/FirebaseImageBackground';
 
-const IMAGES = ['interior-design.webp', 'exterior-design.webp'];
+const INTERIOR_INSPIRATION_IMAGE = require('../../assets/interior-design.webp');
+const EXTERIOR_INSPIRATION_IMAGE = require('../../assets/exterior-design.webp');
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import * as analytics from '../../utils/analytics';
@@ -20,12 +20,12 @@ const SectionHeader = ({ title, onPress }: { title: string; onPress?: () => void
 
 const Card = ({ image, count, label }: { image: any; count?: number; label?: string }) => (
   <View style={styles.cardContainer}>
-    <FirebaseImageBackground source={image} style={styles.cardImage} imageStyle={{ borderRadius: 16 }}>
+    <ImageBackground source={image} style={styles.cardImage} imageStyle={{ borderRadius: 16 }}>
       <View style={styles.overlayGradient}>
         {count && <Text style={styles.countText}>+{count}</Text>}
         {label && <Text style={styles.labelText}>{label}</Text>}
       </View>
-    </FirebaseImageBackground>
+    </ImageBackground>
   </View>
 );
 
@@ -33,7 +33,6 @@ type Props = { onOpenInteriors?: () => void; onOpenExteriors?: () => void };
 
 const DesignScreen = ({ onOpenInteriors, onOpenExteriors }: Props) => {
   const insets = useSafeAreaInsets();
-  const { images } = useFirebaseImagePaths(IMAGES);
 
   useEffect(() => {
     logScreenView('DesignScreen');
@@ -56,7 +55,7 @@ const DesignScreen = ({ onOpenInteriors, onOpenExteriors }: Props) => {
             onOpenInteriors?.();
           }}>
             <Card
-              image={images['interior-design.webp'] || { uri: '' }}
+              image={INTERIOR_INSPIRATION_IMAGE}
               count={82}
               label="Living Room"
             />
@@ -72,7 +71,7 @@ const DesignScreen = ({ onOpenInteriors, onOpenExteriors }: Props) => {
             onOpenExteriors?.();
           }}>
             <Card
-              image={images['exterior-design.webp'] || { uri: '' }}
+              image={EXTERIOR_INSPIRATION_IMAGE}
               count={75}
               label="House"
             />
