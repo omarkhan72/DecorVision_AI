@@ -23,8 +23,6 @@ type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => voi
 const LOCAL_REPLACE_SAMPLES = [
   require('../../assets/replace (1).webp'),
   require('../../assets/replace (2).webp'),
-  require('../../assets/replace.webp'),
-  require('../../assets/cleanup.webp'),
 ];
 
 const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
@@ -38,7 +36,7 @@ const ReplaceUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Use style image if provided, otherwise use sample images
   const sampleImages = styleImage
-    ? [styleImage, ...LOCAL_REPLACE_SAMPLES.slice(0, 3)]
+    ? [styleImage, LOCAL_REPLACE_SAMPLES[0]]
     : LOCAL_REPLACE_SAMPLES;
 
   // Request camera permissions for Android

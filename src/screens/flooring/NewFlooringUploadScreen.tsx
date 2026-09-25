@@ -23,8 +23,6 @@ type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => voi
 const LOCAL_FLOORING_SAMPLES = [
   require('../../assets/Flooring (1).webp'),
   require('../../assets/Flooring (2).webp'),
-  require('../../assets/new-flooring.webp'),
-  require('../../assets/interiorslide1.webp'),
 ];
 
 const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
@@ -36,9 +34,9 @@ const NewFlooringUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     logScreenView('NewFlooringUploadScreen');
   }, []);
 
-  // Use style image if provided, otherwise use sample images
+  // Use style image if provided, otherwise use sample images (show only 2 samples)
   const sampleImages = styleImage
-    ? [styleImage, ...LOCAL_FLOORING_SAMPLES.slice(0, 3)]
+    ? [styleImage, LOCAL_FLOORING_SAMPLES[0]]
     : LOCAL_FLOORING_SAMPLES;
 
   // Request camera permissions for Android

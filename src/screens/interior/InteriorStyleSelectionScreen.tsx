@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { generateDesignDirectly, generateDesignPrompt } from '../../services/GeminiDirectService';
+import { generateGeminiImage } from '../../services/geminiImageService';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import * as analytics from '../../utils/analytics';
 import { convertImageToBase64 } from '../../utils/imageUtils';
@@ -108,9 +109,15 @@ const InteriorStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType,
       }
 
       const prompt = generateDesignPrompt(designType, roomType, selectedStyle);
-      console.log('Calling GeminiDirectService with prompt:', prompt);
+      console.log('Calling geminiImageService with prompt:', prompt);
 
-      const responseData = await generateDesignDirectly(imageBase64, prompt);
+      const responseData = await generateGeminiImage({
+        prompt: prompt,
+        imageBase64: imageBase64,
+        designType: designType,
+        roomType: roomType,
+        style: selectedStyle,
+      });
 
       console.log('=== Direct Design Generation Response ===');
       console.log('Success:', responseData?.success);

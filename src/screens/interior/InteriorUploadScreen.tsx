@@ -23,8 +23,6 @@ type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => voi
 const LOCAL_INTERIOR_SAMPLES = [
   require('../../assets/Interior (1).webp'),
   require('../../assets/Interior (2).webp'),
-  require('../../assets/interiorslide1.webp'),
-  require('../../assets/interiorslide2.webp'),
 ];
 
 const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
@@ -36,9 +34,9 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     logScreenView('InteriorUploadScreen');
   }, []);
 
-  // Use style image if provided, otherwise use sample images
+  // Use style image if provided, otherwise use sample images (show only 2 samples)
   const sampleImages = styleImage
-    ? [styleImage, ...LOCAL_INTERIOR_SAMPLES.slice(0, 3)]
+    ? [styleImage, LOCAL_INTERIOR_SAMPLES[0]]
     : LOCAL_INTERIOR_SAMPLES;
 
   // Request camera permissions for Android

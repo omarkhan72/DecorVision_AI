@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { generateDesignDirectly } from '../../services/GeminiDirectService';
+import { generateGeminiImage } from '../../services/geminiImageService';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import * as analytics from '../../utils/analytics';
 import { convertImageToBase64 } from '../../utils/imageUtils';
@@ -114,9 +115,13 @@ const NewWallsStyleSelectionScreen = ({ onBack, onContinue, userImage, roomType 
 
       // Generate prompt from style
       const prompt = getWallsPrompt(selectedStyle);
-      console.log('Calling GeminiDirectService with prompt:', prompt);
+      console.log('Calling geminiImageService with prompt:', prompt);
 
-      const responseData = await generateDesignDirectly(imageBase64, prompt);
+      const responseData = await generateGeminiImage({
+        prompt: prompt,
+        imageBase64: imageBase64,
+        featureType: 'newwalls',
+      });
 
       console.log('=== Direct Walls Generation Response ===');
       console.log('Success:', responseData?.success);

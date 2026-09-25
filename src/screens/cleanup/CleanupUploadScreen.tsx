@@ -22,8 +22,6 @@ type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => voi
 const LOCAL_CLEANUP_SAMPLES = [
   require('../../assets/cleanup.webp'),
   require('../../assets/replace (1).webp'),
-  require('../../assets/replace (2).webp'),
-  require('../../assets/replace.webp'),
 ];
 
 const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
@@ -32,7 +30,7 @@ const CleanupUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Use style image if provided, otherwise use sample images
   const sampleImages = styleImage
-    ? [styleImage, ...LOCAL_CLEANUP_SAMPLES.slice(0, 3)]
+    ? [styleImage, LOCAL_CLEANUP_SAMPLES[0]]
     : LOCAL_CLEANUP_SAMPLES;
 
   // Request camera permissions for Android

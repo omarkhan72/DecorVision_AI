@@ -23,8 +23,6 @@ type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => voi
 const LOCAL_GARDEN_SAMPLES = [
   require('../../assets/Garden (1).webp'),
   require('../../assets/Garden (2).webp'),
-  require('../../assets/Gardenslide1.webp'),
-  require('../../assets/Gardenslide2.webp'),
 ];
 
 const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
@@ -36,9 +34,9 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     logScreenView('GardenUploadScreen');
   }, []);
 
-  // Use style image if provided, otherwise use sample images
+  // Use style image if provided, otherwise use sample images (show only 2 samples)
   const sampleImages = styleImage
-    ? [styleImage, ...LOCAL_GARDEN_SAMPLES.slice(0, 3)]
+    ? [styleImage, LOCAL_GARDEN_SAMPLES[0]]
     : LOCAL_GARDEN_SAMPLES;
 
   // Request camera permissions for Android

@@ -23,8 +23,6 @@ type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => voi
 const LOCAL_WALLS_SAMPLES = [
   require('../../assets/new-walls.webp'),
   require('../../assets/Interior (1).webp'),
-  require('../../assets/Interior (2).webp'),
-  require('../../assets/interiorslide1.webp'),
 ];
 
 const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
@@ -38,7 +36,7 @@ const NewWallsUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
 
   // Use style image if provided, otherwise use sample images
   const sampleImages = styleImage
-    ? [styleImage, ...LOCAL_WALLS_SAMPLES.slice(0, 3)]
+    ? [styleImage, LOCAL_WALLS_SAMPLES[0]]
     : LOCAL_WALLS_SAMPLES;
 
   // Request camera permissions for Android

@@ -23,8 +23,6 @@ type Props = { onBack: () => void; onContinue?: (imageUri: string | null) => voi
 const LOCAL_EXTERIOR_SAMPLES = [
   require('../../assets/exterior  (1).webp'),
   require('../../assets/exterior  (2).webp'),
-  require('../../assets/Exteriorslide1 (1).webp'),
-  require('../../assets/Exteriorslide2.webp'),
 ];
 
 const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
@@ -36,9 +34,9 @@ const ExteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     logScreenView('ExteriorUploadScreen');
   }, []);
 
-  // Use style image if provided, otherwise use sample images
+  // Use style image if provided, otherwise use sample images (show only 2 samples)
   const sampleImages = styleImage
-    ? [styleImage, ...LOCAL_EXTERIOR_SAMPLES.slice(0, 3)]
+    ? [styleImage, LOCAL_EXTERIOR_SAMPLES[0]]
     : LOCAL_EXTERIOR_SAMPLES;
 
   // Request camera permissions for Android

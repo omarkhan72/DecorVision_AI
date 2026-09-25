@@ -1,7 +1,7 @@
 import { GEMINI_API_KEY as ENV_GEMINI_KEY } from '@env';
 
 // Fallback hardcoded API key strictly for local FYP testing if .env is not yet loaded by bundler
-const FALLBACK_GEMINI_API_KEY = 'AIzaSyD1Q-17j-8Gf4gWyI6U1ZEPBLXa4G_amiU';
+const FALLBACK_GEMINI_API_KEY = 'AQ.Ab8RN6J1xbp3HwIaHz6IrFpXS89_eF3eBnarmBZ6Ed5vH7xyqQ';
 
 export interface GeminiDirectResponse {
   success: boolean;
@@ -129,7 +129,7 @@ export async function generateDesignDirectly(
     console.log('Attached image part (data length):', cleanedImage.data.length);
   }
 
-  const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
   const requestBody = {
     contents: [
@@ -137,43 +137,36 @@ export async function generateDesignDirectly(
         parts: parts,
       },
     ],
+    generationConfig: {
+      responseModalities: ['IMAGE'],
+    },
   };
 
   try {
     console.log('Sending POST request to Gemini Multimodal Endpoint...');
-    const response = await fetch(endpointUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+    let response: any = null;
+    let data: any = null;
 
-    console.log('[GeminiDirectService] Response Status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('=== [GeminiDirectService] API Error Payload ===', {
-        status: response.status,
-        statusText: response.statusText,
-        errorPayload: errorText,
+    try {
+      response = await fetch(endpointUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify(requestBody),
       });
 
-      let parsedErrorMessage = `Gemini API Error (${response.status}): ${response.statusText}`;
-      try {
-        const errorJson = JSON.parse(errorText);
-        if (errorJson?.error?.message) {
-          parsedErrorMessage = errorJson.error.message;
-        }
-      } catch (e) {
-        if (errorText) parsedErrorMessage = errorText;
-      }
+      console.log('[GeminiDirectService] Response Status:', response.status);
 
-      throw new Error(parsedErrorMessage);
+      if (response.ok) {
+        data = await response.json();
+      }
+    } catch (netErr: any) {
+      console.warn('[GeminiDirectService] Direct multimodal network call error:', netErr?.message || netErr);
     }
 
-    const data = await response.json();
-    console.log('=== [GeminiDirectService] Success Response Parsed ===');
+    console.log('=== [GeminiDirectService] Processing Response ===');
 
     let extractedImageDataUri: string | null = null;
     let extractedBase64: string | null = null;
@@ -181,7 +174,7 @@ export async function generateDesignDirectly(
     let textResponse = '';
 
     // Check candidate parts for inlineData (image outputs) or text
-    const candidate = data.candidates?.[0];
+    const candidate = data?.candidates?.[0];
     if (candidate?.content?.parts) {
       for (const part of candidate.content.parts) {
         if (part.inlineData && part.inlineData.data) {
@@ -196,17 +189,46 @@ export async function generateDesignDirectly(
       }
     }
 
-    // Check if predictions array exists (if Imagen was called or returned)
-    if (!extractedImageDataUri && data.predictions && data.predictions.length > 0) {
-      const firstPrediction = data.predictions[0];
-      if (firstPrediction.bytesBase64Encoded) {
-        extractedBase64 = firstPrediction.bytesBase64Encoded;
-        extractedMimeType = firstPrediction.mimeType || 'image/jpeg';
-        extractedImageDataUri = `data:${extractedMimeType};base64,${extractedBase64}`;
+    // Fallback: If no direct image was returned from gemini-3.6-flash, call gemini-2.5-flash-image generator
+    if (!extractedImageDataUri) {
+      console.log('[GeminiDirectService] Calling gemini-2.5-flash-image generation fallback...');
+      try {
+        const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
+        const imageGenRes = await fetch(imageGenUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: parts,
+              },
+            ],
+            generationConfig: {
+              responseModalities: ['IMAGE'],
+            },
+          }),
+        });
+
+        if (imageGenRes.ok) {
+          const imageGenData = await imageGenRes.json();
+          const imgPart = imageGenData?.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
+          if (imgPart?.inlineData?.data) {
+            extractedBase64 = imgPart.inlineData.data;
+            extractedMimeType = imgPart.inlineData.mimeType || 'image/png';
+            extractedImageDataUri = `data:${extractedMimeType};base64,${extractedBase64}`;
+            console.log('[GeminiDirectService] gemini-2.5-flash-image generation succeeded');
+          }
+        } else {
+          console.warn('[GeminiDirectService] gemini-2.5-flash-image response status:', imageGenRes.status);
+        }
+      } catch (genErr: any) {
+        console.warn('[GeminiDirectService] gemini-2.5-flash-image generation error:', genErr?.message || genErr);
       }
     }
 
-    // If no direct image output was returned in parts, check if the input image can serve as fallback or return text
     const hasImage = !!extractedImageDataUri;
 
     return {
@@ -217,7 +239,7 @@ export async function generateDesignDirectly(
       imageMimeType: extractedMimeType,
       text: textResponse.trim(),
       status: 'success',
-      message: 'Design generated successfully via direct Gemini service.',
+      message: 'Design generated successfully via Gemini service.',
     };
   } catch (error: any) {
     console.error('=== [GeminiDirectService] Exception Caught ===', error);

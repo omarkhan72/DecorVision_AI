@@ -52,7 +52,8 @@ import StyleDetailScreen from '../interior/StyleDetailScreen';
 import ReplaceMaskScreen from '../object_replace/ReplaceMaskScreen';
 import ReplacePromptScreen from '../object_replace/ReplacePromptScreen';
 import BlueprintPromptScreen from '../blueprint/BlueprintPromptScreen';
-import { generateDesignDirectly } from '../../services/GeminiDirectService';
+
+import { generateGeminiImage } from '../../services/geminiImageService';
 import { Alert } from 'react-native';
 import { logScreenView, logButtonClick } from '../../utils/crashlytics';
 import { convertImageToBase64 } from '../../utils/imageUtils';
@@ -258,10 +259,14 @@ const HomeScreen = () => {
         }
       }
 
-      console.log('Calling GeminiDirectService for replace...');
+      console.log('Calling geminiImageService for replace (designReplace endpoint)...');
       const fullReplacePrompt = `Replace the masked object/area in this room with: ${prompt.trim()}. Seamlessly blend it with the surrounding lighting, materials, perspectives, and shadows. Photorealistic, 8k resolution, professional architectural interior photography.`;
-
-      const responseData = await generateDesignDirectly(originalImageBase64, fullReplacePrompt);
+      const responseData = await generateGeminiImage({
+        prompt: fullReplacePrompt,
+        imageBase64: originalImageBase64,
+        maskImageBase64: maskImageBase64,
+        featureType: 'replace',
+      });
 
       console.log('=== Direct Replace Response ===');
       console.log('Success:', responseData?.success);
@@ -320,8 +325,12 @@ const HomeScreen = () => {
         throw new Error('Failed to convert blueprint image to base64');
       }
 
-      console.log('Calling GeminiDirectService for blueprint 3D conversion...');
-      const responseData = await generateDesignDirectly(imageBase64, prompt);
+      console.log('Calling geminiImageService for blueprint 3D conversion...');
+      const responseData = await generateGeminiImage({
+        prompt: prompt,
+        imageBase64: imageBase64,
+        featureType: '3dmaker',
+      });
 
       console.log('=== Direct Blueprint 3D Response ===');
       console.log('Success:', responseData?.success);
@@ -928,7 +937,7 @@ const HomeScreen = () => {
                         afterImage={LOCAL_ASSETS.blueprintSlide2}
                         sliderWidth={cardWidth}
                         containerStyle={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                        startFrom="left"
+                        startFrom="right"
                       />
                     </View>
                   ) : (
