@@ -19,6 +19,20 @@ export const convertImageToBase64 = async (uri: string): Promise<string | null> 
     }
 
     // Handle file:// and content:// with RNFS
+    if (uri.startsWith('content://')) {
+      try {
+        const destPath = `${RNFS.CachesDirectoryPath}/temp_img_${Date.now()}.jpg`;
+        await RNFS.copyFile(uri, destPath);
+        const base64 = await RNFS.readFile(destPath, 'base64');
+        await RNFS.unlink(destPath).catch(() => {});
+        if (base64) {
+          return `data:image/jpeg;base64,${base64}`;
+        }
+      } catch (contentErr) {
+        console.warn('RNFS content copy failed, trying direct readFile:', contentErr);
+      }
+    }
+
     if (uri.startsWith('file://') || uri.startsWith('content://') || uri.startsWith('/')) {
       try {
         const filePath = uri.startsWith('file://') ? uri.replace('file://', '') : uri;

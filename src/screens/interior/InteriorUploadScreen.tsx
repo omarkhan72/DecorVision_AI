@@ -94,7 +94,10 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       console.log('Image width:', asset.width);
       console.log('Image height:', asset.height);
 
-      if (asset.uri) {
+      if (asset.base64) {
+        setSelectedImage(`data:${asset.type || 'image/jpeg'};base64,${asset.base64}`);
+        console.log('Image base64 set in state successfully');
+      } else if (asset.uri) {
         setSelectedImage(asset.uri);
         console.log('Image URI set in state successfully');
       } else {
@@ -119,6 +122,9 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        includeBase64: true,
         selectionLimit: 1,
       },
       handleImageResponse
@@ -146,6 +152,9 @@ const InteriorUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        includeBase64: true,
       },
       handleImageResponse
     );

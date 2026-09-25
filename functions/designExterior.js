@@ -12,7 +12,48 @@ const logger = require('firebase-functions/logger');
 /**
  * Build a detailed exterior design prompt based on building type and style.
  */
-function buildExteriorPrompt(roomType, style) {
+function buildExteriorPrompt(roomType, style, hasImage = false) {
+  if (hasImage) {
+    let prompt = `Redesign and renovate this real ${roomType} exterior into a stunning, photorealistic ${style} architectural masterpiece. `;
+    prompt += `Keep the original building footprint, camera angle, and perspective, but completely upgrade the exterior facade, materials, siding, roofing, windows, front entryway, exterior lighting, and landscaping to match the ${style} architectural style: `;
+    switch (style) {
+      case 'modern':
+        prompt += 'smooth stucco or architectural panels, large glass windows, clean geometric rooflines, contemporary dark accents, and minimalist modern landscaping.';
+        break;
+      case 'cozy':
+        prompt += 'warm exterior materials, inviting front porch, welcoming entryway, charming window trim, warm exterior lighting, and cottage landscaping.';
+        break;
+      case 'luxury':
+        prompt += 'premium natural stone cladding, grand entry, bespoke architectural lighting, high-end roof finishes, manicured estate landscaping, and stunning curb appeal.';
+        break;
+      case 'minimalist':
+        prompt += 'monochromatic color palette, seamless cladding, hidden gutters, sleek modern windows, and pristine architectural simplicity.';
+        break;
+      case 'scandinavian':
+        prompt += 'light natural timber cladding, crisp white or dark contrast elements, clean vertical lines, and simple Nordic architectural details.';
+        break;
+      case 'rustic':
+        prompt += 'natural fieldstone facade, heavy timber porch posts, cedar shake or board-and-batten siding, and natural organic charm.';
+        break;
+      case 'zen':
+        prompt += 'harmonious natural wood slats, dark metal accents, peaceful stone entryway, Japanese landscape elements, and balanced proportions.';
+        break;
+      case 'tropical':
+        prompt += 'island-inspired exterior, louvered shutters, lush tropical garden surroundings, natural stone walkways, and resort-style facade.';
+        break;
+      case 'coastal':
+        prompt += 'shingle or weatherboard siding in coastal tones, white trim, expansive windows capturing light, and beachside landscape plants.';
+        break;
+      case 'vintage':
+        prompt += 'historic architectural charm, detailed cornices and window surrounds, classic front porch, and timeless heritage elegance.';
+        break;
+      default:
+        prompt += 'beautiful exterior renovations and professional curb appeal matching the selected style.';
+    }
+    prompt += ' High-end architectural photography, 8k resolution, golden hour lighting, perfectly rendered.';
+    return prompt;
+  }
+
   let prompt = `Transform this ${roomType} exterior into a stunning, photorealistic ${style} style architectural design. `;
 
   switch (style) {
@@ -83,7 +124,7 @@ exports.designExterior = onCall(
 
       const { generateGeminiImage } = require('./services/geminiImageService');
 
-      const prompt = buildExteriorPrompt(roomType, style);
+      const prompt = buildExteriorPrompt(roomType, style, !!imageBase64);
       console.log('[designExterior] Prompt:', prompt);
 
       const result = await generateGeminiImage({

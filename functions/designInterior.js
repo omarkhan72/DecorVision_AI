@@ -12,7 +12,54 @@ const logger = require('firebase-functions/logger');
 /**
  * Build a detailed interior design prompt based on room type and style.
  */
-function buildInteriorPrompt(roomType, style) {
+function buildInteriorPrompt(roomType, style, hasImage = false) {
+  if (hasImage) {
+    let prompt = `Redesign and transform this real ${roomType} interior into a stunning, photorealistic ${style} style room design. `;
+    prompt += `Maintain the original room perspective, camera angle, and architectural wall/window structure, but completely redesign the interior: replace the existing furniture, decor, lighting, wall finishes, and color palette with premium ${style} interior elements: `;
+    switch (style) {
+      case 'modern':
+        prompt += 'sleek contemporary furniture, clean lines, neutral colors with bold accents, modern lighting fixtures, and high-end finishes.';
+        break;
+      case 'cozy':
+        prompt += 'warm textures, plush comfortable seating, layered fabrics, soft ambient lighting, warm earth tones, and an inviting homey atmosphere.';
+        break;
+      case 'luxury':
+        prompt += 'opulent high-end designer furniture, marble and brass accents, rich sophisticated color palette, statement chandelier lighting, and bespoke architectural details.';
+        break;
+      case 'minimalist':
+        prompt += 'simple uncluttered spaces, functional designer furniture, neutral tones, concealed storage, and abundant clean natural light.';
+        break;
+      case 'scandinavian':
+        prompt += 'light wood finishes, warm textiles, clean white walls, functional minimalist furniture, and a tranquil hygge ambiance.';
+        break;
+      case 'airbnb':
+        prompt += 'stylish welcoming space, photogenic Instagram-worthy decor, comfortable seating, good ambient lighting, and practical layout.';
+        break;
+      case 'midcentury':
+        prompt += 'iconic mid-century modern furniture, walnut and teak wood, retro geometric patterns, warm hues, and vintage designer accents.';
+        break;
+      case 'rustic':
+        prompt += 'exposed timber beams, natural stone textures, reclaimed wood furniture, warm earthy colors, and cozy country charm.';
+        break;
+      case 'zen':
+        prompt += 'peaceful organic minimalism, low-profile furniture, natural bamboo and light wood, soft diffused lighting, and tranquil balance.';
+        break;
+      case 'tropical':
+        prompt += 'lush indoor palms, natural rattan and bamboo furnishings, vibrant botanical accents, and airy resort-inspired feel.';
+        break;
+      case 'coastal':
+        prompt += 'light ocean blues and crisp whites, natural jute and linen textures, weathered wood accents, and bright breezy coastal aesthetic.';
+        break;
+      case 'vintage':
+        prompt += 'curated antique furniture, classic wainscoting or moldings, warm nostalgic colors, ornamental frames, and timeless elegance.';
+        break;
+      default:
+        prompt += 'beautiful designer furniture and decor perfectly suited to the selected style.';
+    }
+    prompt += ' The final image must look like a high-end architectural digest photograph, 8k resolution, perfectly rendered with realistic lighting.';
+    return prompt;
+  }
+
   let prompt = `Transform this ${roomType} into a stunning, photorealistic ${style} style interior design. `;
 
   switch (style) {
@@ -90,7 +137,7 @@ exports.designInterior = onCall(
 
       const { generateGeminiImage } = require('./services/geminiImageService');
 
-      const prompt = buildInteriorPrompt(roomType, style);
+      const prompt = buildInteriorPrompt(roomType, style, !!imageBase64);
       console.log('[designInterior] Prompt:', prompt);
 
       const result = await generateGeminiImage({

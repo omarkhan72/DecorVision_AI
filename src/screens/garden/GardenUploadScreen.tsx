@@ -80,7 +80,9 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
     }
     if (response.assets && response.assets[0]) {
       const asset = response.assets[0];
-      if (asset.uri) {
+      if (asset.base64) {
+        setSelectedImage(`data:${asset.type || 'image/jpeg'};base64,${asset.base64}`);
+      } else if (asset.uri) {
         setSelectedImage(asset.uri);
       } else {
         Alert.alert('Error', 'Selected image has no valid path');
@@ -100,6 +102,9 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        includeBase64: true,
         selectionLimit: 1,
       },
       handleImageResponse
@@ -120,6 +125,9 @@ const GardenUploadScreen = ({ onBack, onContinue, styleImage }: Props) => {
       {
         mediaType: 'photo' as MediaType,
         quality: 0.8,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        includeBase64: true,
       },
       handleImageResponse
     );

@@ -231,10 +231,14 @@ export async function generateDesignDirectly(
 
     const hasImage = !!extractedImageDataUri;
 
+    if (!hasImage || !extractedBase64) {
+      throw new Error('Image generation did not produce a redesigned image. Please try again with a different style or photo.');
+    }
+
     return {
       success: true,
-      hasImage: hasImage,
-      imageDataUri: extractedImageDataUri || (base64Image ? (base64Image.startsWith('data:') ? base64Image : `data:image/jpeg;base64,${base64Image}`) : null),
+      hasImage: true,
+      imageDataUri: extractedImageDataUri,
       imageBase64: extractedBase64,
       imageMimeType: extractedMimeType,
       text: textResponse.trim(),

@@ -39,8 +39,9 @@ function resolveFeatureType(options: GenerateImageOptions): GenerateImageOptions
 
 /**
  * Shared timeout wrapper for Cloud Function calls.
+ * 120s ensures plenty of time for AI image generation and storage upload.
  */
-function withTimeout<T>(promise: Promise<T>, timeoutMs = 50000): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, timeoutMs = 120000): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
