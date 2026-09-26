@@ -1,5 +1,6 @@
 import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
 import { generateDesignDirectly, GeminiDirectResponse } from './GeminiDirectService';
+import { generateDesignWithOpenAI, generateOpenAIDesignPrompt } from './OpenAIDirectService';
 
 export interface GenerateImageOptions {
   prompt: string;
@@ -57,7 +58,7 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs = 120000): Promise<T> {
  * independent scaling, and best-practice separation of concerns.
  *
  * Endpoint Map:
- *   interior   → designInterior
+ *   interior   → OpenAI gpt-image-1 (primary) → designInterior Cloud Function (fallback)
  *   exterior   → designExterior
  *   garden     → designGarden
  *   newwalls   → designNewWalls
@@ -70,26 +71,52 @@ export async function generateGeminiImage(options: GenerateImageOptions): Promis
 
   console.log('=== [geminiImageService] Initiating Image Generation ===');
   console.log('Prompt:', prompt);
-  console.log('Model: gemini-3.6-flash (via dedicated Cloud Function)');
 
   const featureType = resolveFeatureType(options);
   console.log('Feature type resolved:', featureType);
 
-  try {
-    const functions = getFunctions();
+  // ─────────────────────────────────────────────────────────────────────────
+  // INTERIOR DESIGN: Try OpenAI direct call FIRST (works without deployment)
+  // ─────────────────────────────────────────────────────────────────────────
+  if (featureType === 'interior' && roomType && style) {
+    console.log('[geminiImageService] → Interior: Trying OpenAI gpt-image-1 first...');
+    try {
+      const openaiPrompt = generateOpenAIDesignPrompt('interior', roomType, style, !!imageBase64);
+      const openaiResult = await generateDesignWithOpenAI(imageBase64, openaiPrompt);
 
-    // -------------------------------------------------------------------------
-    // Route to the dedicated Cloud Function endpoint for each feature
-    // -------------------------------------------------------------------------
-    if (featureType === 'interior' && roomType && style) {
-      console.log('[geminiImageService] → Calling designInterior endpoint');
+      if (openaiResult?.success && (openaiResult?.imageDataUri || openaiResult?.imageBase64)) {
+        console.log('[geminiImageService] ✅ OpenAI interior design succeeded!');
+        return openaiResult;
+      }
+    } catch (openaiErr: any) {
+      console.warn('[geminiImageService] OpenAI failed, falling back:', openaiErr?.message);
+    }
+
+    // Fallback: try Cloud Function
+    console.log('[geminiImageService] → Interior: Falling back to designInterior Cloud Function...');
+    try {
+      const functions = getFunctions();
       const fn = httpsCallable(functions, 'designInterior');
       const res: any = await withTimeout(fn({ roomType, style, imageBase64 }));
       if (res?.data?.success) {
         return mapCloudResult(res.data, 'designInterior');
       }
+    } catch (cfErr: any) {
+      console.warn('[geminiImageService] Cloud Function fallback failed:', cfErr?.message);
+    }
 
-    } else if (featureType === 'exterior' && roomType && style) {
+    // Final fallback: direct Gemini
+    console.log('[geminiImageService] → Interior: Final fallback to direct Gemini API...');
+    return await generateDesignDirectly(imageBase64, prompt);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ALL OTHER FEATURES: Use Cloud Functions → Gemini fallback (unchanged)
+  // ─────────────────────────────────────────────────────────────────────────
+  try {
+    const functions = getFunctions();
+
+    if (featureType === 'exterior' && roomType && style) {
       console.log('[geminiImageService] → Calling designExterior endpoint');
       const fn = httpsCallable(functions, 'designExterior');
       const res: any = await withTimeout(fn({ roomType, style, imageBase64 }));
@@ -168,3 +195,4 @@ function mapCloudResult(data: any, endpoint: string): GeminiDirectResponse {
 export default {
   generateGeminiImage,
 };
+
